@@ -74,6 +74,8 @@ const HomeScreen = (props) => {
 
 HomeScreen.navigationOptions = (navData) => {
   return {
+    headerLeftShown: false,
+    headerBackTitleVisible: false,
     headerTitle: "Inventario:___",
     headerRight: () => (
       <HeaderButtons HeaderButtonComponent={HeaderButton}>
@@ -81,7 +83,7 @@ HomeScreen.navigationOptions = (navData) => {
           title="Producto"
           iconName={Platform.OS === "android" ? "md-add" : "ios-add"}
           onPress={() => {
-            navData.navigation.navigate("ScanScreen");
+            navData.navigation.navigate("Scan");
           }}
         />
       </HeaderButtons>
