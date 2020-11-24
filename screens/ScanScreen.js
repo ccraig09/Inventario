@@ -6,8 +6,12 @@ import {
   Button,
   Platform,
   FlatList,
+  Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { useSelector, useDispatch } from "react-redux";
+import * as sendProduct from "../store/productActions";
+
 // import HeaderButton from "./components/HeaderButton";
 
 import { BarCodeScanner } from "expo-barcode-scanner";
@@ -16,6 +20,14 @@ const ScanScreen = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [scanner, setScanner] = useState(false);
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState();
+  const [quantity, setQuantity] = useState();
+  const [size, setSize] = useState("");
+  const [scanCount, setScanCount] = useState(0);
+  const [error, setError] = useState();
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     (async () => {
@@ -25,17 +37,35 @@ const ScanScreen = (props) => {
     setScanner(false);
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
-    setScanned(true);
-    console.log(data);
-    let result;
+  const scannerStart = () => {
+    setScanner(true);
+    setScanned(false);
+  };
 
+  const uploadProduct = (title, price, size, quantity) => {
+    // console.log("uploading product details", title, price, size, quantity);
+    try {
+      dispatch(sendProduct.createProduct(title, price, size, quantity));
+    } catch (err) {
+      setError(err.message);
+      console.log(error);
+    }
+  };
+
+  const handleBarCodeScanned = async ({ type, data }) => {
+    setScanned(true);
+
+    let result;
     if (data) {
       result = data;
     }
+
     if (data === "7771214003646") {
-      result =
-        "Producto escaneado: \n Salsa Golf \n Tamaño: 380ml \n Precio: 16bs \n Cantidad Total: 6";
+      setTitle("Salsa Golf");
+      setSize("380ml");
+      setPrice(16);
+      setQuantity(6);
+      result = `${title} \n Tamaño: ${size} \n Precio: ${price}bs \n Cantidad Total: ${quantity}`;
     }
     if (data === "7772106001450") {
       result =
@@ -49,7 +79,27 @@ const ScanScreen = (props) => {
       result =
         "Producto escaneado: \n Agua Vital sin gas \n Tamaño: 3litro \n Precio: 10bs \n Cantidad Total: 3";
     }
-    alert(`${result}`);
+
+    uploadProduct(title, size, price, quantity);
+
+    Alert.alert(
+      "Producto escaneado:",
+      `${result}`,
+      [
+        {
+          text: "Volver",
+          onPress: () => {
+            props.navigation.navigate("Home");
+          },
+          style: "cancel",
+        },
+        { text: "Escanear", onPress: () => setScanned(false) },
+      ],
+      { cancelable: false }
+    );
+
+    setScanCount(scanCount + 1);
+    console.log(data);
   };
 
   if (hasPermission === null) {
@@ -68,7 +118,7 @@ const ScanScreen = (props) => {
           alignItems: "center",
         }}
       >
-        <Button title={"Abrir Scanner"} onPress={() => setScanner(true)} />
+        <Button title={"Abrir Scanner"} onPress={() => scannerStart()} />
       </View>
     );
   }
@@ -77,23 +127,37 @@ const ScanScreen = (props) => {
       <View
         style={{
           flex: 1,
-          flexDirection: "column",
-          justifyContent: "flex-end",
+          // marginTop: 40,
+          // flexDirection: "column",
+          // justifyContent: "flex-end",
         }}
       >
-        <BarCodeScanner
-          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-          style={StyleSheet.absoluteFillObject}
-        />
+        <View
+          style={{
+            flex: 0.6,
+            // marginTop: 40,
+            // flexDirection: "column",
+            // justifyContent: "flex-end",
+          }}
+        >
+          <BarCodeScanner
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+            style={StyleSheet.absoluteFillObject}
+          />
+        </View>
 
-        {scanned && (
-          <View style={{ marginBottom: 40 }}>
-            <Button
-              title={"Escanear de nuevo"}
-              onPress={() => setScanned(false)}
-            />
-          </View>
-        )}
+        {/* {scanned && ( */}
+
+        {/* )} */}
+        <View style={{ marginBottom: 20, marginLeft: 20, marginTop: 20 }}>
+          <Text style={{ fontSize: 15, fontWeight: "bold" }}>
+            Cosas escaneado: {scanCount}
+          </Text>
+          {/* <Button
+           title={"Escanear de nuevo"}
+           onPress={() => setScanned(false)}
+         /> */}
+        </View>
       </View>
     );
   }

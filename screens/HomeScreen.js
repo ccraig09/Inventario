@@ -1,58 +1,76 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
   View,
   Button,
   Platform,
+  ScrollView,
   FlatList,
+  RefreshControl,
+  Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import HeaderButton from "../components/HeaderButton";
+import styled, { useTheme } from "styled-components";
 
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
+import { useSelector, useDispatch } from "react-redux";
+import * as authActions from "../store/authAction";
+import * as ProdActions from "../store/productActions";
 
 import { BarCodeScanner } from "expo-barcode-scanner";
+import ProductItem from "../components/ProductItem";
 
 const HomeScreen = (props) => {
+  const dispatch = useDispatch();
+
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [scanner, setScanner] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const userProducts = useSelector((state) => {
+    const transformedProducts = [];
+    for (const key in state.products.products) {
+      transformedProducts.push({
+        productId: key,
+        productTitle: state.products.products[key].title,
+        productPrice: state.products.products[key].price,
+        productOwner: state.products.products[key].ownerId,
+        productQuantity: state.products.products[key].quantity,
+        productSize: state.products.products[key].size,
+        docTitle: state.products.products[key].docTitle,
+      });
+    }
+    return transformedProducts;
+  });
+
+  const loadDetails = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await dispatch(ProdActions.fetchProducts());
+    } catch (err) {
+      setError(err.message);
+    }
+    setIsRefreshing(false);
+  });
 
   useEffect(() => {
+    const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
+    return () => {
+      willFocusSub.remove();
+    };
+  }, [loadDetails]);
+
+  useEffect(() => {
+    loadDetails();
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
     })();
     setScanner(false);
   }, []);
-
-  const handleBarCodeScanned = ({ type, data }) => {
-    setScanned(true);
-    console.log(data);
-    let result;
-
-    if (data) {
-      result = data;
-    }
-    if (data === "7771214003646") {
-      result =
-        "Producto escaneado: \n Salsa Golf \n Tamaño: 380ml \n Precio: 16bs \n Cantidad Total: 6";
-    }
-    if (data === "7772106001450") {
-      result =
-        "Producto escaneado: \n 7-up \n Tamaño: 500ml \n Precio: 5bs \n Cantidad Total: 5";
-    }
-    if (data === "7771609003268") {
-      result =
-        "Producto escaneado: \n Powerade azul \n Tamaño: 1litro \n Precio: 10bs \n Cantidad Total: 3";
-    }
-    if (data === "7771609001677") {
-      result =
-        "Producto escaneado: \n Agua Vital sin gas \n Tamaño: 3litro \n Precio: 10bs \n Cantidad Total: 3";
-    }
-    alert(`${result}`);
-  };
 
   if (hasPermission === null) {
     return <Text>Requesting for camera permission</Text>;
@@ -62,13 +80,59 @@ const HomeScreen = (props) => {
   }
 
   return (
-    <View>
-      <Text>Hello</Text>
-      <Button
-        title={"Escanear"}
-        onPress={() => props.navigation.navigate("Scan")}
-      />
-    </View>
+    <Container>
+      <View>
+        <Text>Hello</Text>
+        <FlatList
+          refreshControl={
+            <RefreshControl
+              colors={["#9Bd35A", "#689F38"]}
+              refreshing={isRefreshing}
+              onRefresh={loadDetails}
+            />
+          }
+          data={userProducts}
+          keyExtractor={(item) => item.productId}
+          renderItem={(itemData) => (
+            <ProductItem
+              title={itemData.item.productTitle}
+              onSelect={() => {
+                alert("pressed");
+              }}
+              size={itemData.item.productSize}
+              price={itemData.item.productPrice}
+              quantity={itemData.item.productQuantity}
+            />
+          )}
+        />
+
+        <Button
+          title="Cerrar sesión"
+          onPress={() => {
+            Alert.alert("Cerrar sesión?", "", [
+              {
+                text: "No",
+                style: "default",
+              },
+              {
+                text: "Si",
+                style: "destructive",
+                onPress: () => {
+                  dispatch(authActions.logout());
+                  props.navigation.navigate("Auth");
+                },
+              },
+            ]);
+          }}
+        />
+        <Button
+          title={"refresh"}
+          onPress={() => {
+            loadDetails();
+          }}
+        />
+      </View>
+    </Container>
   );
 };
 
@@ -101,3 +165,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+
+const Container = styled.View`
+  flex: 1;
+  background-color: #f2f2f2;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+`;

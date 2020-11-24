@@ -1,11 +1,28 @@
 import React, { useEffect } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import firebase from "../components/firebase";
+import { useDispatch } from "react-redux";
+
+export const AUTHENTICATE = "AUTHENTICATE";
+
 const LoadingScreen = (props) => {
+  const dispatch = useDispatch();
+
+  const authenticate = (userId, token) => {
+    return (dispatch) => {
+      // dispatch(setLogoutTimer(expiryTime));
+      dispatch({ type: AUTHENTICATE, userId: userId });
+    };
+  };
   useEffect(() => {
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
-        props.navigation.navigate("HomeStaks");
+        var userId = user.uid.toString();
+        // console.log("this is tkn", token);
+        console.log("this is id", userId);
+
+        dispatch(authenticate(userId));
+        props.navigation.navigate("HomeStax");
       } else {
         props.navigation.navigate("Auth");
       }

@@ -12,7 +12,7 @@ const InventoryNavigator = createStackNavigator({
   Loading: LoadingScreen,
   Auth: AuthScreen,
   Signup: SignupScreen,
-  HomeStaks: HomeStack,
+  // HomeStaks: HomeStack,
 });
 
 const HomeStack = createStackNavigator({

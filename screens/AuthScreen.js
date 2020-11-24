@@ -13,6 +13,8 @@ import {
 } from "react-native";
 import { useDispatch } from "react-redux";
 
+export const AUTHENTICATE = "AUTHENTICATE";
+
 import firebase from "../components/firebase";
 
 // import * as authActions from "../store/actions/auth";
@@ -25,7 +27,26 @@ const AuthScreen = (props) => {
   const [isSignup, setIsSignUp] = useState(false);
   const dispatch = useDispatch();
 
+  const authenticate = (userId, token) => {
+    return (dispatch) => {
+      // dispatch(setLogoutTimer(expiryTime));
+      dispatch({ type: AUTHENTICATE, userId: userId, token: token });
+    };
+  };
+
   const onLoginSuccess = () => {
+    firebase.auth().onAuthStateChanged(function (user) {
+      if (user) {
+        // console.log("this is authstatechange user  ", user);
+        const userRes = user.toJSON().stsTokenManager;
+        var token = userRes.accessToken.toString();
+        var userId = user.uid.toString();
+        // console.log("this is tkn", token);
+        console.log("this is id", userId);
+
+        dispatch(authenticate(userId, token));
+      }
+    });
     props.navigation.navigate("Home");
   };
 
