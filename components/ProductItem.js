@@ -8,9 +8,9 @@ const ProductItem = (props) => {
       <Image style={styles.image} source={{ uri: props.image }} />
       <View style={styles.infoContainer}>
         <Text style={styles.title}>{props.title}</Text>
-        <Text style={styles.address}>{props.size}</Text>
-        <Text style={styles.address}>{props.price}</Text>
-        <Text style={styles.address}>{props.quantity}</Text>
+        <Text style={styles.address}>Tamaño: {props.size}</Text>
+        <Text style={styles.address}>Precio: {props.price}bs</Text>
+        <Text style={styles.address}>Cantidad Total: {props.quantity}</Text>
       </View>
     </TouchableOpacity>
   );

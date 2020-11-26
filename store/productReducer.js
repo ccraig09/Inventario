@@ -19,7 +19,8 @@ export default (state = initialState, action) => {
         action.productData.price,
         action.productData.quantity,
         action.productData.size,
-        action.productData.time
+        action.productData.time,
+        action.productData.code
       );
       return {
         ...state,

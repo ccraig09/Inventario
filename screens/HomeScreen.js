@@ -40,6 +40,7 @@ const HomeScreen = (props) => {
         productOwner: state.products.products[key].ownerId,
         productQuantity: state.products.products[key].quantity,
         productSize: state.products.products[key].size,
+        productcode: state.products.products[key].code,
         docTitle: state.products.products[key].docTitle,
       });
     }
@@ -82,7 +83,7 @@ const HomeScreen = (props) => {
   return (
     <Container>
       <View>
-        <Text>Hello</Text>
+        {/* <Text>Hello</Text> */}
         <FlatList
           refreshControl={
             <RefreshControl
@@ -140,7 +141,7 @@ HomeScreen.navigationOptions = (navData) => {
   return {
     headerLeftShown: false,
     headerBackTitleVisible: false,
-    headerTitle: "Inventario:___",
+    headerTitle: "Inventario: 4C",
     headerRight: () => (
       <HeaderButtons HeaderButtonComponent={HeaderButton}>
         <Item

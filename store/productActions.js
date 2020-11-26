@@ -17,7 +17,7 @@ export const fetchProducts = () => {
         const collection = querySnapshot.docs.map((doc) => {
           return { id: doc.id, ...doc.data() };
         });
-        console.log("this is collection", collection);
+        // console.log("this is collection", collection);
 
         const loadedProducts = [];
 
@@ -31,11 +31,12 @@ export const fetchProducts = () => {
               collection[key].quantity,
               collection[key].size,
               collection[key].time,
+              collection[key].code,
               collection[key].id
             )
           );
           //   loadedProducts.sort((a, b) => (a.time > b.time ? 1 : -1));
-          console.log("to dispatch:", loadedProducts);
+          //   console.log("to dispatch:", loadedProducts);
           console.log("this is userid for owenr", userId);
           dispatch({
             type: SET_PRODUCT,
@@ -49,18 +50,19 @@ export const fetchProducts = () => {
   };
 };
 
-export const createProduct = (title, price, quantity, size) => {
+export const createProduct = (title, price, quantity, size, code) => {
   return async (dispatch, getState) => {
     const userId = getState().auth.userId;
-    console.log(userId);
+    // console.log(userId);
     try {
-      await db.doc().set(
+      await db.doc(code).set(
         {
           title,
-          ownerId: userId,
           price,
           quantity,
           size,
+          code,
+          ownerId: userId,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
@@ -74,10 +76,10 @@ export const createProduct = (title, price, quantity, size) => {
             return { id: doc.id, ...doc.data() };
           });
 
-          console.log(
-            "on Create Collection Everything",
-            collection[0].timestamp
-          );
+          //   console.log(
+          //     "on Create Collection Everything",
+          //     collection[0].timestamp
+          //   );
           dispatch({
             type: CREATE_PRODUCT,
             productData: {
@@ -88,6 +90,56 @@ export const createProduct = (title, price, quantity, size) => {
               quantity,
               size,
               time: collection[0].timestamp,
+              code,
+              docTitle: collection[0].id,
+            },
+          });
+        })
+        .catch(function (error) {
+          console.log("Error getting document:", error);
+        });
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+export const updateQuantity = (quantity) => {
+  return async (dispatch, getState) => {
+    const userId = getState().auth.userId;
+    // console.log(userId);
+    try {
+      await db.doc(code).update(
+        {
+          quantity,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      const events = db;
+      await events
+        .get()
+        .then((querySnapshot) => {
+          const collection = querySnapshot.docs.map((doc) => {
+            return { id: doc.id, ...doc.data() };
+          });
+
+          //   console.log(
+          //     "on Create Collection Everything",
+          //     collection[0].timestamp
+          //   );
+          dispatch({
+            type: CREATE_PRODUCT,
+            productData: {
+              id: collection[0].id,
+              title,
+              ownerId: userId,
+              price,
+              quantity,
+              size,
+              time: collection[0].timestamp,
+              code,
               docTitle: collection[0].id,
             },
           });
