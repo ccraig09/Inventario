@@ -35,12 +35,12 @@ const HomeScreen = (props) => {
     for (const key in state.products.products) {
       transformedProducts.push({
         productId: key,
-        productTitle: state.products.products[key].title,
-        productPrice: state.products.products[key].price,
+        productTitle: state.products.products[key].Title,
+        productPrice: state.products.products[key].Price,
         productOwner: state.products.products[key].ownerId,
-        productQuantity: state.products.products[key].quantity,
-        productSize: state.products.products[key].size,
-        productcode: state.products.products[key].code,
+        productQuantity: state.products.products[key].Quantity,
+        productSize: state.products.products[key].Size,
+        productcode: state.products.products[key].Code,
         docTitle: state.products.products[key].docTitle,
       });
     }

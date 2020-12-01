@@ -23,14 +23,15 @@ const ScanScreen = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [scanner, setScanner] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState();
+  const [scanCount, setScanCount] = useState(0);
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState();
-  const [quantity, setQuantity] = useState(0);
   const [size, setSize] = useState("");
-  const [scanCount, setScanCount] = useState(0);
   const [code, setCode] = useState("");
-  const [error, setError] = useState();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [quantity, setQuantity] = useState(0);
+  const [value, setValue] = useState("");
 
   const dispatch = useDispatch();
   const updatedQuantity = useSelector((state) => state.products.products);
@@ -40,13 +41,13 @@ const ScanScreen = (props) => {
     for (const key in state.products.products) {
       transformedProducts.push({
         productId: key,
-        productTitle: state.products.products[key].title,
-        productPrice: state.products.products[key].price,
+        productTitle: state.products.products[key].Title,
+        productPrice: state.products.products[key].Price,
         productOwner: state.products.products[key].ownerId,
-        productQuantity: state.products.products[key].quantity,
-        productSize: state.products.products[key].size,
+        productQuantity: state.products.products[key].Quantity,
+        productSize: state.products.products[key].Size,
         productTime: state.products.products[key].time,
-        productcode: state.products.products[key].code,
+        productcode: state.products.products[key].Code,
         docTitle: state.products.products[key].docTitle,
       });
     }
@@ -60,12 +61,16 @@ const ScanScreen = (props) => {
     } catch (err) {
       setError(err.message);
     }
+    // const uQuantity = updatedQuantity.filter((quan) => quan.docTitle === Code);
+    // const UpdQuantity = uQuantity.length === 0 ? {} : uQuantity[0].Quantity;
+
     setIsRefreshing(false);
   });
 
   useEffect(() => {
     // console.log("quantity list", updatedQuantity[1].quantity);
     loadDetails();
+
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
@@ -75,96 +80,76 @@ const ScanScreen = (props) => {
 
   const scannerStart = () => {
     setScanner(true);
-    // setScanned(false);
+    setScanned(false);
   };
 
-  const uploadProduct = (title, price, size, quantity, code) => {
-    // const uQuantity = updatedQuantity.filter((quan) => quan.docTitle === code);
-    // const UpdQuantity = uQuantity[0].quantity;
-    // console.log("testing uQuantity result", UpdQuantity);
+  const uploadProduct = (Title, Price, Quantity, Size, Code) => {
+    // setQuantity((state) => {
+    //   console.log("i hope this is quantity", state); // "React is awesome!"
+
+    //   return state;
+    // });
+    console.log("data listed", Quantity);
+    // console.log("data listed", Title, Price, Quantity, Size, Code);
     try {
-      if (quantity > 1) {
+      if (Quantity > 1) {
+        console.log(
+          "item already exist, updating",
+          Title,
+          Price,
+          Quantity,
+          Size,
+          Code
+        );
+
         // setQuantity(UpdQuantity);
-        dispatch(sendProduct.updateQuantity(quantity + 1, code));
+        dispatch(
+          sendProduct.updateQuantity(Title, Price, Quantity, Size, Code)
+        );
       } else {
-        dispatch(sendProduct.createProduct(title, price, size, quantity, code));
+        console.log("first upload");
+        dispatch(sendProduct.createProduct(Title, Price, Quantity, Size, Code));
       }
     } catch (err) {
       setError(err.message);
       console.log(error);
     }
-    // console.log("data listed", title, price, size, quantity, code);
-  };
-
-  const handleBarCodeScanned2 = ({ type, data }) => {
-    setScanned(true);
-    let result;
-    // if (data) {
-    //   result = data;
-    // }
-
-    if (data === "7771214003646") {
-      setTitle("Salsa Golf");
-      setPrice(16);
-      setQuantity(quantity + 1);
-      setSize("380ml");
-      setCode(data.toString());
-
-      result = `${title} \n Tamaño: ${size} \n Precio: ${price}bs \n Cantidad Total: ${quantity} \n Codigo: ${code}`;
-    }
-    Alert.alert(
-      "Producto escaneado:",
-      `${result}`,
-      [
-        {
-          text: "Volver",
-          onPress: () => {
-            props.navigation.navigate("Home"), setScanned(false);
-          },
-          style: "cancel",
-        },
-        { text: "Escanear", onPress: () => setScanned(false) },
-      ],
-      { cancelable: false }
-    );
   };
 
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-    console.log("this is the tupe", type);
-    dispatch(ProdActions.fetchProducts());
+    let Title;
+    let Price;
+    let Quantity;
+    let Size;
+    let Code;
     let result;
     if (data) {
       result = data;
     }
 
     if (data === "7771214003646") {
-      setTitle("Salsa Golf");
-      setPrice(16);
-      setQuantity(quantity + 1);
-      setSize("380ml");
-      setCode(data.toString());
+      Title = "Salsa Golf";
+      Price = 16;
+      Size = "350";
+      Quantity = quantity + 1;
+      console.log("this is var Quantity", Quantity);
+      Code = data.toString();
+      setQuantity(Quantity);
 
-      result = `${title} \n Tamaño: ${size} \n Precio: ${price}bs \n Cantidad Total: ${quantity} \n Codigo: ${code}`;
+      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Cantidad Total: ${Quantity} \n Codigo: ${Code}`;
     }
-    // if (data === "7771214003646" && quantity > 1) {
-    //   console.log("dup");
-    //   setTitle("Salsa Golf");
-    //   setPrice(16);
-    //   setQuantity(quantity + 1);
-    //   setSize("380ml");
-    //   setCode(data.toString());
 
-    //   result = `${title} \n Tamaño: ${size} \n Precio: ${price}bs \n Cantidad Total: ${quantity} \n Codigo: ${code}`;
-    // }
     if (data === "7590011251100") {
-      setTitle("Galletas de Oreo");
-      setPrice(4);
-      setQuantity(quantity + 1);
-      setSize("1");
-      setCode(data.toString());
+      Title = "Galletas de Oreo";
+      Price = 4;
+      Size = "1";
+      Quantity = quantity + 1;
+      console.log("this is var Quantity", Quantity);
+      Code = data.toString();
+      setQuantity(Quantity);
 
-      result = `${title} \n Tamaño: ${size} \n Precio: ${price}bs \n Cantidad Total: ${quantity} \n Codigo: ${code}`;
+      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Cantidad Total: ${Quantity} \n Codigo: ${Code}`;
     }
     if (data === "7759185002158") {
       setTitle("Elite Kleenex");
@@ -188,11 +173,21 @@ const ScanScreen = (props) => {
         "Producto escaneado: \n Agua Vital sin gas \n Tamaño: 3litro \n Precio: 10bs \n Cantidad Total: 3";
     }
 
-    uploadProduct(title, price, quantity, size, code);
+    // setTitle(Title);
+    // setPrice(Price);
+    // setQuantity(Quantity);
+    // setSize(Size);
+    // setCode(Code);
+
+    uploadProduct(Title, Price, Quantity, Size, Code);
+
+    // const uQuantity = updatedQuantity.filter((quan) => quan.docTitle === Code);
+    // const UpdQuantity = uQuantity.length === 0 ? {} : uQuantity[0].Quantity;
+    // console.log("testing uQuantity result", UpdQuantity);
 
     Alert.alert(
       "Producto escaneado:",
-      `${result}`,
+      result,
       [
         {
           text: "Volver",
@@ -205,7 +200,12 @@ const ScanScreen = (props) => {
       ],
       { cancelable: false }
     );
-
+    loadDetails();
+    const UpdQuantity =
+      userProducts.length === 0 ? {} : userProducts[0].productQuantity;
+    setQuantity(UpdQuantity);
+    console.log("testing uQuantity result", UpdQuantity);
+    console.log("finally test for quantity result", quantity);
     setScanCount(scanCount + 1);
     console.log(data);
   };
@@ -243,13 +243,15 @@ const ScanScreen = (props) => {
         <View
           style={{
             height: "60%",
+            width: "100%",
             // marginTop: 40,
             // flexDirection: "column",
             // justifyContent: "flex-end",
           }}
         >
           <BarCodeScanner
-            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned2}
+            barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
             style={StyleSheet.absoluteFillObject}
           />
         </View>

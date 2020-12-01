@@ -14,13 +14,13 @@ export default (state = initialState, action) => {
     case CREATE_PRODUCT:
       const newProduct = new Product(
         action.productData.id,
-        action.productData.title,
+        action.productData.Title,
         action.productData.ownerId,
-        action.productData.price,
-        action.productData.quantity,
-        action.productData.size,
+        action.productData.Price,
+        action.productData.Quantity,
+        action.productData.Size,
         action.productData.time,
-        action.productData.code
+        action.productData.Code
       );
       return {
         ...state,

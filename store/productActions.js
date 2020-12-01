@@ -25,13 +25,13 @@ export const fetchProducts = () => {
           loadedProducts.push(
             new Product(
               key,
-              collection[key].title,
+              collection[key].Title,
               collection[key].ownerId,
-              collection[key].price,
-              collection[key].quantity,
-              collection[key].size,
+              collection[key].Price,
+              collection[key].Quantity,
+              collection[key].Size,
               collection[key].time,
-              collection[key].code,
+              collection[key].Code,
               collection[key].id
             )
           );
@@ -50,18 +50,20 @@ export const fetchProducts = () => {
   };
 };
 
-export const createProduct = (title, price, quantity, size, code) => {
+export const createProduct = (Title, Price, Quantity, Size, Code) => {
+  console.log("forwarded data111", Title, Price, Quantity, Size, Code);
+
   return async (dispatch, getState) => {
     const userId = getState().auth.userId;
-    // console.log(userId);
+    console.log("creating product to upload");
     try {
-      await db.doc(code).set(
+      await db.doc(Code).set(
         {
-          title,
-          price,
-          quantity,
-          size,
-          code,
+          Title,
+          Price,
+          Quantity,
+          Size,
+          Code,
           ownerId: userId,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         },
@@ -84,13 +86,13 @@ export const createProduct = (title, price, quantity, size, code) => {
             type: CREATE_PRODUCT,
             productData: {
               id: collection[0].id,
-              title,
+              Title,
               ownerId: userId,
-              price,
-              quantity,
-              size,
+              Price,
+              Quantity,
+              Size,
               time: collection[0].timestamp,
-              code,
+              Code,
               docTitle: collection[0].id,
             },
           });
@@ -103,18 +105,19 @@ export const createProduct = (title, price, quantity, size, code) => {
     }
   };
 };
-export const updateQuantity = (quantity) => {
+export const updateQuantity = (Title, Price, Quantity, Size, Code) => {
+  console.log("forwarded data", Title, Price, Quantity, Size, Code);
   return async (dispatch, getState) => {
     const userId = getState().auth.userId;
     // console.log(userId);
     try {
-      await db.doc(code).update(
+      await db.doc(Code).update(
         {
-          quantity,
+          Quantity,
 
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true }
+        }
+        // { merge: true }
       );
 
       const events = db;
@@ -133,13 +136,13 @@ export const updateQuantity = (quantity) => {
             type: CREATE_PRODUCT,
             productData: {
               id: collection[0].id,
-              title,
+              Title,
               ownerId: userId,
-              price,
-              quantity,
-              size,
+              Price,
+              Quantity,
+              Size,
               time: collection[0].timestamp,
-              code,
+              Code,
               docTitle: collection[0].id,
             },
           });

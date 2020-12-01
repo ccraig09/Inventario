@@ -35,6 +35,11 @@ const LoadingScreen = (props) => {
     </View>
   );
 };
+LoadingScreen.navigationOptions = (navData) => {
+  return {
+    headerShown: false,
+  };
+};
 
 const styles = StyleSheet.create({
   container: {
