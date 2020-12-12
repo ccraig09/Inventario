@@ -1,6 +1,7 @@
 export const DELETE_PRODUCT = "DELETE_PRODUCT";
 export const CREATE_PRODUCT = "CREATE_PRODUCT";
 export const SET_PRODUCT = "SET_PRODUCT";
+export const UPDATE_PRODUCT = "UPDATE_PRODUCT";
 import Product from "../models/product";
 
 import firebase from "../components/firebase";
@@ -17,7 +18,7 @@ export const fetchProducts = () => {
         const collection = querySnapshot.docs.map((doc) => {
           return { id: doc.id, ...doc.data() };
         });
-        // console.log("this is collection", collection);
+        // console.log("this is collection FROM THE FETCH", collection);
 
         const loadedProducts = [];
 
@@ -51,17 +52,19 @@ export const fetchProducts = () => {
 };
 
 export const createProduct = (Title, Price, Quantity, Size, Code) => {
-  console.log("forwarded data111", Title, Price, Quantity, Size, Code);
+  //   console.log("forwarded data111", Title, Price, Quantity, Size, Code);
 
   return async (dispatch, getState) => {
     const userId = getState().auth.userId;
+    const increment = firebase.firestore.FieldValue.increment(1);
+
     console.log("creating product to upload");
     try {
       await db.doc(Code).set(
         {
           Title,
           Price,
-          Quantity,
+          Quantity: increment,
           Size,
           Code,
           ownerId: userId,
@@ -78,10 +81,7 @@ export const createProduct = (Title, Price, Quantity, Size, Code) => {
             return { id: doc.id, ...doc.data() };
           });
 
-          //   console.log(
-          //     "on Create Collection Everything",
-          //     collection[0].timestamp
-          //   );
+          // console.log("on Create Collection Everything", collection);
           dispatch({
             type: CREATE_PRODUCT,
             productData: {
@@ -105,15 +105,17 @@ export const createProduct = (Title, Price, Quantity, Size, Code) => {
     }
   };
 };
-export const updateQuantity = (Title, Price, Quantity, Size, Code) => {
-  console.log("forwarded data", Title, Price, Quantity, Size, Code);
+export const updateProducts = (Title, Price, Quantity, Size, Code) => {
+  //   console.log("forwarded data", Title, Price, Quantity, Size, Code);
   return async (dispatch, getState) => {
     const userId = getState().auth.userId;
+    const increment = firebase.firestore.FieldValue.increment(1);
+
     // console.log(userId);
     try {
       await db.doc(Code).update(
         {
-          Quantity,
+          Quantity: increment,
 
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         }
@@ -133,7 +135,7 @@ export const updateQuantity = (Title, Price, Quantity, Size, Code) => {
           //     collection[0].timestamp
           //   );
           dispatch({
-            type: CREATE_PRODUCT,
+            type: UPDATE_PRODUCT,
             productData: {
               id: collection[0].id,
               Title,

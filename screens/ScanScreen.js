@@ -34,7 +34,6 @@ const ScanScreen = (props) => {
   const [value, setValue] = useState("");
 
   const dispatch = useDispatch();
-  const updatedQuantity = useSelector((state) => state.products.products);
 
   const userProducts = useSelector((state) => {
     const transformedProducts = [];
@@ -57,40 +56,43 @@ const ScanScreen = (props) => {
   const loadDetails = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await dispatch(ProdActions.fetchProducts());
+      dispatch(ProdActions.fetchProducts());
     } catch (err) {
       setError(err.message);
     }
-    // const uQuantity = updatedQuantity.filter((quan) => quan.docTitle === Code);
-    // const UpdQuantity = uQuantity.length === 0 ? {} : uQuantity[0].Quantity;
 
+    // console.log("testing selectedQuantity result", selectedQuantity);
+
+    // if (code) {
+    //   const newQuantity =
+    //     typeof selectedQuantity.Quantity === "undefined"
+    //       ? {}
+    //       : selectedQuantity.Quantity;
+    //   const UpdQuantity = userProducts.length === 0 ? {} : newQuantity;
+    //   console.log("testing uQuantity result", UpdQuantity);
+    //   console.log("finally test for quantity result", quantity);
+    //   setQuantity(UpdQuantity);
+    // }
     setIsRefreshing(false);
   });
-
   useEffect(() => {
-    // console.log("quantity list", updatedQuantity[1].quantity);
+    const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
+    return () => {
+      willFocusSub.remove();
+    };
+  }, [loadDetails]);
+  useEffect(() => {
     loadDetails();
 
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
     })();
-    // setScanner(false);
-  }, []);
-
-  const scannerStart = () => {
-    setScanner(true);
-    setScanned(false);
-  };
+    console.log("THE DAM CODE", code);
+  }, [code]);
 
   const uploadProduct = (Title, Price, Quantity, Size, Code) => {
-    // setQuantity((state) => {
-    //   console.log("i hope this is quantity", state); // "React is awesome!"
-
-    //   return state;
-    // });
     console.log("data listed", Quantity);
-    // console.log("data listed", Title, Price, Quantity, Size, Code);
     try {
       if (Quantity > 1) {
         console.log(
@@ -102,9 +104,8 @@ const ScanScreen = (props) => {
           Code
         );
 
-        // setQuantity(UpdQuantity);
         dispatch(
-          sendProduct.updateQuantity(Title, Price, Quantity, Size, Code)
+          sendProduct.updateProducts(Title, Price, Quantity, Size, Code)
         );
       } else {
         console.log("first upload");
@@ -114,6 +115,12 @@ const ScanScreen = (props) => {
       setError(err.message);
       console.log(error);
     }
+    loadDetails();
+  };
+
+  const continueScan = () => {
+    setScanned(false);
+    loadDetails();
   };
 
   const handleBarCodeScanned = async ({ type, data }) => {
@@ -123,67 +130,80 @@ const ScanScreen = (props) => {
     let Quantity;
     let Size;
     let Code;
+    let alertQuantity;
     let result;
+
+    const userQuantity = userProducts.find((prod) => prod.productcode === data);
+
     if (data) {
       result = data;
     }
 
     if (data === "7771214003646") {
-      Title = "Salsa Golf";
-      Price = 16;
-      Size = "350";
-      Quantity = quantity + 1;
-      console.log("this is var Quantity", Quantity);
-      Code = data.toString();
-      setQuantity(Quantity);
+      try {
+        Title = "Salsa Golf";
+        Price = 16;
+        Size = "350";
+        Quantity = userQuantity.productQuantity;
+        alertQuantity = Quantity + 1;
+        console.log("this is var Quantity", Quantity);
+        Code = data.toString();
+        setCode(Code);
+      } catch (err) {
+        setError(err.message);
+      }
 
-      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Cantidad Total: ${Quantity} \n Codigo: ${Code}`;
+      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Cantidad Total: ${alertQuantity} \n Codigo: ${Code}`;
     }
 
     if (data === "7590011251100") {
       Title = "Galletas de Oreo";
       Price = 4;
       Size = "1";
-      Quantity = quantity + 1;
+      Quantity = userQuantity.productQuantity;
+      alertQuantity = Quantity + 1;
       console.log("this is var Quantity", Quantity);
       Code = data.toString();
-      setQuantity(Quantity);
 
-      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Cantidad Total: ${Quantity} \n Codigo: ${Code}`;
+      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Cantidad Total: ${alertQuantity} \n Codigo: ${Code}`;
     }
     if (data === "7759185002158") {
       setTitle("Elite Kleenex");
       setPrice(2);
-      setQuantity(quantity + 1);
       setSize("1");
       setCode(data.toString());
 
-      result = `${title} \n Tamaño: ${size} \n Precio: ${price}bs \n Cantidad Total: ${quantity} \n Codigo: ${code}`;
+      result = `${title} \n Tamaño: ${size} \n Precio: ${price}bs \n Cantidad Total: ${alertQuantity} \n Codigo: ${code}`;
     }
     if (data === "7772106001450") {
       result =
         "Producto escaneado: \n 7-up \n Tamaño: 500ml \n Precio: 5bs \n Cantidad Total: 5";
     }
     if (data === "7771609003268") {
-      result =
-        "Producto escaneado: \n Powerade azul \n Tamaño: 1litro \n Precio: 10bs \n Cantidad Total: 3";
+      try {
+        Title = "Powerade azul";
+        Price = 10;
+        Size = "1litro";
+        Quantity = userQuantity.productQuantity;
+        alertQuantity = Quantity + 1;
+
+        console.log("this is var Quantity", Quantity);
+        Code = data.toString();
+        setCode(Code);
+      } catch (err) {
+        setError(err.message);
+      }
+
+      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Cantidad Total: ${alertQuantity} \n Codigo: ${Code}`;
     }
+
     if (data === "7771609001677") {
       result =
         "Producto escaneado: \n Agua Vital sin gas \n Tamaño: 3litro \n Precio: 10bs \n Cantidad Total: 3";
     }
 
-    // setTitle(Title);
-    // setPrice(Price);
-    // setQuantity(Quantity);
-    // setSize(Size);
-    // setCode(Code);
-
     uploadProduct(Title, Price, Quantity, Size, Code);
-
-    // const uQuantity = updatedQuantity.filter((quan) => quan.docTitle === Code);
-    // const UpdQuantity = uQuantity.length === 0 ? {} : uQuantity[0].Quantity;
-    // console.log("testing uQuantity result", UpdQuantity);
+    loadDetails();
 
     Alert.alert(
       "Producto escaneado:",
@@ -196,18 +216,15 @@ const ScanScreen = (props) => {
           },
           style: "cancel",
         },
-        { text: "Escanear", onPress: () => setScanned(false) },
+        { text: "Escanear", onPress: () => continueScan() },
       ],
       { cancelable: false }
     );
-    loadDetails();
-    const UpdQuantity =
-      userProducts.length === 0 ? {} : userProducts[0].productQuantity;
-    setQuantity(UpdQuantity);
-    console.log("testing uQuantity result", UpdQuantity);
-    console.log("finally test for quantity result", quantity);
-    setScanCount(scanCount + 1);
+    // loadDetails();
+
+    // setScanCount(scanCount + 1);
     console.log(data);
+    console.log("this will be my last dam time trying this code", code);
   };
 
   if (hasPermission === null) {
@@ -264,9 +281,9 @@ const ScanScreen = (props) => {
             height: "35%",
           }}
         >
-          <Text style={{ fontSize: 15, fontWeight: "bold" }}>
+          {/* <Text style={{ fontSize: 15, fontWeight: "bold" }}>
             Cosas escaneado: {scanCount}
-          </Text>
+          </Text> */}
           <FlatList
             refreshControl={
               <RefreshControl
