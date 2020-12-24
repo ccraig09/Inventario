@@ -29,6 +29,7 @@ export const fetchProducts = () => {
               collection[key].Title,
               collection[key].ownerId,
               collection[key].Price,
+              collection[key].Category,
               collection[key].Quantity,
               collection[key].Size,
               collection[key].time,
@@ -51,8 +52,16 @@ export const fetchProducts = () => {
   };
 };
 
-export const createProduct = (Title, Price, Quantity, Size, Code) => {
-  //   console.log("forwarded data111", Title, Price, Quantity, Size, Code);
+export const createProduct = (Title, Price, Category, Quantity, Size, Code) => {
+  console.log(
+    "forwarded data111",
+    Title,
+    Price,
+    Category,
+    Quantity,
+    Size,
+    Code
+  );
 
   return async (dispatch, getState) => {
     const userId = getState().auth.userId;
@@ -64,6 +73,7 @@ export const createProduct = (Title, Price, Quantity, Size, Code) => {
         {
           Title,
           Price,
+          Category,
           Quantity: increment,
           Size,
           Code,
@@ -89,6 +99,7 @@ export const createProduct = (Title, Price, Quantity, Size, Code) => {
               Title,
               ownerId: userId,
               Price,
+              Category,
               Quantity,
               Size,
               time: collection[0].timestamp,
@@ -105,7 +116,74 @@ export const createProduct = (Title, Price, Quantity, Size, Code) => {
     }
   };
 };
-export const updateProducts = (Title, Price, Quantity, Size, Code) => {
+export const quantityUpdate = (
+  Title,
+  Price,
+  Category,
+  newQ,
+  Size,
+  Code,
+  Quantity
+) => {
+  console.log("forwarded data111", Title, Price, Category, newQ, Size, Code);
+
+  return async (dispatch, getState) => {
+    const userId = getState().auth.userId;
+    const increment = firebase.firestore.FieldValue.increment(1);
+
+    console.log("updating quantity amount to Firebase");
+    try {
+      await db.doc(Code).update(
+        {
+          Quantity: newQ,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
+
+      const events = db;
+      await events
+        .get()
+        .then((querySnapshot) => {
+          const collection = querySnapshot.docs.map((doc) => {
+            return { id: doc.id, ...doc.data() };
+          });
+
+          // console.log("on Create Collection Everything", collection);
+          dispatch({
+            type: UPDATE_PRODUCT,
+            productData: {
+              id: collection[0].id,
+              Title,
+              ownerId: userId,
+              Price,
+              Category,
+              Quantity,
+              Size,
+              time: collection[0].timestamp,
+              Code,
+              docTitle: collection[0].id,
+            },
+          });
+        })
+        .catch(function (error) {
+          console.log("Error getting document:", error);
+        });
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+
+export const updateProducts = (
+  Title,
+  Price,
+  Category,
+  Quantity,
+  Size,
+  Code
+) => {
   //   console.log("forwarded data", Title, Price, Quantity, Size, Code);
   return async (dispatch, getState) => {
     const userId = getState().auth.userId;
@@ -141,6 +219,59 @@ export const updateProducts = (Title, Price, Quantity, Size, Code) => {
               Title,
               ownerId: userId,
               Price,
+              Category,
+              Quantity,
+              Size,
+              time: collection[0].timestamp,
+              Code,
+              docTitle: collection[0].id,
+            },
+          });
+        })
+        .catch(function (error) {
+          console.log("Error getting document:", error);
+        });
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+export const subProducts = (Title, Price, Category, Quantity, Size, Code) => {
+  return async (dispatch, getState) => {
+    const userId = getState().auth.userId;
+    const increment = firebase.firestore.FieldValue.increment(-1);
+
+    console.log(Title, Price, Category, Quantity, Size, Code);
+    try {
+      await db.doc(Code).update(
+        {
+          Quantity: increment,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
+
+      const events = db;
+      await events
+        .get()
+        .then((querySnapshot) => {
+          const collection = querySnapshot.docs.map((doc) => {
+            return { id: doc.id, ...doc.data() };
+          });
+
+          //   console.log(
+          //     "on Create Collection Everything",
+          //     collection[0].timestamp
+          //   );
+          dispatch({
+            type: UPDATE_PRODUCT,
+            productData: {
+              id: collection[0].id,
+              Title,
+              ownerId: userId,
+              Price,
+              Category,
               Quantity,
               Size,
               time: collection[0].timestamp,
