@@ -86,10 +86,12 @@ const ProductItem = (props) => {
         <View>
           <Text style={styles.addressTitle}>Cantidad: </Text>
           <Text
-            style={
-              (styles.quantityNumber,
-              { color: props.quantity < 5 ? "red" : "#666" })
-            }
+            style={{
+              fontSize: 23,
+              fontWeight: "bold",
+              textAlign: "center",
+              color: props.quantity < 5 ? "red" : "#666",
+            }}
           >
             {props.quantity}
           </Text>

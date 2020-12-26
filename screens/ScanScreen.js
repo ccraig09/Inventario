@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Alert,
   Modal,
+  TextInput,
   Keyboard,
   KeyboardAvoidingView,
 } from "react-native";
@@ -43,6 +44,12 @@ const ScanScreen = (props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selected, setSelected] = useState(0);
   const [newQ, setNewQ] = useState();
+  const [newProduct, setNewProduct] = useState("");
+  const [newPrice, setNewPrice] = useState("");
+  const [newSize, setNewSize] = useState("");
+  const [newCategory, setNewCategory] = useState("");
+  const [filteredDataSource, setFilteredDataSource] = useState([]);
+  const [masterDataSource, setMasterDataSource] = useState([]);
 
   // const Mode = props.navigation.getParam("mode");
 
@@ -67,13 +74,19 @@ const ScanScreen = (props) => {
     return transformedProducts;
   });
 
+  const availableProducts2 = useSelector((state) => {
+    state.products.availableProducts;
+  });
+
   const loadDetails = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      dispatch(ProdActions.fetchProducts());
+      // dispatch(ProdActions.fetchProducts());
+      dispatch(ProdActions.fetchAvailableProducts());
     } catch (err) {
       setError(err.message);
     }
+    console.log("Gotta figure out how to load these", availableProducts2);
 
     setIsRefreshing(false);
   });
@@ -96,6 +109,16 @@ const ScanScreen = (props) => {
     setSell((prevState) => !prevState);
     console.log(sell);
     // props.navigation.setParams({ mode: sell });
+  };
+
+  const newEntry = () => {
+    dispatch(
+      sendProduct.addedProduct(newProduct, newSize, newPrice, newCategory, code)
+    );
+    setModalVisible(false);
+    setTimeout(() => {
+      loadDetails();
+    }, 1000);
   };
 
   const quantityUpdateHandler = (newQ) => {
@@ -440,6 +463,7 @@ const ScanScreen = (props) => {
                         </Text>
                         <Text style={styles.modalHead}>{title}</Text>
                         <Text style={styles.modalText}>Precio: ${price}bs</Text>
+                        <Text style={styles.modalText}>Tamaño {size}</Text>
                         <Text style={styles.modalText}>
                           Categoria: {category}
                         </Text>
@@ -448,9 +472,56 @@ const ScanScreen = (props) => {
                         </Text>
                       </View>
                     )}
-                    <View>
-                      <Text style={styles.modalText}>Codigo: {code}</Text>
-                    </View>
+                    {!title && (
+                      <View>
+                        <Text style={styles.modalTitle}>Nuevo Producto</Text>
+                        <View>
+                          <TextInput
+                            style={styles.textInputStyle}
+                            placeholder="Producto"
+                            value={newProduct}
+                            onChangeText={(name) => {
+                              setNewProduct(name);
+                            }}
+                          />
+                          <TextInput
+                            style={styles.textInputStyle}
+                            keyboardType="numeric"
+                            placeholder="Precio"
+                            value={newPrice}
+                            onChangeText={(price) => {
+                              setNewPrice(price);
+                            }}
+                          />
+                          <TextInput
+                            style={styles.textInputStyle}
+                            placeholder="Tomaño"
+                            value={newSize}
+                            onChangeText={(size) => {
+                              setNewSize(size);
+                            }}
+                          />
+                          <TextInput
+                            style={styles.textInputStyle}
+                            placeholder="Category"
+                            value={newCategory}
+                            onChangeText={(text) => {
+                              setNewCategory(text);
+                              searchFilterFunction(text);
+                            }}
+                          />
+                          {/* <TextInput
+                            style={styles.textInputStyle}
+                            onChangeText={(text) => searchFilterFunction(text)}
+                            value={search}
+                            underlineColorAndroid="transparent"
+                            placeholder="Buscar"
+                          /> */}
+                        </View>
+                      </View>
+                    )}
+                    <Text style={styles.modalText}>Codigo: {code}</Text>
+                    {/* </View> */}
 
                     {title && (
                       <View
@@ -516,9 +587,14 @@ const ScanScreen = (props) => {
                           backgroundColor: "#2196F3",
                         }}
                         onPress={() => {
-                          quantityUpdateHandler(newQ);
-                          setModalVisible(!modalVisible);
-                          continueScan();
+                          if (newProduct) {
+                            newEntry();
+                            console.log("theres a new product", newProduct);
+                          } else {
+                            quantityUpdateHandler(newQ);
+                            setModalVisible(!modalVisible);
+                            continueScan();
+                          }
                         }}
                       >
                         <Text style={styles.textStyle}>Guardar</Text>
@@ -667,5 +743,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 25,
     fontWeight: "bold",
+  },
+  textInputStyle: {
+    height: 40,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingLeft: 20,
+    margin: 5,
+    borderColor: "black",
+    backgroundColor: "#FFFFFF",
   },
 });

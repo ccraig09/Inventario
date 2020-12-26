@@ -61,16 +61,14 @@ const HomeScreen = (props) => {
 
   const loadDetails = async () => {
     setIsRefreshing(true);
-    await dispatch(ProdActions.fetchProducts());
     try {
     } catch (err) {
       setError(err.message);
     }
-    console.log("user products loaded?", userProducts);
+    // console.log("user products loaded?", userProducts);
     setFilteredDataSource(userProducts);
     setMasterDataSource(userProducts);
 
-    console.log("loading homePage");
     setIsRefreshing(false);
   };
 
@@ -82,6 +80,14 @@ const HomeScreen = (props) => {
   }, [loadDetails]);
 
   useEffect(() => {
+    async function fetchThings() {
+      const response = await dispatch(ProdActions.fetchProducts());
+    }
+
+    fetchThings();
+
+    console.log("loading homePage");
+
     loadDetails();
 
     (async () => {
@@ -89,7 +95,7 @@ const HomeScreen = (props) => {
       setHasPermission(status === "granted");
     })();
     setScanner(false);
-  }, []);
+  }, [dispatch]);
 
   const searchFilterFunction = (text) => {
     // Check if searched text is not blank

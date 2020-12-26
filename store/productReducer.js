@@ -2,11 +2,15 @@ import {
   CREATE_PRODUCT,
   SET_PRODUCT,
   UPDATE_PRODUCT,
+  ADDED_PRODUCT,
+  SET_AVAILABLE_PRODUCT,
 } from "../store/productActions";
 import Product from "../models/product";
+import availableProduct from "../models/availableProduct";
 
 initialState = {
   products: [],
+  availableProducts: [],
 };
 
 export default (state = initialState, action) => {
@@ -14,6 +18,10 @@ export default (state = initialState, action) => {
     case SET_PRODUCT:
       return {
         products: action.products,
+      };
+    case SET_AVAILABLE_PRODUCT:
+      return {
+        availableProducts: action.aProducts,
       };
     case CREATE_PRODUCT:
       const newProduct = new Product(
@@ -31,6 +39,19 @@ export default (state = initialState, action) => {
         ...state,
         products: state.products.concat(newProduct),
       };
+    case ADDED_PRODUCT:
+      const addedProduct = new availableProduct(
+        action.productData.Product,
+        action.productData.Size,
+        action.productData.Price,
+        action.productData.Category,
+        action.productData.code
+      );
+      return {
+        ...state,
+        availableProducts: state.availableProducts.concat(addedProduct),
+      };
+
     case UPDATE_PRODUCT:
       const productIndex = state.products.findIndex(
         (prod) => prod.Code === action.productData.Code

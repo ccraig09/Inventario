@@ -9,6 +9,7 @@ import InventoryNavigator from "./navigation/InventoryNavigator";
 
 const rootReducer = combineReducers({
   products: productsReducer,
+  // availableProducts: productsReducer,
   auth: authReducer,
 });
 

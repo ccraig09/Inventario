@@ -86,7 +86,7 @@ const SignupScreen = (props) => {
               marginTop: 20,
             }}
           >
-            Bienvenido
+            Registar
           </Text>
           <View style={styles.form}>
             <TextInput
