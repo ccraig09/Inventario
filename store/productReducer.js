@@ -19,10 +19,10 @@ export default (state = initialState, action) => {
       return {
         products: action.products,
       };
-    case SET_AVAILABLE_PRODUCT:
-      return {
-        availableProducts: action.aProducts,
-      };
+    // case SET_AVAILABLE_PRODUCT:
+    //   return {
+    //     availableProducts: action.availableProducts,
+    //   };
     case CREATE_PRODUCT:
       const newProduct = new Product(
         action.productData.id,
@@ -32,6 +32,7 @@ export default (state = initialState, action) => {
         action.productData.Category,
         action.productData.Quantity,
         action.productData.Size,
+        action.productData.Brand,
         action.productData.time,
         action.productData.Code
       );
@@ -45,6 +46,7 @@ export default (state = initialState, action) => {
         action.productData.Size,
         action.productData.Price,
         action.productData.Category,
+        action.productData.Brand,
         action.productData.code
       );
       return {

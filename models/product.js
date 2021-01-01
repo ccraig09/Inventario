@@ -8,6 +8,7 @@ class Product {
     Quantity,
     Size,
     time,
+    Brand,
     Code,
     docTitle
   ) {
@@ -19,6 +20,7 @@ class Product {
     this.Quantity = Quantity;
     this.Size = Size;
     this.time = time;
+    this.Brand = Brand;
     this.Code = Code;
     this.docTitle = docTitle;
   }

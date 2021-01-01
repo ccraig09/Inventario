@@ -19,15 +19,16 @@ const LoadingScreen = (props) => {
   useEffect(() => {
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
-        fetchThings();
         var userId = user.uid.toString();
         // console.log("this is tkn", token);
         console.log("this is id on startup", userId);
 
         dispatch(authenticate(userId));
         async function fetchThings() {
-          let response = await dispatch(ProdActions.fetchProducts());
+          await dispatch(ProdActions.fetchAvailableProducts());
+          await dispatch(ProdActions.fetchProducts());
         }
+        fetchThings();
 
         props.navigation.navigate("HomeStax");
         console.log("pre loading products for homePage");

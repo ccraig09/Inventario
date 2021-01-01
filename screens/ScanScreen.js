@@ -9,6 +9,7 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
+  Picker,
   Modal,
   TextInput,
   Keyboard,
@@ -38,6 +39,7 @@ const ScanScreen = (props) => {
   const [size, setSize] = useState("");
   const [code, setCode] = useState("");
   const [category, setCategory] = useState("");
+  const [brand, setBrand] = useState("");
   const [quantity, setQuantity] = useState(0);
   const [value, setValue] = useState("");
   const [sell, setSell] = useState(false);
@@ -47,9 +49,12 @@ const ScanScreen = (props) => {
   const [newProduct, setNewProduct] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newSize, setNewSize] = useState("");
+  const [newBrand, setNewBrand] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [filteredDataSource, setFilteredDataSource] = useState([]);
   const [masterDataSource, setMasterDataSource] = useState([]);
+  const [picker, setPicker] = useState(false);
+  const [picked, setPicked] = useState();
 
   // const Mode = props.navigation.getParam("mode");
 
@@ -66,6 +71,7 @@ const ScanScreen = (props) => {
         productOwner: state.products.products[key].ownerId,
         productQuantity: state.products.products[key].Quantity,
         productSize: state.products.products[key].Size,
+        productBrand: state.products.products[key].Brand,
         productTime: state.products.products[key].time,
         productcode: state.products.products[key].Code,
         docTitle: state.products.products[key].docTitle,
@@ -74,19 +80,18 @@ const ScanScreen = (props) => {
     return transformedProducts;
   });
 
-  const availableProducts2 = useSelector((state) => {
-    state.products.availableProducts;
-  });
-
+  const availableProducts = useSelector(
+    (state) => state.availableProducts.availableProducts
+  );
   const loadDetails = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      // dispatch(ProdActions.fetchProducts());
+      dispatch(ProdActions.fetchProducts());
       dispatch(ProdActions.fetchAvailableProducts());
+      console.log("Gotta figure out how to load these", productList);
     } catch (err) {
       setError(err.message);
     }
-    console.log("Gotta figure out how to load these", availableProducts2);
 
     setIsRefreshing(false);
   });
@@ -105,6 +110,10 @@ const ScanScreen = (props) => {
     })();
   }, [code]);
 
+  useEffect(() => {
+    dispatch(ProdActions.fetchAvailableProducts());
+  }, []);
+
   const modeHandler = () => {
     setSell((prevState) => !prevState);
     console.log(sell);
@@ -113,7 +122,14 @@ const ScanScreen = (props) => {
 
   const newEntry = () => {
     dispatch(
-      sendProduct.addedProduct(newProduct, newSize, newPrice, newCategory, code)
+      sendProduct.addedProduct(
+        newProduct,
+        newSize,
+        newPrice,
+        newCategory,
+        newBrand,
+        code
+      )
     );
     setModalVisible(false);
     setTimeout(() => {
@@ -130,7 +146,15 @@ const ScanScreen = (props) => {
     }, 1000);
   };
 
-  const uploadProduct = (Title, Price, Category, Quantity, Size, Code) => {
+  const uploadProduct = (
+    Title,
+    Price,
+    Category,
+    Quantity,
+    Size,
+    Brand,
+    Code
+  ) => {
     console.log("data listed", Quantity);
     try {
       if (Quantity > 1) {
@@ -141,6 +165,7 @@ const ScanScreen = (props) => {
           Category,
           Quantity,
           Size,
+          Brand,
           Code
         );
 
@@ -151,6 +176,7 @@ const ScanScreen = (props) => {
             Category,
             Quantity,
             Size,
+            Brand,
             Code
           )
         );
@@ -164,6 +190,7 @@ const ScanScreen = (props) => {
             Category,
             Quantity,
             Size,
+            Brand,
             Code
           )
         );
@@ -196,27 +223,31 @@ const ScanScreen = (props) => {
   let Category;
   let Quantity;
   let Size;
+  let Brand;
   let Code;
   let alertQuantity;
   let result;
 
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-
+    // console.log(availableProducts);
     const userQuantity = userProducts.find((prod) => prod.productcode === data);
+    const loadedProduct = availableProducts.find((code) => code.code === data);
 
     if (data) {
       Code = data.toString();
       setCode(data);
     }
 
-    if (data === "7771214003646") {
+    if (loadedProduct) {
+      console.log("THIS IS LOADED PRODUCT", loadedProduct);
       try {
-        Title = "Salsa Golf";
-        Price = 16;
-        Category = "Aderezos";
-        Size = "350";
-        Code = data.toString();
+        Title = loadedProduct.Product;
+        Price = loadedProduct.Price;
+        Category = loadedProduct.Category;
+        Size = loadedProduct.Size;
+        Brand = loadedProduct.Brand;
+        Code = loadedProduct.code.toString();
         console.log("THIS IS FIRST CODE TEST", Code);
         Quantity =
           typeof userQuantity === "undefined"
@@ -228,117 +259,12 @@ const ScanScreen = (props) => {
       } catch (err) {
         setError(err.message);
       }
-
-      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Categoria: ${Category} \n Cantidad Total: ${alertQuantity}  \n Codigo: ${Code}`;
-    }
-    if (data === "7790895643835") {
-      try {
-        Title = "Ades Jugo de Mazana";
-        Price = 5;
-        Category = "Bebidos";
-        Size = "1L";
-        Code = data.toString();
-        console.log("THIS IS FIRST CODE TEST", Code);
-        Quantity =
-          typeof userQuantity === "undefined"
-            ? 0
-            : userQuantity.productQuantity;
-        alertQuantity = !sell ? Quantity + 1 : Quantity - 1;
-        console.log("this is var Quantity", Quantity);
-        setCode(Code);
-      } catch (err) {
-        setError(err.message);
-      }
-
-      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Categoria: ${Category} \n Cantidad Total: ${alertQuantity}  \n Codigo: ${Code}`;
-    }
-    if (data === "7771609001677") {
-      try {
-        Title = "Agua Vital sin gas";
-        Price = 9;
-        Category = "Bebidas";
-        Size = "3 litros";
-        Code = data.toString();
-        console.log("THIS IS FIRST CODE TEST", Code);
-        Quantity =
-          typeof userQuantity === "undefined"
-            ? 0
-            : userQuantity.productQuantity;
-        alertQuantity = !sell ? Quantity + 1 : Quantity - 1;
-        console.log("this is var Quantity", Quantity);
-        setCode(Code);
-      } catch (err) {
-        setError(err.message);
-      }
-
-      // "Producto escaneado: \n Agua Vital sin gas \n Tamaño: 3litro \n Precio: 10bs \n Cantidad Total: 3";
-      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Categoria: ${Category} \n Cantidad Total: ${alertQuantity}  \n Codigo: ${Code}`;
-    }
-    if (data === "7772115001656") {
-      try {
-        Title = "ReaktorAde";
-        Price = 6.5;
-        Category = "Bebidas";
-        Size = "600";
-        Code = data.toString();
-        console.log("THIS IS FIRST CODE TEST", Code);
-        Quantity =
-          typeof userQuantity === "undefined"
-            ? 0
-            : userQuantity.productQuantity;
-        alertQuantity = !sell ? Quantity + 1 : Quantity - 1;
-        console.log("this is var Quantity", Quantity);
-        setCode(Code);
-      } catch (err) {
-        setError(err.message);
-      }
-    }
-
-    if (data === "7590011251100") {
-      Title = "Galletas de Oreo";
-      Price = 4;
-      Size = "1";
-      Quantity = userQuantity.productQuantity;
-      alertQuantity = !sell ? Quantity + 1 : Quantity - 1;
-      console.log("this is var Quantity", Quantity);
-      Code = data.toString();
-
-      // result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Cantidad Total: ${alertQuantity} \n Codigo: ${Code}`;
-    }
-    if (data === "7759185002158") {
-      setTitle("Elite Kleenex");
-      setPrice(2);
-      setSize("1");
-      setCode(data.toString());
-
-      result = `${title} \n Tamaño: ${size} \n Precio: ${price}bs \n Cantidad Total: ${alertQuantity} \n Codigo: ${code}`;
-    }
-    if (data === "7772106001450") {
-      result =
-        "Producto escaneado: \n 7-up \n Tamaño: 500ml \n Precio: 5bs \n Cantidad Total: 5";
-    }
-    if (data === "7771609003268") {
-      try {
-        Title = "Powerade azul";
-        Price = 10;
-        Size = "1litro";
-        Quantity = userQuantity.productQuantity;
-        alertQuantity = Quantity + 1;
-
-        console.log("this is var Quantity", Quantity);
-        Code = data.toString();
-        setCode(Code);
-      } catch (err) {
-        setError(err.message);
-      }
-
-      result = `${Title} \n Tamaño: ${Size} \n Precio: ${Price}bs \n Cantidad Total: ${alertQuantity} \n Codigo: ${Code}`;
     }
 
     if (!sell) {
-      uploadProduct(Title, Price, Category, Quantity, Size, Code);
+      uploadProduct(Title, Price, Category, Quantity, Size, Brand, Code);
     } else {
-      minusProduct(Title, Price, Category, Quantity, Size, Code);
+      minusProduct(Title, Price, Category, Quantity, Size, Brand, Code);
     }
 
     setTimeout(() => {
@@ -353,6 +279,7 @@ const ScanScreen = (props) => {
     setSize(Size);
     setQuantity(alertQuantity);
     setCategory(Category);
+    setBrand(Brand);
     setCode(Code);
   };
 
@@ -462,14 +389,59 @@ const ScanScreen = (props) => {
                           Producto escaneado:
                         </Text>
                         <Text style={styles.modalHead}>{title}</Text>
-                        <Text style={styles.modalText}>Precio: ${price}bs</Text>
-                        <Text style={styles.modalText}>Tamaño {size}</Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <Text style={styles.modalText}>Precio: </Text>
+                          <Text style={styles.modalText}>${price}bs</Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <Text style={styles.modalText}>Tamaño: </Text>
+                          <Text style={styles.modalText}>{size}</Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <Text style={styles.modalText}>Marca: </Text>
+                          <Text style={styles.modalText}>{brand}</Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <Text style={styles.modalText}>Categoria: </Text>
+                          <Text style={styles.modalText}>{category}</Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <Text style={styles.modalText}>Cantidad Total: </Text>
+                          <Text style={styles.modalText}>{quantity}</Text>
+                        </View>
+                        {/* <Text style={styles.modalText}>Tamaño: {size}</Text>
+                        <Text style={styles.modalText}>Marca: {brand}</Text>
                         <Text style={styles.modalText}>
                           Categoria: {category}
                         </Text>
                         <Text style={styles.modalText}>
                           Cantidad Total: {quantity}
-                        </Text>
+                        </Text> */}
                       </View>
                     )}
                     {!title && (
@@ -482,6 +454,14 @@ const ScanScreen = (props) => {
                             value={newProduct}
                             onChangeText={(name) => {
                               setNewProduct(name);
+                            }}
+                          />
+                          <TextInput
+                            style={styles.textInputStyle}
+                            placeholder="Marca"
+                            value={newBrand}
+                            onChangeText={(brand) => {
+                              setNewBrand(brand);
                             }}
                           />
                           <TextInput
@@ -501,15 +481,75 @@ const ScanScreen = (props) => {
                               setNewSize(size);
                             }}
                           />
-                          <TextInput
-                            style={styles.textInputStyle}
-                            placeholder="Category"
-                            value={newCategory}
-                            onChangeText={(text) => {
-                              setNewCategory(text);
-                              searchFilterFunction(text);
+                          <View>
+                            <Text style={styles.modalText}>
+                              Categoria: {newCategory}
+                            </Text>
+                          </View>
+
+                          <TouchableOpacity
+                            style={{
+                              ...styles.openButton,
+                              backgroundColor: "#A251F9",
                             }}
-                          />
+                            onPress={() => {
+                              setPicker(true);
+                            }}
+                          >
+                            <Text style={styles.textStyle}>Categoria</Text>
+                          </TouchableOpacity>
+                          <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={picker}
+                            // onRequestClose={() => {
+                            //   Alert.alert("Modal has been closed.");
+                            // }}
+                          >
+                            <View style={styles.centeredView}>
+                              <View style={styles.modalView}>
+                                <Picker
+                                  selectedValue={picked}
+                                  mode="dropdown"
+                                  style={{
+                                    height: 30,
+                                    marginTop: 20,
+                                    marginBottom: 30,
+                                    width: 200,
+                                    justifyContent: "center",
+                                  }}
+                                  itemStyle={{ fontSize: 16 }}
+                                  onValueChange={(itemValue) =>
+                                    setPicked(itemValue)
+                                  }
+                                >
+                                  <Picker.Item
+                                    label="Elige una Categoria"
+                                    color="grey"
+                                    value="N/A"
+                                  />
+                                  <Picker.Item
+                                    label="Bebidas"
+                                    value="Bebidas"
+                                  />
+                                  <Picker.Item label="Sopa" value="Sopa" />
+                                  {/* <View></View> */}
+                                </Picker>
+                                <TouchableOpacity
+                                  style={{
+                                    ...styles.openButton,
+                                    backgroundColor: "pink",
+                                  }}
+                                  onPress={() => {
+                                    setNewCategory(picked);
+                                    setPicker(false);
+                                  }}
+                                >
+                                  <Text style={styles.textStyle}>Guardar</Text>
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          </Modal>
                           {/* <TextInput
                             style={styles.textInputStyle}
                             onChangeText={(text) => searchFilterFunction(text)}
@@ -520,7 +560,16 @@ const ScanScreen = (props) => {
                         </View>
                       </View>
                     )}
-                    <Text style={styles.modalText}>Codigo: {code}</Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text style={styles.modalTextCode}>Codigo: </Text>
+                      <Text style={styles.modalTextCodigo}>{code}</Text>
+                    </View>
+                    {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
                     {/* </View> */}
 
                     {title && (
@@ -590,6 +639,7 @@ const ScanScreen = (props) => {
                           if (newProduct) {
                             newEntry();
                             console.log("theres a new product", newProduct);
+                            continueScan();
                           } else {
                             quantityUpdateHandler(newQ);
                             setModalVisible(!modalVisible);
@@ -661,6 +711,7 @@ const ScanScreen = (props) => {
                 price={itemData.item.productPrice}
                 category={itemData.item.productCategory}
                 quantity={itemData.item.productQuantity}
+                brand={itemData.item.productBrand}
                 code={itemData.item.productcode}
                 reload={() => {
                   loadDetails();
@@ -724,6 +775,20 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 10,
     textAlign: "center",
+    fontSize: 20,
+  },
+  modalTextCode: {
+    color: "grey",
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: "left",
+    fontSize: 20,
+  },
+  modalTextCodigo: {
+    color: "grey",
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: "right",
     fontSize: 20,
   },
   quantitySelect: {

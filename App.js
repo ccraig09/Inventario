@@ -3,13 +3,14 @@ import { createStore, combineReducers, applyMiddleware } from "redux";
 import { Provider } from "react-redux";
 import ReduxThunk from "redux-thunk";
 import productsReducer from "./store/productReducer";
+import createdProducts from "./store/createdProductReducer";
 import authReducer from "./store/authReducer";
 
 import InventoryNavigator from "./navigation/InventoryNavigator";
 
 const rootReducer = combineReducers({
   products: productsReducer,
-  // availableProducts: productsReducer,
+  availableProducts: createdProducts,
   auth: authReducer,
 });
 

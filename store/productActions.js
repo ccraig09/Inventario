@@ -13,13 +13,13 @@ export const db = firebase.firestore().collection("Members");
 export const dbP = firebase.firestore().collection("Products");
 
 export const fetchProducts = () => {
-  console.log("fetchProduct Actions initiated");
   return async (dispatch, getState) => {
+    console.log("fetchProduct Actions initiated");
     const userId = firebase.auth().currentUser.uid;
     // const token = getState().auth.token;
-    const events = db;
     try {
-      await events.get().then((querySnapshot) => {
+      const events = await db.doc(userId).collection("Member Products");
+      events.get().then((querySnapshot) => {
         const collection = querySnapshot.docs.map((doc) => {
           return { id: doc.id, ...doc.data() };
         });
@@ -38,6 +38,7 @@ export const fetchProducts = () => {
               collection[key].Quantity,
               collection[key].Size,
               collection[key].time,
+              collection[key].Brand,
               collection[key].Code,
               collection[key].id
             )
@@ -67,24 +68,24 @@ export const fetchAvailableProducts = () => {
         const collection = querySnapshot.docs.map((doc) => {
           return { id: doc.id, ...doc.data() };
         });
-        console.log("this is collection FROM THE FETCH", collection[0].Product);
+        // console.log("this is collection FROM THE FETCH", collection);
 
-        const loadedProducts = [];
+        const addedProducts = collection;
 
         // for (const key in collection) {
-        loadedProducts.push(
-          new availableProduct(
-            collection[0].Product,
-            collection[0].Size,
-            collection[0].Price,
-            collection[0].Category,
-            collection[0].code
-          )
-        );
-        console.log("available products that were fetched", loadedProducts);
+        // addedProducts.push(
+        //   new availableProduct(
+        //     collection[0].Product,
+        //     collection[0].Size,
+        //     collection[0].Price,
+        //     collection[0].Category,
+        //     collection[0].code
+        //   )
+        // );
+        // console.log("available products that were fetched", addedProducts);
         dispatch({
           type: SET_AVAILABLE_PRODUCT,
-          aProducts: loadedProducts,
+          availableProducts: addedProducts,
         });
       });
     } catch (err) {
@@ -93,7 +94,15 @@ export const fetchAvailableProducts = () => {
   };
 };
 
-export const createProduct = (Title, Price, Category, Quantity, Size, Code) => {
+export const createProduct = (
+  Title,
+  Price,
+  Category,
+  Quantity,
+  Size,
+  Brand,
+  Code
+) => {
   console.log(
     "forwarded updated data111",
     Title,
@@ -101,6 +110,7 @@ export const createProduct = (Title, Price, Category, Quantity, Size, Code) => {
     Category,
     Quantity,
     Size,
+    Brand,
     Code
   );
 
@@ -110,13 +120,14 @@ export const createProduct = (Title, Price, Category, Quantity, Size, Code) => {
 
     console.log("creating product to upload");
     try {
-      await db.doc(userId).set(
+      await db.doc(userId).collection("Member Products").doc(Code).set(
         {
           Title,
           Price,
           Category,
           Quantity: increment,
           Size,
+          Brand,
           Code,
           ownerId: userId,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -124,7 +135,7 @@ export const createProduct = (Title, Price, Category, Quantity, Size, Code) => {
         { merge: true }
       );
 
-      const events = db;
+      const events = db.doc(userId).collection("Member Products");
       await events
         .get()
         .then((querySnapshot) => {
@@ -143,6 +154,7 @@ export const createProduct = (Title, Price, Category, Quantity, Size, Code) => {
               Category,
               Quantity,
               Size,
+              Brand,
               time: collection[0].timestamp,
               Code,
               docTitle: collection[0].id,
@@ -163,6 +175,7 @@ export const addedProduct = (
   newSize,
   newPrice,
   newCategory,
+  newBrand,
   code
 ) => {
   console.log("new product that is being updated", newProduct, code);
@@ -178,13 +191,14 @@ export const addedProduct = (
           Size: newSize,
           Price: newPrice,
           Category: newCategory,
+          Brand: newBrand,
           code,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
 
-      const events = db;
+      const events = db.doc(userId).collection("Member Products");
       await events
         .get()
         .then((querySnapshot) => {
@@ -200,6 +214,7 @@ export const addedProduct = (
               Size,
               Price,
               Category,
+              Brand,
               code,
               // id: collection[0].id,
               // Title,
@@ -247,7 +262,7 @@ export const quantityUpdate = (
     const increment = firebase.firestore.FieldValue.increment(1);
     console.log("updating quantity amount to Firebase");
     try {
-      await db.doc(userId).update(
+      await db.doc(userId).collection("Member Products").doc(Code).update(
         {
           Quantity: newQ,
 
@@ -256,7 +271,7 @@ export const quantityUpdate = (
         // { merge: true }
       );
 
-      const events = db;
+      const events = db.doc(userId).collection("Member Products");
       await events
         .get()
         .then((querySnapshot) => {
@@ -306,7 +321,7 @@ export const updateProducts = (
 
     // console.log(userId);
     try {
-      await db.doc(userId).update(
+      await db.doc(userId).collection("Member Products").doc(Code).update(
         {
           Quantity: increment,
 
@@ -315,7 +330,7 @@ export const updateProducts = (
         // { merge: true }
       );
 
-      const events = db;
+      const events = db.doc(userId).collection("Member Products");
       await events
         .get()
         .then((querySnapshot) => {
@@ -358,7 +373,7 @@ export const subProducts = (Title, Price, Category, Quantity, Size, Code) => {
 
     console.log(Title, Price, Category, Quantity, Size, Code);
     try {
-      await db.doc(userId).update(
+      await db.doc(userId).collection("Member Products").doc(Code).update(
         {
           Quantity: increment,
 
@@ -367,7 +382,7 @@ export const subProducts = (Title, Price, Category, Quantity, Size, Code) => {
         // { merge: true }
       );
 
-      const events = db;
+      const events = db.doc(userId).collection("Member Products");
       await events
         .get()
         .then((querySnapshot) => {

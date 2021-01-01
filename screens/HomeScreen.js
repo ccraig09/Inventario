@@ -13,13 +13,14 @@ import {
   KeyboardAvoidingView,
   Modal,
   Keyboard,
+  ActivityIndicator,
   TouchableWithoutFeedback,
   TextInput,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import HeaderButton from "../components/HeaderButton";
 import styled, { useTheme } from "styled-components";
-
+import { Entypo, AntDesign } from "@expo/vector-icons";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import { useSelector, useDispatch } from "react-redux";
 import * as authActions from "../store/authAction";
@@ -29,7 +30,9 @@ import { BarCodeScanner } from "expo-barcode-scanner";
 import ProductItem from "../components/ProductItem";
 
 const HomeScreen = (props) => {
-  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState();
+  const [focused, setFocused] = useState(false);
 
   const [hasPermission, setHasPermission] = useState(null);
   const [scanner, setScanner] = useState(false);
@@ -39,6 +42,9 @@ const HomeScreen = (props) => {
   const [filteredDataSource, setFilteredDataSource] = useState([]);
   const [masterDataSource, setMasterDataSource] = useState([]);
   const [title, setTitle] = useState([]);
+  const [productSelect, setProductSelect] = useState(true);
+  const [categorySelect, setCategorySelect] = useState(true);
+  const [brandSelect, setBrandSelect] = useState(true);
   // const [sell, setSell] = useState(false);
 
   const userProducts = useSelector((state) => {
@@ -52,6 +58,7 @@ const HomeScreen = (props) => {
         productOwner: state.products.products[key].ownerId,
         productQuantity: state.products.products[key].Quantity,
         productSize: state.products.products[key].Size,
+        productBrand: state.products.products[key].Brand,
         productcode: state.products.products[key].Code,
         docTitle: state.products.products[key].docTitle,
       });
@@ -59,13 +66,21 @@ const HomeScreen = (props) => {
     return transformedProducts;
   });
 
+  const availableProducts = useSelector(
+    (state) => state.availableProducts.availableProducts
+  );
+
+  const dispatch = useDispatch();
+
   const loadDetails = async () => {
+    setError(null);
     setIsRefreshing(true);
     try {
+      await dispatch(ProdActions.fetchAvailableProducts());
+      await dispatch(ProdActions.fetchProducts());
     } catch (err) {
       setError(err.message);
     }
-    // console.log("user products loaded?", userProducts);
     setFilteredDataSource(userProducts);
     setMasterDataSource(userProducts);
 
@@ -80,22 +95,16 @@ const HomeScreen = (props) => {
   }, [loadDetails]);
 
   useEffect(() => {
-    async function fetchThings() {
-      const response = await dispatch(ProdActions.fetchProducts());
-    }
-
-    fetchThings();
-
-    console.log("loading homePage");
-
+    setIsLoading(true);
     loadDetails();
-
+    console.log("loading homePage");
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
     })();
     setScanner(false);
-  }, [dispatch]);
+    setIsLoading(false);
+  }, []);
 
   const searchFilterFunction = (text) => {
     // Check if searched text is not blank
@@ -104,12 +113,36 @@ const HomeScreen = (props) => {
       // Filter the masterDataSource and update FilteredDataSource
       const newData = masterDataSource.filter(function (item) {
         // Applying filter for the inserted text in search bar
-        const itemData = item.productTitle
-          ? item.productTitle.toUpperCase()
-          : "".toUpperCase();
-        const textData = text.toUpperCase();
-        // console.log("ITEMDATA IS===", itemData);
-        return itemData.indexOf(textData) > -1;
+        if (productSelect) {
+          const itemData = item.productTitle
+            ? item.productTitle.toUpperCase()
+            : // item.productCategory.toUpperCase()
+              "".toUpperCase();
+          const textData = text.toUpperCase();
+          // console.log("ITEMDATA IS===", textData);
+          return itemData.indexOf(textData) > -1;
+        }
+        if (categorySelect) {
+          const itemData = item.productCategory
+            ? item.productCategory.toUpperCase()
+            : // item.productCategory.toUpperCase()
+              "".toUpperCase();
+          const textData = text.toUpperCase();
+          // console.log("ITEMDATA IS===", textData);
+          return itemData.indexOf(textData) > -1;
+        }
+        if (brandSelect) {
+          const itemData = item.productBrand
+            ? item.productBrand.toUpperCase()
+            : // item.productCategory.toUpperCase()
+              "".toUpperCase();
+          const textData = text.toUpperCase();
+          // console.log("ITEMDATA IS===", textData);
+          return itemData.indexOf(textData) > -1;
+        }
+        // const textData = text.toUpperCase();
+        // // console.log("ITEMDATA IS===", textData);
+        // return itemData.indexOf(textData) > -1;
       });
       setFilteredDataSource(newData);
       setSearch(text);
@@ -126,6 +159,30 @@ const HomeScreen = (props) => {
   //   console.log(sell);
   //   props.navigation.setParams({ mode: sell });
   // };
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (userProducts.length === 0) {
+    return (
+      <View style={styles.centered}>
+        <Text>No Productos registrado. Agregar products </Text>
+        <TouchableOpacity
+          onPress={() => {
+            props.navigation.navigate("Scan");
+          }}
+        >
+          <View>
+            <Text style={{ color: "blue" }}>Aqui</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   if (hasPermission === null) {
     return <Text>Requesting for camera permission</Text>;
@@ -139,11 +196,72 @@ const HomeScreen = (props) => {
       <View>
         <TextInput
           style={styles.textInputStyle}
+          onFocus={() => {
+            setFocused(true);
+            setFilteredDataSource(userProducts);
+            setMasterDataSource(userProducts);
+          }}
+          clearButtonMode={"always"}
+          // onBlur={() => {
+          //   setFocused(false);
+          // }}
           onChangeText={(text) => searchFilterFunction(text)}
           value={search}
           underlineColorAndroid="transparent"
           placeholder="Buscar"
         />
+        <View
+          style={{ flexDirection: "row", marginLeft: 10, marginBottom: 15 }}
+        >
+          <View style={styles.menuOption}>
+            <Text style={{ color: "grey" }}>Buscar Por: </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.menuOption}
+            onPress={() => {
+              setProductSelect(true);
+              setCategorySelect(false);
+              setBrandSelect(false);
+            }}
+          >
+            {productSelect ? (
+              <AntDesign name="checkcircle" size={24} color="orange" />
+            ) : (
+              <Entypo name="circle" size={24} color="black" />
+            )}
+            <Text> Producto</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuOption}
+            onPress={() => {
+              setCategorySelect(true);
+              setProductSelect(false);
+              setBrandSelect(false);
+            }}
+          >
+            {categorySelect ? (
+              <AntDesign name="checkcircle" size={24} color="orange" />
+            ) : (
+              <Entypo name="circle" size={24} color="black" />
+            )}
+            <Text> Categoria</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuOption}
+            onPress={() => {
+              setBrandSelect(true);
+              setCategorySelect(false);
+              setProductSelect(false);
+            }}
+          >
+            {brandSelect ? (
+              <AntDesign name="checkcircle" size={24} color="orange" />
+            ) : (
+              <Entypo name="circle" size={24} color="black" />
+            )}
+            <Text> Marca</Text>
+          </TouchableOpacity>
+        </View>
         <FlatList
           refreshControl={
             <RefreshControl
@@ -152,7 +270,7 @@ const HomeScreen = (props) => {
               onRefresh={loadDetails}
             />
           }
-          data={filteredDataSource}
+          data={focused ? filteredDataSource : userProducts}
           keyExtractor={(item) => item.productId}
           renderItem={(itemData) => (
             <ProductItem
@@ -165,6 +283,7 @@ const HomeScreen = (props) => {
               price={itemData.item.productPrice}
               category={itemData.item.productCategory}
               quantity={itemData.item.productQuantity}
+              brand={itemData.item.productBrand}
               code={itemData.item.productcode}
               reload={() => {
                 loadDetails();
@@ -252,9 +371,10 @@ const styles = StyleSheet.create({
   },
   textInputStyle: {
     height: 40,
+    borderRadius: 20,
     borderWidth: 1,
-    paddingLeft: 20,
-    margin: 5,
+    paddingHorizontal: 20,
+    margin: 10,
     borderColor: "black",
     backgroundColor: "#FFFFFF",
   },
@@ -314,6 +434,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 25,
     fontWeight: "bold",
+  },
+  centered: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  menuOption: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 10,
   },
 });
 

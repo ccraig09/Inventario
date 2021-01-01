@@ -34,16 +34,26 @@ const ProductItem = (props) => {
     let price;
     let category;
     let size;
+    let brand;
     let code;
 
     title = props.title;
     price = props.price;
     category = props.category;
     size = props.size;
+    brand = props.brand;
     code = props.code;
 
     dispatch(
-      sendProduct.quantityUpdate(title, price, category, newQ, size, code)
+      sendProduct.quantityUpdate(
+        title,
+        price,
+        category,
+        newQ,
+        size,
+        brand,
+        code
+      )
     );
     setTimeout(() => {
       props.reload();
@@ -63,7 +73,8 @@ const ProductItem = (props) => {
         <View style={styles.infoContainer}>
           <Text style={styles.title}>{props.title}</Text>
           <Text style={styles.address}>Tamaño: {props.size}</Text>
-          {/* <Text style={styles.address}>Categoria: {props.category}</Text> */}
+          <Text style={styles.address}>Categoria: {props.category}</Text>
+          <Text style={styles.address}>Marca: {props.brand}</Text>
         </View>
         <View
           style={{
@@ -96,7 +107,7 @@ const ProductItem = (props) => {
             {props.quantity}
           </Text>
         </View>
-        {/* <View
+        <View
           style={{
             borderLeftWidth: 1,
             borderLeftColor: "black",
@@ -111,10 +122,10 @@ const ProductItem = (props) => {
               { color: props.quantity < 5 ? "red" : "#666" })
             }
           >
-            {props.quantity}
+            23 / 03 / 2021
           </Text>
         </View>
-      </View> */}
+        {/* </View> */}
       </View>
       <KeyboardAvoidingView
         style={{
@@ -144,19 +155,61 @@ const ProductItem = (props) => {
                     <View>
                       <Text style={styles.modalTitle}>Editar Producto:</Text>
                       <Text style={styles.modalHead}>{props.title}</Text>
-                      <Text style={styles.modalText}>
-                        Precio: ${props.price}bs
-                      </Text>
-                      <Text style={styles.modalText}>
-                        Categoria: {props.category}
-                      </Text>
-                      <Text style={styles.modalText}>
-                        Cantidad Total: {props.quantity}
-                      </Text>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={styles.modalText}>Marca: </Text>
+                        <Text style={styles.modalText}>{props.brand}</Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={styles.modalText}>Precio: </Text>
+                        <Text style={styles.modalText}>${props.price}bs</Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={styles.modalText}>Tamaño: </Text>
+                        <Text style={styles.modalText}>{props.size}</Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={styles.modalText}>Categoria: </Text>
+                        <Text style={styles.modalText}>{props.category}</Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={styles.modalText}>Cantidad Total: </Text>
+                        <Text style={styles.modalText}>{props.quantity}</Text>
+                      </View>
                     </View>
                   )}
-                  <View>
-                    <Text style={styles.modalText}>Codigo: {props.code}</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Text style={styles.modalTextCode}>Codigo: </Text>
+                    <Text style={styles.modalTextCodigo}>{props.code}</Text>
                   </View>
 
                   {props.title && (
@@ -278,6 +331,7 @@ const styles = StyleSheet.create({
     color: "black",
     fontSize: 18,
     marginBottom: 5,
+    fontWeight: "bold",
   },
   address: {
     color: "#666",
@@ -357,6 +411,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 25,
     fontWeight: "bold",
+  },
+  modalTextCode: {
+    color: "grey",
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: "left",
+    fontSize: 20,
+  },
+  modalTextCodigo: {
+    color: "grey",
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: "right",
+    fontSize: 20,
   },
 });
 
