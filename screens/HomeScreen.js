@@ -18,9 +18,11 @@ import {
   TextInput,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+// import SearchableFlatlist from "searchable-flatlist";
 import HeaderButton from "../components/HeaderButton";
+import HeaderButton2 from "../components/HeaderButton2";
 import styled, { useTheme } from "styled-components";
-import { Entypo, AntDesign } from "@expo/vector-icons";
+import { Entypo, AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import { useSelector, useDispatch } from "react-redux";
 import * as authActions from "../store/authAction";
@@ -43,8 +45,10 @@ const HomeScreen = (props) => {
   const [masterDataSource, setMasterDataSource] = useState([]);
   const [title, setTitle] = useState([]);
   const [productSelect, setProductSelect] = useState(true);
-  const [categorySelect, setCategorySelect] = useState(true);
-  const [brandSelect, setBrandSelect] = useState(true);
+  const [categorySelect, setCategorySelect] = useState(false);
+  const [brandSelect, setBrandSelect] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [storeName, setStoreName] = useState("");
   // const [sell, setSell] = useState(false);
 
   const userProducts = useSelector((state) => {
@@ -66,10 +70,9 @@ const HomeScreen = (props) => {
     return transformedProducts;
   });
 
-  const availableProducts = useSelector(
-    (state) => state.availableProducts.availableProducts
-  );
+  const createdStoreName = useSelector((state) => state.storeName.storeName);
 
+  // let storeName;
   const dispatch = useDispatch();
 
   const loadDetails = async () => {
@@ -78,12 +81,16 @@ const HomeScreen = (props) => {
     try {
       await dispatch(ProdActions.fetchAvailableProducts());
       await dispatch(ProdActions.fetchProducts());
+      await dispatch(ProdActions.fetchStoreName());
     } catch (err) {
       setError(err.message);
     }
     setFilteredDataSource(userProducts);
     setMasterDataSource(userProducts);
+    setStoreName(createdStoreName);
+    console.log("LOADED THE STORENAME", createdStoreName);
 
+    props.navigation.setParams({ storeTitle: createdStoreName });
     setIsRefreshing(false);
   };
 
@@ -97,6 +104,7 @@ const HomeScreen = (props) => {
   useEffect(() => {
     setIsLoading(true);
     loadDetails();
+
     console.log("loading homePage");
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
@@ -116,8 +124,7 @@ const HomeScreen = (props) => {
         if (productSelect) {
           const itemData = item.productTitle
             ? item.productTitle.toUpperCase()
-            : // item.productCategory.toUpperCase()
-              "".toUpperCase();
+            : "".toUpperCase();
           const textData = text.toUpperCase();
           // console.log("ITEMDATA IS===", textData);
           return itemData.indexOf(textData) > -1;
@@ -125,8 +132,7 @@ const HomeScreen = (props) => {
         if (categorySelect) {
           const itemData = item.productCategory
             ? item.productCategory.toUpperCase()
-            : // item.productCategory.toUpperCase()
-              "".toUpperCase();
+            : "".toUpperCase();
           const textData = text.toUpperCase();
           // console.log("ITEMDATA IS===", textData);
           return itemData.indexOf(textData) > -1;
@@ -134,8 +140,7 @@ const HomeScreen = (props) => {
         if (brandSelect) {
           const itemData = item.productBrand
             ? item.productBrand.toUpperCase()
-            : // item.productCategory.toUpperCase()
-              "".toUpperCase();
+            : "".toUpperCase();
           const textData = text.toUpperCase();
           // console.log("ITEMDATA IS===", textData);
           return itemData.indexOf(textData) > -1;
@@ -194,6 +199,96 @@ const HomeScreen = (props) => {
   return (
     <Container>
       <View>
+        <View style={styles.searchText}>
+          <Text style={{ color: "grey" }}>Buscar Por: </Text>
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            marginBottom: 5,
+            marginTop: 5,
+            paddingHorizontal: 10,
+          }}
+        >
+          <TouchableOpacity
+            style={styles.menuOption}
+            onPress={() => {
+              setProductSelect(true);
+              setCategorySelect(false);
+              setBrandSelect(false);
+              setFilteredDataSource([]);
+            }}
+          >
+            {productSelect ? (
+              <AntDesign name="checkcircle" size={24} color="orange" />
+            ) : (
+              <Entypo name="circle" size={24} color="black" />
+            )}
+            <Text> Producto</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuOption}
+            onPress={() => {
+              setCategorySelect(true);
+              setProductSelect(false);
+              setBrandSelect(false);
+              setFilteredDataSource([]);
+            }}
+          >
+            {categorySelect ? (
+              <AntDesign name="checkcircle" size={24} color="orange" />
+            ) : (
+              <Entypo name="circle" size={24} color="black" />
+            )}
+            <Text> Categoria</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuOption}
+            onPress={() => {
+              setBrandSelect(true);
+              setCategorySelect(false);
+              setProductSelect(false);
+              setFilteredDataSource([]);
+            }}
+          >
+            {brandSelect ? (
+              <AntDesign name="checkcircle" size={24} color="orange" />
+            ) : (
+              <Entypo name="circle" size={24} color="black" />
+            )}
+            <Text> Marca</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuOption}
+            onPress={() => {
+              setBrandSelect(false);
+              setCategorySelect(false);
+              setProductSelect(true);
+              setSearch("");
+              setFilteredDataSource(userProducts);
+            }}
+          >
+            <MaterialIcons name="clear" size={24} color="red" />
+            <Text> Aclarar</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* <TextInput
+          style={styles.textInputStyle}
+          onFocus={() => {
+            setFocused(true);
+            // setFilteredDataSource(userProducts);
+            // setMasterDataSource(userProducts);
+          }}
+          clearButtonMode={"always"}
+          // onBlur={() => {
+          //   setFocused(false);
+          // }}
+          onChangeText={(searchTerm) => setSearchTerm(searchTerm)}
+          value={search}
+          underlineColorAndroid="transparent"
+          placeholder="Buscar"
+        /> */}
         <TextInput
           style={styles.textInputStyle}
           onFocus={() => {
@@ -210,58 +305,11 @@ const HomeScreen = (props) => {
           underlineColorAndroid="transparent"
           placeholder="Buscar"
         />
-        <View
-          style={{ flexDirection: "row", marginLeft: 10, marginBottom: 15 }}
-        >
-          <View style={styles.menuOption}>
-            <Text style={{ color: "grey" }}>Buscar Por: </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.menuOption}
-            onPress={() => {
-              setProductSelect(true);
-              setCategorySelect(false);
-              setBrandSelect(false);
-            }}
-          >
-            {productSelect ? (
-              <AntDesign name="checkcircle" size={24} color="orange" />
-            ) : (
-              <Entypo name="circle" size={24} color="black" />
-            )}
-            <Text> Producto</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuOption}
-            onPress={() => {
-              setCategorySelect(true);
-              setProductSelect(false);
-              setBrandSelect(false);
-            }}
-          >
-            {categorySelect ? (
-              <AntDesign name="checkcircle" size={24} color="orange" />
-            ) : (
-              <Entypo name="circle" size={24} color="black" />
-            )}
-            <Text> Categoria</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuOption}
-            onPress={() => {
-              setBrandSelect(true);
-              setCategorySelect(false);
-              setProductSelect(false);
-            }}
-          >
-            {brandSelect ? (
-              <AntDesign name="checkcircle" size={24} color="orange" />
-            ) : (
-              <Entypo name="circle" size={24} color="black" />
-            )}
-            <Text> Marca</Text>
-          </TouchableOpacity>
-        </View>
+        {/* <TextInput
+          placeholder={"Search"}
+          style={sSearchBar}
+          onChangeText={searchTerm => this.setState({ searchTerm })}
+        /> */}
         <FlatList
           refreshControl={
             <RefreshControl
@@ -291,6 +339,52 @@ const HomeScreen = (props) => {
             />
           )}
         />
+
+        {/* <TextInput
+          style={styles.textInputStyle}
+          onFocus={() => {
+            setFocused(true);
+            // setFilteredDataSource(userProducts);
+            // setMasterDataSource(userProducts);
+          }}
+          clearButtonMode={"always"}
+          // onBlur={() => {
+          //   setFocused(false);
+          // }}
+          onChangeText={(text) => searchFilterFunction(text)}
+          value={search}
+          underlineColorAndroid="transparent"
+          placeholder="Buscar"
+        />
+        <FlatList
+          refreshControl={
+            <RefreshControl
+              colors={["#9Bd35A", "#689F38"]}
+              refreshing={isRefreshing}
+              onRefresh={loadDetails}
+            />
+          }
+          data={focused ? filteredDataSource : userProducts}
+          keyExtractor={(item) => item.productId}
+          renderItem={(itemData) => (
+            <ProductItem
+              title={itemData.item.productTitle}
+              onSelect={() => {
+                setModalVisible(true);
+                // alert(itemData.item.productTitle);
+              }}
+              size={itemData.item.productSize}
+              price={itemData.item.productPrice}
+              category={itemData.item.productCategory}
+              quantity={itemData.item.productQuantity}
+              brand={itemData.item.productBrand}
+              code={itemData.item.productcode}
+              reload={() => {
+                loadDetails();
+              }}
+            />
+          )}
+        /> */}
 
         <View
           style={{
@@ -337,22 +431,33 @@ const HomeScreen = (props) => {
 };
 
 HomeScreen.navigationOptions = (navData) => {
+  const Tienda = navData.navigation.getParam("storeTitle");
   return {
     headerLeftShown: false,
     headerBackTitleVisible: false,
-    headerTitle: "Inventario: 4C",
+    headerTitle: `Inventario: ${Tienda}`,
     headerRight: () => (
       <HeaderButtons HeaderButtonComponent={HeaderButton}>
         <Item
           title="Producto"
           iconName={Platform.OS === "android" ? "md-add" : "ios-add"}
           onPress={() => {
-            navData.navigation.navigate(
-              "Scan"
-              // {
-              // mode: navData.navigation.getParam("mode"),
-              // }
-            );
+            navData.navigation.navigate("Scan");
+          }}
+        />
+      </HeaderButtons>
+    ),
+    headerLeft: () => (
+      <HeaderButtons HeaderButtonComponent={HeaderButton2}>
+        <Item
+          title="Producto"
+          iconName={
+            Platform.OS === "android" ? "settings-outline" : "settings-outline"
+          }
+          onPress={() => {
+            navData.navigation.navigate("Settings", {
+              StoreTitle: Tienda,
+            });
           }}
         />
       </HeaderButtons>
@@ -445,7 +550,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginLeft: 10,
+    marginLeft: 5,
+  },
+  searchText: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 5,
   },
 });
 

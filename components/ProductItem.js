@@ -8,6 +8,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Keyboard,
+  TextInput,
   TouchableWithoutFeedback,
 } from "react-native";
 // import Colors from "../constants/Colors";
@@ -20,6 +21,10 @@ const ProductItem = (props) => {
   const [quantityColor, setQuantity] = useState("#666");
   const [modalVisible, setModalVisible] = useState(false);
   const [newQ, setNewQ] = useState();
+  const [editVisible, setEditVisible] = useState(false);
+  const [prompt, setPrompt] = useState();
+  const [type, setType] = useState();
+  const [newText, setNewText] = useState();
 
   const dispatch = useDispatch();
 
@@ -30,31 +35,54 @@ const ProductItem = (props) => {
   }, []);
 
   const quantityUpdateHandler = (newQ) => {
-    let title;
-    let price;
-    let category;
-    let size;
+    let Title;
+    let Price;
+    let Category;
+    let Size;
     let brand;
-    let code;
+    let Code;
 
-    title = props.title;
-    price = props.price;
-    category = props.category;
-    size = props.size;
+    Title = props.title;
+    Price = props.price;
+    Category = props.category;
+    Size = props.size;
     brand = props.brand;
-    code = props.code;
+    Code = props.code;
+
+    console.log("need to see these deets", Title, Code, newQ);
 
     dispatch(
-      sendProduct.quantityUpdate(
-        title,
-        price,
-        category,
-        newQ,
-        size,
-        brand,
-        code
-      )
+      sendProduct.quantityUpdate(Title, Price, Category, newQ, Size, Code)
     );
+    setTimeout(() => {
+      props.reload();
+    }, 1000);
+  };
+
+  const itemUpdateHandler = () => {
+    let Code;
+    Code = props.code;
+    console.log("need to see these deets", newText, type);
+    if (type === "Title") {
+      console.log("type is Title");
+      dispatch(sendProduct.titleUpdate(newText, Code));
+    }
+    if (type === "Marca") {
+      console.log("type is Marca");
+      dispatch(sendProduct.brandUpdate(newText, Code));
+    }
+    if (type === "Precio") {
+      console.log("type is Precio");
+      dispatch(sendProduct.priceUpdate(newText, Code));
+    }
+    if (type === "Tomaño") {
+      console.log("type is Tomaño");
+      dispatch(sendProduct.sizeUpdate(newText, Code));
+    }
+    if (type === "Categoria") {
+      console.log("type is Categoria");
+      dispatch(sendProduct.categoryUpdate(newText, Code));
+    }
     setTimeout(() => {
       props.reload();
     }, 1000);
@@ -76,54 +104,56 @@ const ProductItem = (props) => {
           <Text style={styles.address}>Categoria: {props.category}</Text>
           <Text style={styles.address}>Marca: {props.brand}</Text>
         </View>
-        <View
-          style={{
-            borderLeftWidth: 1,
-            borderLeftColor: "black",
-            margin: 5,
-          }}
-        />
-        <View>
-          <Text style={styles.addressTitle}>Precio: </Text>
-          <Text style={styles.addressNumber}>{props.price} bs</Text>
-        </View>
-        <View
-          style={{
-            borderLeftWidth: 1,
-            borderLeftColor: "black",
-            margin: 5,
-          }}
-        />
-        <View>
-          <Text style={styles.addressTitle}>Cantidad: </Text>
-          <Text
+        <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
+          <View
             style={{
-              fontSize: 23,
-              fontWeight: "bold",
-              textAlign: "center",
-              color: props.quantity < 5 ? "red" : "#666",
+              borderLeftWidth: 1,
+              borderLeftColor: "black",
+              margin: 5,
             }}
-          >
-            {props.quantity}
-          </Text>
-        </View>
-        <View
-          style={{
-            borderLeftWidth: 1,
-            borderLeftColor: "black",
-            margin: 5,
-          }}
-        />
-        <View>
-          <Text style={styles.addressTitle}>Fecha Ven. </Text>
-          <Text
-            style={
-              (styles.quantityNumber,
-              { color: props.quantity < 5 ? "red" : "#666" })
-            }
-          >
-            23 / 03 / 2021
-          </Text>
+          />
+          <View>
+            <Text style={styles.addressTitle}>Precio</Text>
+            <Text style={styles.addressNumber}>{props.price} bs</Text>
+          </View>
+          <View
+            style={{
+              borderLeftWidth: 1,
+              borderLeftColor: "black",
+              margin: 5,
+            }}
+          />
+          <View>
+            <Text style={styles.addressTitle}>Cantidad</Text>
+            <Text
+              style={{
+                fontSize: 23,
+                fontWeight: "bold",
+                textAlign: "center",
+                color: props.quantity < 5 ? "red" : "#666",
+              }}
+            >
+              {props.quantity}
+            </Text>
+          </View>
+          <View
+            style={{
+              borderLeftWidth: 1,
+              borderLeftColor: "black",
+              margin: 5,
+            }}
+          />
+          <View>
+            <Text style={styles.addressTitle}>Fecha</Text>
+            <Text
+              style={
+                (styles.quantityNumber,
+                { color: props.quantity < 5 ? "red" : "#666" })
+              }
+            >
+              3 dias
+            </Text>
+          </View>
         </View>
         {/* </View> */}
       </View>
@@ -151,10 +181,82 @@ const ProductItem = (props) => {
             >
               <View style={styles.centeredView}>
                 <View style={styles.modalView}>
+                  <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={editVisible}
+                    onRequestClose={() => {
+                      setPrompt();
+                      setEditVisible(!editVisible);
+                    }}
+                  >
+                    <TouchableWithoutFeedback
+                      onPress={() => {
+                        Keyboard.dismiss();
+                      }}
+                    >
+                      <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                          <Text style={styles.modalEdit2}>Editar:</Text>
+                          <Text style={styles.modalEdit}>{type}</Text>
+                          <TextInput
+                            style={styles.textInputStyle}
+                            clearButtonMode={"always"}
+                            underlineColorAndroid="transparent"
+                            // placeholder={newText}
+                            onChangeText={(text) => setNewText(text)}
+                            value={newText}
+                          />
+                          <View
+                            style={{
+                              width: "100%",
+                              flexDirection: "row",
+                              justifyContent: "space-around",
+                            }}
+                          >
+                            <TouchableOpacity
+                              style={{
+                                ...styles.openButton,
+                                backgroundColor: "green",
+                              }}
+                              onPress={() => {
+                                setPrompt();
+                                setEditVisible(!editVisible);
+                              }}
+                            >
+                              <Text style={styles.textStyle}>Volver</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={{
+                                ...styles.openButton,
+                                backgroundColor: "#2196F3",
+                              }}
+                              onPress={() => {
+                                itemUpdateHandler();
+                                setPrompt();
+                                setEditVisible(!editVisible);
+                                props.reload();
+                              }}
+                            >
+                              <Text style={styles.textStyle}>Guardar</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </View>
+                    </TouchableWithoutFeedback>
+                  </Modal>
                   {props.title && (
                     <View>
                       <Text style={styles.modalTitle}>Editar Producto:</Text>
-                      <Text style={styles.modalHead}>{props.title}</Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setPrompt(props.title);
+                          setType("Titulo");
+                          setEditVisible(true);
+                        }}
+                      >
+                        <Text style={styles.modalHead}>{props.title}</Text>
+                      </TouchableOpacity>
                       <View
                         style={{
                           flexDirection: "row",
@@ -162,7 +264,15 @@ const ProductItem = (props) => {
                         }}
                       >
                         <Text style={styles.modalText}>Marca: </Text>
-                        <Text style={styles.modalText}>{props.brand}</Text>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setPrompt(props.brand);
+                            setType("Marca");
+                            setEditVisible(true);
+                          }}
+                        >
+                          <Text style={styles.modalText}>{props.brand}</Text>
+                        </TouchableOpacity>
                       </View>
                       <View
                         style={{
@@ -171,7 +281,15 @@ const ProductItem = (props) => {
                         }}
                       >
                         <Text style={styles.modalText}>Precio: </Text>
-                        <Text style={styles.modalText}>${props.price}bs</Text>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setPrompt(props.price);
+                            setType("Precio");
+                            setEditVisible(true);
+                          }}
+                        >
+                          <Text style={styles.modalText}>${props.price}bs</Text>
+                        </TouchableOpacity>
                       </View>
                       <View
                         style={{
@@ -180,7 +298,15 @@ const ProductItem = (props) => {
                         }}
                       >
                         <Text style={styles.modalText}>Tamaño: </Text>
-                        <Text style={styles.modalText}>{props.size}</Text>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setPrompt(props.size);
+                            setType("Tomaño");
+                            setEditVisible(true);
+                          }}
+                        >
+                          <Text style={styles.modalText}>{props.size}</Text>
+                        </TouchableOpacity>
                       </View>
                       <View
                         style={{
@@ -189,7 +315,15 @@ const ProductItem = (props) => {
                         }}
                       >
                         <Text style={styles.modalText}>Categoria: </Text>
-                        <Text style={styles.modalText}>{props.category}</Text>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setPrompt(props.category);
+                            setType("Categoria");
+                            setEditVisible(true);
+                          }}
+                        >
+                          <Text style={styles.modalText}>{props.category}</Text>
+                        </TouchableOpacity>
                       </View>
                       <View
                         style={{
@@ -307,6 +441,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     width: "100%",
     justifyContent: "space-around",
+    paddingHorizontal: 15,
   },
   image: {
     width: 70,
@@ -339,7 +474,8 @@ const styles = StyleSheet.create({
   },
   addressTitle: {
     color: "black",
-    fontSize: 18,
+    fontWeight: "bold",
+    fontSize: 15,
     marginBottom: 5,
     textAlign: "center",
   },
@@ -351,7 +487,7 @@ const styles = StyleSheet.create({
   },
   addressNumber: {
     color: "#666",
-    fontSize: 23,
+    fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
   },
@@ -363,6 +499,22 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: "95%",
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  editView: {
+    width: "75%",
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
@@ -405,12 +557,25 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 20,
     fontWeight: "bold",
+    textDecorationLine: "underline",
   },
   modalTitle: {
     marginBottom: 10,
     textAlign: "center",
     fontSize: 25,
     fontWeight: "bold",
+  },
+  modalEdit2: {
+    marginBottom: 10,
+    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  modalEdit: {
+    marginBottom: 10,
+    textAlign: "center",
+    fontSize: 20,
+    // fontWeight: "bold",
   },
   modalTextCode: {
     color: "grey",
@@ -425,6 +590,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "right",
     fontSize: 20,
+  },
+  textInputStyle: {
+    height: 40,
+    width: "70%",
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    margin: 10,
+    borderColor: "black",
+    backgroundColor: "#FFFFFF",
   },
 });
 

@@ -7,6 +7,7 @@ import ScanScreen from "../screens/ScanScreen";
 import AuthScreen from "../screens/AuthScreen";
 import LoadingScreen from "../screens/LoadingScreen";
 import SignupScreen from "../screens/SignupScreen";
+import SettingsScreen from "../screens/SettingsScreen";
 
 const InventoryNavigator = createStackNavigator({
   Loading: LoadingScreen,
@@ -18,6 +19,7 @@ const InventoryNavigator = createStackNavigator({
 const HomeStack = createStackNavigator({
   Home: HomeScreen,
   Scan: ScanScreen,
+  Settings: SettingsScreen,
 });
 
 const Main = createSwitchNavigator({

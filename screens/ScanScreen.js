@@ -395,6 +395,15 @@ const ScanScreen = (props) => {
                             justifyContent: "space-between",
                           }}
                         >
+                          <Text style={styles.modalText}>Marca: </Text>
+                          <Text style={styles.modalText}>{brand}</Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                          }}
+                        >
                           <Text style={styles.modalText}>Precio: </Text>
                           <Text style={styles.modalText}>${price}bs</Text>
                         </View>
@@ -406,15 +415,6 @@ const ScanScreen = (props) => {
                         >
                           <Text style={styles.modalText}>Tamaño: </Text>
                           <Text style={styles.modalText}>{size}</Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Text style={styles.modalText}>Marca: </Text>
-                          <Text style={styles.modalText}>{brand}</Text>
                         </View>
                         <View
                           style={{
@@ -727,6 +727,12 @@ const ScanScreen = (props) => {
       </View>
     );
   }
+};
+
+ScanScreen.navigationOptions = (navData) => {
+  return {
+    headerTitle: "Escanear",
+  };
 };
 
 export default ScanScreen;

@@ -4,6 +4,7 @@ export const ADDED_PRODUCT = "ADDED_PRODUCT";
 export const SET_PRODUCT = "SET_PRODUCT";
 export const SET_AVAILABLE_PRODUCT = "SET_AVAILABLE_PRODUCT";
 export const UPDATE_PRODUCT = "UPDATE_PRODUCT";
+export const SET_STORE_NAME = "SET_STORE_NAME";
 import Product from "../models/product";
 import availableProduct from "../models/availableProduct";
 
@@ -11,6 +12,7 @@ import firebase from "../components/firebase";
 
 export const db = firebase.firestore().collection("Members");
 export const dbP = firebase.firestore().collection("Products");
+export const dP = firebase.firestore().collection("Members");
 
 export const fetchProducts = () => {
   return async (dispatch, getState) => {
@@ -93,6 +95,32 @@ export const fetchAvailableProducts = () => {
     }
   };
 };
+export const fetchStoreName = () => {
+  console.log("FETCHING STORE NAME");
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+    // const token = getState().auth.token;
+    const events = dP;
+    try {
+      let loadedStore;
+      await events
+        .doc(userId)
+        .get()
+        .then(function (doc) {
+          if (doc.exists) {
+            loadedStore = doc.data().StoreName;
+            console.log(loadedStore);
+            dispatch({ type: SET_STORE_NAME, storeName: loadedStore });
+          } else {
+            // doc.data() will be undefined in this case
+            console.log("No such document!");
+          }
+        });
+    } catch (err) {
+      throw err;
+    }
+  };
+};
 
 export const createProduct = (
   Title,
@@ -130,7 +158,7 @@ export const createProduct = (
           Brand,
           Code,
           ownerId: userId,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          // timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
@@ -413,6 +441,115 @@ export const subProducts = (Title, Price, Category, Quantity, Size, Code) => {
         .catch(function (error) {
           console.log("Error getting document:", error);
         });
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+
+export const titleUpdate = (newText, Code) => {
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+    console.log("updating new title edit");
+    try {
+      await db.doc(userId).collection("Member Products").doc(Code).update(
+        {
+          Title: newText,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+export const brandUpdate = (newText, Code) => {
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+    console.log("updating new title edit");
+    try {
+      await db.doc(userId).collection("Member Products").doc(Code).update(
+        {
+          Brand: newText,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+export const priceUpdate = (newText, Code) => {
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+    console.log("updating new title edit");
+    try {
+      await db.doc(userId).collection("Member Products").doc(Code).update(
+        {
+          Price: newText,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+export const sizeUpdate = (newText, Code) => {
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+    console.log("updating new title edit");
+    try {
+      await db.doc(userId).collection("Member Products").doc(Code).update(
+        {
+          Size: newText,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+export const categoryUpdate = (newText, Code) => {
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+    console.log("updating new title edit");
+    try {
+      await db.doc(userId).collection("Member Products").doc(Code).update(
+        {
+          Category: newText,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+export const storeTitleUpdate = (storeName) => {
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+    console.log("updating new store Title");
+    try {
+      await db.doc(userId).set(
+        {
+          StoreName: storeName,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
     } catch (err) {
       console.log(err.message);
     }
