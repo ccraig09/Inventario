@@ -77,7 +77,7 @@ const SettingsScreen = (props) => {
               >
                 <Input
                   style={{ width: 200, fontSize: 25 }}
-                  label="Tienda"
+                  label="Tienda:"
                   placeholder={Tienda}
                   placeholderTextColor={"silver"}
                   onChangeText={(value) => setStoreName(value)}

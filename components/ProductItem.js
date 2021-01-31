@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Modal,
   KeyboardAvoidingView,
+  Alert,
   Keyboard,
   TextInput,
   TouchableWithoutFeedback,
@@ -86,6 +87,31 @@ const ProductItem = (props) => {
     setTimeout(() => {
       props.reload();
     }, 1000);
+  };
+
+  const itemDeleteHandler = () => {
+    Alert.alert(
+      "Borrar producto?",
+      `El producto ___ será borrado de tu inventario?`,
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Si",
+          onPress: () => DeleteHandler(),
+        },
+      ]
+    );
+  };
+
+  const DeleteHandler = () => {
+    let Code = props.code;
+    console.log("code to delete", Code);
+    dispatch(sendProduct.productDelete(Code));
+    setModalVisible(!modalVisible);
+    props.reload();
   };
 
   return (
@@ -371,7 +397,7 @@ const ProductItem = (props) => {
                         }}
                         colorMax={"red"}
                         colorMin={"green"}
-                        colorLeft={"red"}
+                        colorLeft={"purple"}
                         colorRight={"blue"}
                         value={props.quantity}
                         onChange={(num) => {
@@ -403,6 +429,17 @@ const ProductItem = (props) => {
                       }}
                     >
                       <Text style={styles.textStyle}>Volver</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{
+                        ...styles.openButton,
+                        backgroundColor: "red",
+                      }}
+                      onPress={() => {
+                        itemDeleteHandler();
+                      }}
+                    >
+                      <Text style={styles.textStyle}>Borrar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={{

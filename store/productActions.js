@@ -555,3 +555,15 @@ export const storeTitleUpdate = (storeName) => {
     }
   };
 };
+
+export const productDelete = (Code) => {
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+    console.log("Firebase Delete product");
+    try {
+      await db.doc(userId).collection("Member Products").doc(Code).delete();
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
