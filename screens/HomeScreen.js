@@ -88,7 +88,7 @@ const HomeScreen = (props) => {
     setFilteredDataSource(userProducts);
     setMasterDataSource(userProducts);
     setStoreName(createdStoreName);
-    console.log("LOADED THE STORENAME", createdStoreName);
+    // console.log("LOADED THE STORENAME", createdStoreName);
 
     props.navigation.setParams({ storeTitle: createdStoreName });
     setIsRefreshing(false);
@@ -200,6 +200,7 @@ const HomeScreen = (props) => {
     <Container>
       <View>
         <View style={styles.searchText}>
+          <Text style={styles.storeText}>{createdStoreName} </Text>
           <Text style={{ color: "grey" }}>Buscar Por: </Text>
         </View>
         <View
@@ -310,35 +311,37 @@ const HomeScreen = (props) => {
           style={sSearchBar}
           onChangeText={searchTerm => this.setState({ searchTerm })}
         /> */}
-        <FlatList
-          refreshControl={
-            <RefreshControl
-              colors={["#9Bd35A", "#689F38"]}
-              refreshing={isRefreshing}
-              onRefresh={loadDetails}
-            />
-          }
-          data={focused ? filteredDataSource : userProducts}
-          keyExtractor={(item) => item.productId}
-          renderItem={(itemData) => (
-            <ProductItem
-              title={itemData.item.productTitle}
-              onSelect={() => {
-                setModalVisible(true);
-                // alert(itemData.item.productTitle);
-              }}
-              size={itemData.item.productSize}
-              price={itemData.item.productPrice}
-              category={itemData.item.productCategory}
-              quantity={itemData.item.productQuantity}
-              brand={itemData.item.productBrand}
-              code={itemData.item.productcode}
-              reload={() => {
-                loadDetails();
-              }}
-            />
-          )}
-        />
+        <View style={{ height: "70%" }}>
+          <FlatList
+            refreshControl={
+              <RefreshControl
+                colors={["#9Bd35A", "#689F38"]}
+                refreshing={isRefreshing}
+                onRefresh={loadDetails}
+              />
+            }
+            data={focused ? filteredDataSource : userProducts}
+            keyExtractor={(item) => item.productId}
+            renderItem={(itemData) => (
+              <ProductItem
+                title={itemData.item.productTitle}
+                onSelect={() => {
+                  setModalVisible(true);
+                  // alert(itemData.item.productTitle);
+                }}
+                size={itemData.item.productSize}
+                price={itemData.item.productPrice}
+                category={itemData.item.productCategory}
+                quantity={itemData.item.productQuantity}
+                brand={itemData.item.productBrand}
+                code={itemData.item.productcode}
+                reload={() => {
+                  loadDetails();
+                }}
+              />
+            )}
+          />
+        </View>
 
         {/* <TextInput
           style={styles.textInputStyle}
@@ -435,33 +438,49 @@ HomeScreen.navigationOptions = (navData) => {
   return {
     headerLeftShown: false,
     headerBackTitleVisible: false,
-    headerTitle: `Inventario: ${Tienda}`,
+    headerTitle: "Inventario",
     headerRight: () => (
-      <HeaderButtons HeaderButtonComponent={HeaderButton}>
-        <Item
-          title="Producto"
-          iconName={Platform.OS === "android" ? "md-add" : "ios-add"}
-          onPress={() => {
-            navData.navigation.navigate("Scan");
-          }}
-        />
-      </HeaderButtons>
+      <View style={{ flexDirection: "row" }}>
+        <HeaderButtons HeaderButtonComponent={HeaderButton2}>
+          <Item
+            title="Producto"
+            iconName={
+              Platform.OS === "android"
+                ? "settings-outline"
+                : "settings-outline"
+            }
+            onPress={() => {
+              navData.navigation.navigate("Settings", {
+                StoreTitle: Tienda,
+              });
+            }}
+          />
+        </HeaderButtons>
+        <HeaderButtons HeaderButtonComponent={HeaderButton}>
+          <Item
+            title="Producto"
+            iconName={Platform.OS === "android" ? "md-add" : "ios-add"}
+            onPress={() => {
+              navData.navigation.navigate("Scan");
+            }}
+          />
+        </HeaderButtons>
+      </View>
     ),
-    headerLeft: () => (
-      <HeaderButtons HeaderButtonComponent={HeaderButton2}>
-        <Item
-          title="Producto"
-          iconName={
-            Platform.OS === "android" ? "settings-outline" : "settings-outline"
-          }
-          onPress={() => {
-            navData.navigation.navigate("Settings", {
-              StoreTitle: Tienda,
-            });
-          }}
-        />
-      </HeaderButtons>
-    ),
+    headerLeft: () => null,
+    // <HeaderButtons HeaderButtonComponent={HeaderButton2}>
+    //   <Item
+    //     title="Producto"
+    //     iconName={
+    //       Platform.OS === "android" ? "settings-outline" : "settings-outline"
+    //     }
+    //     onPress={() => {
+    //       navData.navigation.navigate("Settings", {
+    //         StoreTitle: Tienda,
+    //       });
+    //     }}
+    //   />
+    // </HeaderButtons>
   };
 };
 
@@ -553,10 +572,15 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   searchText: {
-    flexDirection: "row",
+    // flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 5,
+  },
+  storeText: {
+    color: "#187AFF",
+    fontWeight: "bold",
+    fontSize: 25,
   },
 });
 

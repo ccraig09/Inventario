@@ -60,7 +60,7 @@ export const fetchProducts = () => {
   };
 };
 export const fetchAvailableProducts = () => {
-  console.log("fetching available products Actions initiated");
+  // console.log("fetching available products Actions initiated");
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
     // const token = getState().auth.token;
@@ -96,7 +96,7 @@ export const fetchAvailableProducts = () => {
   };
 };
 export const fetchStoreName = () => {
-  console.log("FETCHING STORE NAME");
+  // console.log("FETCHING STORE NAME");
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
     // const token = getState().auth.token;

@@ -3,19 +3,10 @@ import {
   StyleSheet,
   Text,
   View,
-  //   Button,
   Platform,
   ScrollView,
-  FlatList,
-  RefreshControl,
   Alert,
-  TouchableOpacity,
   KeyboardAvoidingView,
-  Modal,
-  Keyboard,
-  ActivityIndicator,
-  TouchableWithoutFeedback,
-  TextInput,
 } from "react-native";
 import * as sendProduct from "../store/productActions";
 import { useSelector, useDispatch } from "react-redux";
@@ -26,6 +17,11 @@ const SettingsScreen = (props) => {
   const [storeName, setStoreName] = useState();
   const dispatch = useDispatch();
   const Tienda = props.navigation.getParam("StoreTitle");
+  const createdStoreName = useSelector((state) => state.storeName.storeName);
+
+  useEffect(() => {
+    dispatch(sendProduct.fetchStoreName());
+  }, []);
 
   const titleHandler = () => {
     let Title;
@@ -78,7 +74,7 @@ const SettingsScreen = (props) => {
                 <Input
                   style={{ width: 200, fontSize: 25 }}
                   label="Tienda:"
-                  placeholder={Tienda}
+                  placeholder={createdStoreName}
                   placeholderTextColor={"silver"}
                   onChangeText={(value) => setStoreName(value)}
                 />

@@ -467,12 +467,14 @@ const ProductItem = (props) => {
 
 const styles = StyleSheet.create({
   placeItem: {
+    flex: 1,
     borderBottomColor: "#ccc",
     borderBottomWidth: 1,
     paddingVertical: 15,
     paddingHorizontal: 10,
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 20,
   },
   itemSpacing: {
     flexDirection: "row",

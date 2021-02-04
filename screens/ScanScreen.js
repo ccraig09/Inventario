@@ -46,6 +46,7 @@ const ScanScreen = (props) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selected, setSelected] = useState(0);
   const [newQ, setNewQ] = useState();
+  const [newMode, setNewMode] = useState(true);
   const [newProduct, setNewProduct] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newSize, setNewSize] = useState("");
@@ -131,13 +132,72 @@ const ScanScreen = (props) => {
         code
       )
     );
-    setModalVisible(false);
+
+    Alert.alert("Agregar a tu inventario?", "new joint in ya book?", [
+      {
+        text: "No",
+        onPress: () => {
+          setModalVisible(!modalVisible);
+          setScanned(false);
+        },
+      },
+      {
+        text: "Si",
+        onPress: () => {
+          console.log("ADDING TO BOOK and mode is", newMode);
+          setTitle(newProduct);
+          setPrice(newPrice);
+          setCategory(newCategory);
+          setSize(newSize);
+          setCode(code);
+          setBrand(newBrand);
+          setNewMode(false);
+        },
+      },
+    ]);
+
+    // setModalVisible(false);
+    // setTitle(true);
+
     setTimeout(() => {
       loadDetails();
     }, 1000);
   };
 
-  const quantityUpdateHandler = (newQ) => {
+  const newInvProd = () => {
+    let Title = title;
+    let Price = price;
+    let Category = category;
+    let Quantity = newQ;
+    let Size = size;
+    let Brand = brand;
+    let Code = code;
+    console.log(
+      "new product added now going to add product to the inventory list"
+    );
+    dispatch(
+      sendProduct.createProduct(
+        Title,
+        Price,
+        Category,
+        Quantity,
+        Size,
+        Brand,
+        Code
+      )
+    );
+  };
+
+  const quantityUpdateHandler = () => {
+    console.log(
+      "FROM NEW PRODUCT TO NEW Q",
+      title,
+      price,
+      category,
+      newQ,
+      size,
+      code
+    );
     dispatch(
       sendProduct.quantityUpdate(title, price, category, newQ, size, code)
     );
@@ -240,6 +300,7 @@ const ScanScreen = (props) => {
     }
 
     if (loadedProduct) {
+      setNewMode(false);
       console.log("THIS IS LOADED PRODUCT", loadedProduct);
       try {
         Title = loadedProduct.Product;
@@ -625,7 +686,8 @@ const ScanScreen = (props) => {
                         }}
                         onPress={() => {
                           setModalVisible(!modalVisible);
-                          props.navigation.navigate("Home"), setScanned(false);
+                          // props.navigation.navigate("Home"),
+                          setScanned(false);
                         }}
                       >
                         <Text style={styles.textStyle}>Volver</Text>
@@ -636,12 +698,22 @@ const ScanScreen = (props) => {
                           backgroundColor: "#2196F3",
                         }}
                         onPress={() => {
-                          if (newProduct) {
+                          if (newMode) {
                             newEntry();
                             console.log("theres a new product", newProduct);
                             continueScan();
-                          } else {
-                            quantityUpdateHandler(newQ);
+                          }
+                          if (!newMode) {
+                            console.log("NEW PRODUCT ADDED now for inventory");
+                            newInvProd();
+                            setModalVisible(!modalVisible);
+                            continueScan();
+                          }
+                          if (title) {
+                            console.log(
+                              "not adding a new product just to the inventory"
+                            );
+                            quantityUpdateHandler();
                             setModalVisible(!modalVisible);
                             continueScan();
                           }
