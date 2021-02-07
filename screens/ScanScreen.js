@@ -322,9 +322,10 @@ const ScanScreen = (props) => {
       }
     }
 
-    if (!sell) {
+    if (!sell && loadedProduct) {
       uploadProduct(Title, Price, Category, Quantity, Size, Brand, Code);
-    } else {
+    }
+    if (sell) {
       minusProduct(Title, Price, Category, Quantity, Size, Brand, Code);
     }
 

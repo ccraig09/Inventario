@@ -12,19 +12,19 @@ export default (state = initialState, action) => {
         availableProducts: action.availableProducts,
       };
 
-    case ADDED_PRODUCT:
-      const addedProduct = new availableProduct(
-        action.productData.Product,
-        action.productData.Size,
-        action.productData.Price,
-        action.productData.Category,
-        action.productData.Brand,
-        action.productData.code
-      );
-      return {
-        ...state,
-        availableProducts: state.availableProducts.concat(addedProduct),
-      };
+    // case ADDED_PRODUCT:
+    //   const addedProduct = new availableProduct(
+    //     action.productData.Product,
+    //     action.productData.Size,
+    //     action.productData.Price,
+    //     action.productData.Category,
+    //     action.productData.Brand,
+    //     action.productData.code
+    //   );
+    //   return {
+    //     ...state,
+    //     availableProducts: state.availableProducts.concat(addedProduct),
+    //   };
   }
 
   return state;

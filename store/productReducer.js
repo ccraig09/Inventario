@@ -40,19 +40,19 @@ export default (state = initialState, action) => {
         ...state,
         products: state.products.concat(newProduct),
       };
-    case ADDED_PRODUCT:
-      const addedProduct = new availableProduct(
-        action.productData.Product,
-        action.productData.Size,
-        action.productData.Price,
-        action.productData.Category,
-        action.productData.Brand,
-        action.productData.code
-      );
-      return {
-        ...state,
-        availableProducts: state.availableProducts.concat(addedProduct),
-      };
+    // case ADDED_PRODUCT:
+    //   const addedProduct = new availableProduct(
+    //     action.productData.Product,
+    //     action.productData.Size,
+    //     action.productData.Price,
+    //     action.productData.Category,
+    //     action.productData.Brand,
+    //     action.productData.code
+    //   );
+    //   return {
+    //     ...state,
+    //     availableProducts: state.availableProducts.concat(addedProduct),
+    //   };
 
     case UPDATE_PRODUCT:
       const productIndex = state.products.findIndex(

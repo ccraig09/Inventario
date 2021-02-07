@@ -47,7 +47,7 @@ export const fetchProducts = () => {
           );
           //   loadedProducts.sort((a, b) => (a.time > b.time ? 1 : -1));
           //   console.log("to dispatch:", loadedProducts);
-          console.log("this is userid for owenr", userId);
+          // console.log("this is userid for owenr", userId);
           dispatch({
             type: SET_PRODUCT,
             products: loadedProducts.filter((prod) => prod.ownerId === userId),
@@ -158,7 +158,7 @@ export const createProduct = (
           Brand,
           Code,
           ownerId: userId,
-          // timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          timestamp: firebase.firestore.FieldValue.serverTimestamp().toString(),
         },
         { merge: true }
       );
@@ -183,14 +183,14 @@ export const createProduct = (
               Quantity,
               Size,
               Brand,
-              time: collection[0].timestamp,
+              time: collection[0].timestamp.toString(),
               Code,
               docTitle: collection[0].id,
             },
           });
         })
         .catch(function (error) {
-          console.log("Error getting document:", error);
+          console.log("Error getting document: from 4", error);
         });
     } catch (err) {
       console.log(err.message);
@@ -221,45 +221,54 @@ export const addedProduct = (
           Category: newCategory,
           Brand: newBrand,
           code,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          timestamp: firebase.firestore.FieldValue.serverTimestamp().toString(),
         },
         { merge: true }
       );
 
-      const events = db.doc(userId).collection("Member Products");
-      await events
-        .get()
-        .then((querySnapshot) => {
-          const collection = querySnapshot.docs.map((doc) => {
-            return { id: doc.id, ...doc.data() };
-          });
+      let Product = newProduct;
+      let Size = newSize;
+      let Price = newPrice;
+      let Category = newCategory;
+      let Brand = newBrand;
+      console.log("QUICK TEST", Product, Size, Price);
 
-          // console.log("on Create Collection Everything", collection);
-          dispatch({
-            type: ADDED_PRODUCT,
-            productData: {
-              Product,
-              Size,
-              Price,
-              Category,
-              Brand,
-              code,
-              // id: collection[0].id,
-              // Title,
-              // ownerId: userId,
-              // Price,
-              // Category,
-              // Quantity,
-              // Size,
-              // time: collection[0].timestamp,
-              // Code,
-              // docTitle: collection[0].id,
-            },
-          });
-        })
-        .catch(function (error) {
-          console.log("Error getting document:", error);
-        });
+      // const events = dbP
+      // await events
+      //   .get()
+      //   .then((querySnapshot) => {
+      //     const collection = querySnapshot.docs.map((doc) => {
+      //       return { id: doc.id, ...doc.data() };
+      //     });
+
+      //     const newAddedProduct = collection;
+
+      // console.log("on Create Collection Everything", collection);
+      // dispatch({
+      //   type: ADDED_PRODUCT,
+      //   productData: {
+      //     Product,
+      //     Size,
+      //     Price,
+      //     Category,
+      //     Brand,
+      //     code,
+      // id: collection[0].id,
+      // Title,
+      // ownerId: userId,
+      // Price,
+      // Category,
+      // Quantity,
+      // Size,
+      // time: collection[0].timestamp,
+      // Code,
+      // docTitle: collection[0].id,
+      //   },
+      // });
+      // })
+      // .catch(function (error) {
+      //   console.log("Error getting document: from 5", error);
+      // });
     } catch (err) {
       console.log(err.message);
     }
@@ -325,7 +334,7 @@ export const quantityUpdate = (
           });
         })
         .catch(function (error) {
-          console.log("Error getting document:", error);
+          console.log("Error getting document: from 1", error);
         });
     } catch (err) {
       console.log(err.message);
@@ -387,7 +396,7 @@ export const updateProducts = (
           });
         })
         .catch(function (error) {
-          console.log("Error getting document:", error);
+          console.log("Error getting document: from 2", error);
         });
     } catch (err) {
       console.log(err.message);
@@ -439,7 +448,7 @@ export const subProducts = (Title, Price, Category, Quantity, Size, Code) => {
           });
         })
         .catch(function (error) {
-          console.log("Error getting document:", error);
+          console.log("Error getting document: from 3", error);
         });
     } catch (err) {
       console.log(err.message);
