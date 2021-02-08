@@ -64,6 +64,7 @@ const HomeScreen = (props) => {
         productSize: state.products.products[key].Size,
         productBrand: state.products.products[key].Brand,
         productcode: state.products.products[key].Code,
+        productExp: state.products.products[key].ExpDate,
         docTitle: state.products.products[key].docTitle,
       });
     }
@@ -335,6 +336,7 @@ const HomeScreen = (props) => {
                 quantity={itemData.item.productQuantity}
                 brand={itemData.item.productBrand}
                 code={itemData.item.productcode}
+                exp={itemData.item.productExp}
                 reload={() => {
                   loadDetails();
                 }}

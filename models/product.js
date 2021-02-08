@@ -10,6 +10,7 @@ class Product {
     time,
     Brand,
     Code,
+    ExpDate,
     docTitle
   ) {
     this.id = id;
@@ -22,6 +23,7 @@ class Product {
     this.time = time;
     this.Brand = Brand;
     this.Code = Code;
+    this.ExpDate = ExpDate;
     this.docTitle = docTitle;
   }
 }

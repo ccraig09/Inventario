@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,13 @@ import {
 // import Colors from "../constants/Colors";
 import InputSpinner from "react-native-input-spinner";
 import { useSelector, useDispatch } from "react-redux";
+import { Octicons } from "@expo/vector-icons";
+import DateTimePicker from "react-native-modal-datetime-picker";
+
+import moment from "moment";
+import Moment from "moment";
+import localization from "moment/locale/es-us";
+import { extendMoment } from "moment-range";
 
 import * as sendProduct from "../store/productActions";
 
@@ -26,6 +33,19 @@ const ProductItem = (props) => {
   const [prompt, setPrompt] = useState();
   const [type, setType] = useState();
   const [newText, setNewText] = useState();
+  const [extendedDate, setExtendedDate] = useState(false);
+  const [expDate, setExpDate] = useState();
+
+  const moment = extendMoment(Moment);
+
+  var a = moment(props.exp, "YYYYMMDD").fromNow();
+  var b = props.exp;
+  var c = moment(b).locale("es", localization).format("MMM D, YYYY");
+
+  var date1 = props.exp;
+  var date2 = moment();
+  const range = moment.range(date2, date1);
+  const dateDiff = range.diff("days");
 
   const dispatch = useDispatch();
 
@@ -60,11 +80,22 @@ const ProductItem = (props) => {
     }, 1000);
   };
 
+  const dateHandler = useCallback(async (date) => {
+    let Code;
+    Code = props.code;
+
+    setExtendedDate(false);
+    var dateChanged = moment(date).format("YYYYMMDD");
+    setExpDate(date);
+    dispatch(sendProduct.expDateUpdate(dateChanged, Code));
+    props.reload();
+  });
+
   const itemUpdateHandler = () => {
     let Code;
     Code = props.code;
     console.log("need to see these deets", newText, type);
-    if (type === "Title") {
+    if (type === "Titulo") {
       console.log("type is Title");
       dispatch(sendProduct.titleUpdate(newText, Code));
     }
@@ -84,6 +115,7 @@ const ProductItem = (props) => {
       console.log("type is Categoria");
       dispatch(sendProduct.categoryUpdate(newText, Code));
     }
+    setNewText();
     setTimeout(() => {
       props.reload();
     }, 1000);
@@ -170,15 +202,23 @@ const ProductItem = (props) => {
             }}
           />
           <View>
-            <Text style={styles.addressTitle}>Fecha</Text>
-            <Text
-              style={
-                (styles.quantityNumber,
-                { color: props.quantity < 5 ? "red" : "#666" })
-              }
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignSelf: "center",
+              }}
             >
-              3 dias
-            </Text>
+              <Text style={styles.addressTitle}>Fecha </Text>
+              {dateDiff < 5 && <Octicons name="alert" size={15} color="red" />}
+            </View>
+            <View style={{ alignItems: "center" }}>
+              <Text style={(styles.dateNumber, { color: "#666" })}>{c}</Text>
+              <Text style={(styles.dateNumber, { color: "#666" })}>
+                {dateDiff}
+              </Text>
+              <Text>dias</Text>
+            </View>
           </View>
         </View>
         {/* </View> */}
@@ -357,20 +397,55 @@ const ProductItem = (props) => {
                           justifyContent: "space-between",
                         }}
                       >
+                        <TouchableOpacity
+                          onPress={() => {
+                            setExtendedDate(true);
+                            // setPrompt(props.category);
+                            // setType("Categoria");
+                            // setEditVisible(true);
+                          }}
+                        >
+                          <Text style={styles.modalText}>Fecha de Exp: </Text>
+                          <Text style={styles.modalText}>
+                            {moment(props.exp)
+                              .locale("es", localization)
+                              .format("LL")}
+                          </Text>
+                        </TouchableOpacity>
+
+                        {extendedDate && (
+                          <View>
+                            <DateTimePicker
+                              mode="date"
+                              isVisible={extendedDate}
+                              locale="es-ES"
+                              onConfirm={
+                                (date) => {
+                                  dateHandler(date);
+                                }
+                                // this.handleDatePicked(date, "start", "showStart")
+                              }
+                              onCancel={() => {
+                                setExtendedDate(false);
+                              }}
+                              cancelTextIOS={"Cancelar"}
+                              confirmTextIOS={"Confirmar"}
+                              headerTextIOS={"Elige una fecha"}
+                            />
+                          </View>
+                        )}
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
                         <Text style={styles.modalText}>Cantidad Total: </Text>
                         <Text style={styles.modalText}>{props.quantity}</Text>
                       </View>
                     </View>
                   )}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Text style={styles.modalTextCode}>Codigo: </Text>
-                    <Text style={styles.modalTextCodigo}>{props.code}</Text>
-                  </View>
 
                   {props.title && (
                     <View
@@ -411,6 +486,16 @@ const ProductItem = (props) => {
                       />
                     </View>
                   )}
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Text style={styles.modalTextCode}>Codigo: </Text>
+                    <Text style={styles.modalTextCodigo}>{props.code}</Text>
+                  </View>
 
                   <View
                     style={{
@@ -519,6 +604,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   quantityNumber: {
+    // color: quantityColor,
+    fontSize: 23,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  dateNumber: {
     // color: quantityColor,
     fontSize: 23,
     fontWeight: "bold",

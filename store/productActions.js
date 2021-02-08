@@ -42,6 +42,7 @@ export const fetchProducts = () => {
               collection[key].time,
               collection[key].Brand,
               collection[key].Code,
+              collection[key].ExpDate,
               collection[key].id
             )
           );
@@ -459,7 +460,7 @@ export const subProducts = (Title, Price, Category, Quantity, Size, Code) => {
 export const titleUpdate = (newText, Code) => {
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
-    console.log("updating new title edit");
+    console.log("updating new TITLE edit");
     try {
       await db.doc(userId).collection("Member Products").doc(Code).update(
         {
@@ -477,7 +478,7 @@ export const titleUpdate = (newText, Code) => {
 export const brandUpdate = (newText, Code) => {
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
-    console.log("updating new title edit");
+    console.log("updating new brand edit");
     try {
       await db.doc(userId).collection("Member Products").doc(Code).update(
         {
@@ -495,7 +496,7 @@ export const brandUpdate = (newText, Code) => {
 export const priceUpdate = (newText, Code) => {
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
-    console.log("updating new title edit");
+    console.log("updating new price edit");
     try {
       await db.doc(userId).collection("Member Products").doc(Code).update(
         {
@@ -513,7 +514,7 @@ export const priceUpdate = (newText, Code) => {
 export const sizeUpdate = (newText, Code) => {
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
-    console.log("updating new title edit");
+    console.log("updating new size edit");
     try {
       await db.doc(userId).collection("Member Products").doc(Code).update(
         {
@@ -528,10 +529,28 @@ export const sizeUpdate = (newText, Code) => {
     }
   };
 };
+export const expDateUpdate = (dateChanged, Code) => {
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+    console.log("updating new expdate edit");
+    try {
+      await db.doc(userId).collection("Member Products").doc(Code).set(
+        {
+          ExpDate: dateChanged,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
 export const categoryUpdate = (newText, Code) => {
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
-    console.log("updating new title edit");
+    console.log("updating new category edit");
     try {
       await db.doc(userId).collection("Member Products").doc(Code).update(
         {
