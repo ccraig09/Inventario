@@ -160,6 +160,16 @@ const HomeScreen = (props) => {
     }
   };
 
+  // const ItemSeprator = () => (
+  //   <View
+  //     style={{
+  //       height: 8,
+  //       width: "100%",
+  //       backgroundColor: "rgba(0,0,0,0.5)",
+  //     }}
+  //   />
+  // );
+
   // const modeHandler = () => {
   //   setSell((prevState) => !prevState);
   //   console.log(sell);
@@ -323,6 +333,7 @@ const HomeScreen = (props) => {
             }
             data={focused ? filteredDataSource : userProducts}
             keyExtractor={(item) => item.productId}
+            // ItemSeparatorComponent={ItemSeprator}
             renderItem={(itemData) => (
               <ProductItem
                 title={itemData.item.productTitle}

@@ -46,6 +46,9 @@ const ProductItem = (props) => {
   var date2 = moment();
   const range = moment.range(date2, date1);
   const dateDiff = range.diff("days");
+  const minDays = () => {
+    if (dateDiff > 5) dateDiff = 0;
+  };
 
   const dispatch = useDispatch();
 
@@ -214,9 +217,13 @@ const ProductItem = (props) => {
             </View>
             <View style={{ alignItems: "center" }}>
               <Text style={(styles.dateNumber, { color: "#666" })}>{c}</Text>
-              <Text style={(styles.dateNumber, { color: "#666" })}>
-                {dateDiff}
-              </Text>
+              {dateDiff > 9000 ? (
+                <Text style={(styles.dateNumber, { color: "red" })}>0</Text>
+              ) : (
+                <Text style={(styles.dateNumber, { color: "#666" })}>
+                  {dateDiff}
+                </Text>
+              )}
               <Text>dias</Text>
             </View>
           </View>
@@ -553,13 +560,16 @@ const ProductItem = (props) => {
 const styles = StyleSheet.create({
   placeItem: {
     flex: 1,
-    borderBottomColor: "#ccc",
-    borderBottomWidth: 1,
+    // borderBottomColor: "#ccc",
+    // borderBottomWidth: 1,
     paddingVertical: 15,
     paddingHorizontal: 10,
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    // marginBottom: 20,
+    margin: 5,
+    borderRadius: 30,
+    borderWidth: 1,
   },
   itemSpacing: {
     flexDirection: "row",
