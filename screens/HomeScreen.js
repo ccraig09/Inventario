@@ -9,6 +9,7 @@ import {
   FlatList,
   RefreshControl,
   Alert,
+  Dimensions,
   TouchableOpacity,
   KeyboardAvoidingView,
   Modal,
@@ -17,6 +18,9 @@ import {
   TouchableWithoutFeedback,
   TextInput,
 } from "react-native";
+import Svg, { Circle } from "react-native-svg";
+import { LinearGradient } from "expo-linear-gradient";
+
 import { StatusBar } from "expo-status-bar";
 // import SearchableFlatlist from "searchable-flatlist";
 import HeaderButton from "../components/HeaderButton";
@@ -30,6 +34,7 @@ import * as ProdActions from "../store/productActions";
 
 import { BarCodeScanner } from "expo-barcode-scanner";
 import ProductItem from "../components/ProductItem";
+let screenWidth = Dimensions.get("window").width;
 
 const HomeScreen = (props) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -210,82 +215,102 @@ const HomeScreen = (props) => {
   return (
     <Container>
       <View>
-        <View style={styles.searchText}>
-          <Text style={styles.storeText}>{createdStoreName} </Text>
-          <Text style={{ color: "grey" }}>Buscar Por: </Text>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            marginBottom: 5,
-            marginTop: 5,
-            paddingHorizontal: 10,
-          }}
-        >
-          <TouchableOpacity
-            style={styles.menuOption}
-            onPress={() => {
-              setProductSelect(true);
-              setCategorySelect(false);
-              setBrandSelect(false);
-              setFilteredDataSource([]);
-            }}
-          >
-            {productSelect ? (
-              <AntDesign name="checkcircle" size={24} color="orange" />
-            ) : (
-              <Entypo name="circle" size={24} color="black" />
-            )}
-            <Text> Producto</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuOption}
-            onPress={() => {
-              setCategorySelect(true);
-              setProductSelect(false);
-              setBrandSelect(false);
-              setFilteredDataSource([]);
-            }}
-          >
-            {categorySelect ? (
-              <AntDesign name="checkcircle" size={24} color="orange" />
-            ) : (
-              <Entypo name="circle" size={24} color="black" />
-            )}
-            <Text> Categoria</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuOption}
-            onPress={() => {
-              setBrandSelect(true);
-              setCategorySelect(false);
-              setProductSelect(false);
-              setFilteredDataSource([]);
-            }}
-          >
-            {brandSelect ? (
-              <AntDesign name="checkcircle" size={24} color="orange" />
-            ) : (
-              <Entypo name="circle" size={24} color="black" />
-            )}
-            <Text> Marca</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuOption}
-            onPress={() => {
-              setBrandSelect(false);
-              setCategorySelect(false);
-              setProductSelect(true);
-              setSearch("");
-              setFilteredDataSource(userProducts);
-            }}
-          >
-            <MaterialIcons name="clear" size={24} color="red" />
-            <Text> Aclarar</Text>
-          </TouchableOpacity>
-        </View>
+        <View style={styles.topHeader}>
+          {/* <Svg height="20%" width="100%" viewBox="0 0 100 100">
+          <Circle
+            cx={100 / 2}
+            cy={`-${898 - 100 + 2}`}
+            r="888.5"
+            fill={null}
+            stroke="red"
+            strokeWidth="2"
+          /> */}
+          <LinearGradient
+            // Background Linear Gradient
+            start={{ x: -1, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            colors={["#0F25C8", "#2777E9"]}
+            style={styles.background}
+          />
 
-        {/* <TextInput
+          <View style={styles.searchText}>
+            <Text style={styles.storeText}>{createdStoreName} </Text>
+            {/* <Text style={{ color: "grey" }}>Buscar Por: </Text> */}
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              marginBottom: 5,
+              marginTop: 5,
+              paddingHorizontal: 15,
+              justifyContent: "space-between",
+            }}
+          >
+            <MaterialIcons name="search" size={24} color="white" />
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => {
+                setProductSelect(true);
+                setCategorySelect(false);
+                setBrandSelect(false);
+                setFilteredDataSource([]);
+              }}
+            >
+              {productSelect ? (
+                <AntDesign name="checkcircle" size={24} color="orange" />
+              ) : (
+                <Entypo name="circle" size={24} color="white" />
+              )}
+              <Text style={{ color: "white" }}> Producto</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => {
+                setCategorySelect(true);
+                setProductSelect(false);
+                setBrandSelect(false);
+                setFilteredDataSource([]);
+              }}
+            >
+              {categorySelect ? (
+                <AntDesign name="checkcircle" size={24} color="orange" />
+              ) : (
+                <Entypo name="circle" size={24} color="white" />
+              )}
+              <Text style={{ color: "white" }}> Categoria</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => {
+                setBrandSelect(true);
+                setCategorySelect(false);
+                setProductSelect(false);
+                setFilteredDataSource([]);
+              }}
+            >
+              {brandSelect ? (
+                <AntDesign name="checkcircle" size={24} color="orange" />
+              ) : (
+                <Entypo name="circle" size={24} color="white" />
+              )}
+              <Text style={{ color: "white" }}> Marca</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => {
+                setBrandSelect(false);
+                setCategorySelect(false);
+                setProductSelect(true);
+                setSearch("");
+                setFilteredDataSource(userProducts);
+              }}
+            >
+              <MaterialIcons name="clear" size={24} color="red" />
+              <Text style={{ color: "white" }}> Aclarar</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* <TextInput
           style={styles.textInputStyle}
           onFocus={() => {
             setFocused(true);
@@ -301,28 +326,42 @@ const HomeScreen = (props) => {
           underlineColorAndroid="transparent"
           placeholder="Buscar"
         /> */}
-        <TextInput
-          style={styles.textInputStyle}
-          onFocus={() => {
-            setFocused(true);
-            setFilteredDataSource(userProducts);
-            setMasterDataSource(userProducts);
-          }}
-          clearButtonMode={"always"}
-          // onBlur={() => {
-          //   setFocused(false);
-          // }}
-          onChangeText={(text) => searchFilterFunction(text)}
-          value={search}
-          underlineColorAndroid="transparent"
-          placeholder="Buscar"
-        />
+          <View
+            style={{ flexDirection: "row", padding: 5, alignItems: "center" }}
+          >
+            <TextInput
+              style={styles.textInputStyle}
+              onFocus={() => {
+                setFocused(true);
+                setFilteredDataSource(userProducts);
+                setMasterDataSource(userProducts);
+              }}
+              clearButtonMode={"always"}
+              // onBlur={() => {
+              //   setFocused(false);
+              // }}
+              onChangeText={(text) => searchFilterFunction(text)}
+              value={search}
+              underlineColorAndroid="transparent"
+              placeholder="Buscar"
+            />
+            <TouchableOpacity
+              onPress={() => {
+                loadDetails();
+              }}
+            >
+              <MaterialIcons name="refresh" size={30} color="white" />
+            </TouchableOpacity>
+          </View>
+          {/* </Svg> */}
+        </View>
+
         {/* <TextInput
           placeholder={"Search"}
           style={sSearchBar}
           onChangeText={searchTerm => this.setState({ searchTerm })}
         /> */}
-        <View style={{ height: "70%" }}>
+        <View style={{ backgroundColor: "#EDEDED" }}>
           <FlatList
             refreshControl={
               <RefreshControl
@@ -402,7 +441,7 @@ const HomeScreen = (props) => {
           )}
         /> */}
 
-        <View
+        {/* <View
           style={{
             flexDirection: "row",
             justifyContent: "space-around",
@@ -440,7 +479,7 @@ const HomeScreen = (props) => {
               }}
             />
           </View>
-        </View>
+        </View> */}
       </View>
     </Container>
   );
@@ -457,6 +496,7 @@ HomeScreen.navigationOptions = (navData) => {
         <HeaderButtons HeaderButtonComponent={HeaderButton2}>
           <Item
             title="Producto"
+            // iconColor={"black"}
             iconName={
               Platform.OS === "android"
                 ? "settings-outline"
@@ -506,9 +546,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  topHeader: {
+    height: "20%",
+    // backgroundColor: "#F86464",
+    borderBottomLeftRadius: 100,
+    borderBottomRightRadius: 100,
+    overflow: "hidden",
+    marginBottom: 5,
+  },
   textInputStyle: {
+    width: "85%",
     height: 40,
-    borderRadius: 20,
+    borderRadius: 10,
     borderWidth: 1,
     paddingHorizontal: 20,
     margin: 10,
@@ -591,9 +640,19 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   storeText: {
-    color: "#187AFF",
+    color: "white",
     fontWeight: "bold",
-    fontSize: 25,
+    fontSize: 30,
+  },
+  background: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    height: "100%",
+    marginBottom: 10,
+    // overflow: "hidden",
+    // borderTopEndRadius: 30,
   },
 });
 

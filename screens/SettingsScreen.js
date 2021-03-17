@@ -13,6 +13,8 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { Avatar, Divider, Input, Button } from "react-native-elements";
 
+import * as authActions from "../store/authAction";
+
 const SettingsScreen = (props) => {
   const [storeName, setStoreName] = useState();
   const dispatch = useDispatch();
@@ -52,7 +54,7 @@ const SettingsScreen = (props) => {
             <Text style={styles.name}>{storeName} </Text>
           </View>
         </View>
-        <View style={{ backgroundColor: "white", marginTop: 8 }}>
+        <View style={{ backgroundColor: "blue", marginTop: 8 }}>
           <View style={styles.Datos}>
             <Text style={styles.title}>Datos</Text>
             {/* <Text style={styles.category}>Nombre</Text> */}
@@ -81,8 +83,11 @@ const SettingsScreen = (props) => {
 
                 <View
                   style={{
+                    // width: "100%",
+                    height: "45%",
                     alignSelf: "center",
                     marginBottom: 10,
+                    justifyContent: "space-between",
                   }}
                 >
                   <Button
@@ -109,6 +114,29 @@ const SettingsScreen = (props) => {
                           },
                         ]
                       );
+                    }}
+                  />
+                  <Button
+                    buttonStyle={{
+                      borderRadius: 12,
+                      backgroundColor: "red",
+                    }}
+                    title="Cerrar sesión"
+                    onPress={() => {
+                      Alert.alert("Cerrar sesión?", "", [
+                        {
+                          text: "No",
+                          style: "default",
+                        },
+                        {
+                          text: "Si",
+                          style: "destructive",
+                          onPress: () => {
+                            dispatch(authActions.logout());
+                            props.navigation.navigate("Auth");
+                          },
+                        },
+                      ]);
                     }}
                   />
                 </View>
@@ -182,9 +210,10 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   Datos: {
-    backgroundColor: "white",
+    backgroundColor: "red",
     marginLeft: 15,
     marginRight: 15,
+    // flex: 1,
   },
 });
 

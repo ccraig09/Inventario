@@ -559,6 +559,7 @@ const ProductItem = (props) => {
 
 const styles = StyleSheet.create({
   placeItem: {
+    backgroundColor: "white",
     flex: 1,
     // borderBottomColor: "#ccc",
     // borderBottomWidth: 1,
@@ -568,8 +569,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     // marginBottom: 20,
     margin: 5,
-    borderRadius: 30,
-    borderWidth: 1,
+    borderRadius: 10,
+    borderWidth: 0.4,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 9,
   },
   itemSpacing: {
     flexDirection: "row",
