@@ -235,18 +235,26 @@ const HomeScreen = (props) => {
 
           <View style={styles.searchText}>
             <Text style={styles.storeText}>{createdStoreName} </Text>
+            <View style={{ right: 10, position: "absolute" }}>
+              <TouchableOpacity
+                onPress={() => {
+                  loadDetails();
+                }}
+              >
+                <MaterialIcons name="refresh" size={30} color="white" />
+              </TouchableOpacity>
+            </View>
             {/* <Text style={{ color: "grey" }}>Buscar Por: </Text> */}
           </View>
           <View
             style={{
               flexDirection: "row",
               marginBottom: 5,
-              marginTop: 5,
+              marginTop: 25,
               paddingHorizontal: 15,
               justifyContent: "space-between",
             }}
           >
-            <MaterialIcons name="search" size={24} color="white" />
             <TouchableOpacity
               style={styles.menuOption}
               onPress={() => {
@@ -327,10 +335,24 @@ const HomeScreen = (props) => {
           placeholder="Buscar"
         /> */}
           <View
-            style={{ flexDirection: "row", padding: 5, alignItems: "center" }}
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              alignSelf: "center",
+              backgroundColor: "#fff",
+              borderWidth: 0.5,
+              borderColor: "#000",
+              height: 40,
+              borderRadius: 5,
+              margin: 10,
+              marginTop: 20,
+              padding: 5,
+              width: "80%",
+            }}
           >
             <TextInput
-              style={styles.textInputStyle}
+              style={{ flex: 1 }}
               onFocus={() => {
                 setFocused(true);
                 setFilteredDataSource(userProducts);
@@ -345,13 +367,7 @@ const HomeScreen = (props) => {
               underlineColorAndroid="transparent"
               placeholder="Buscar"
             />
-            <TouchableOpacity
-              onPress={() => {
-                loadDetails();
-              }}
-            >
-              <MaterialIcons name="refresh" size={30} color="white" />
-            </TouchableOpacity>
+            <MaterialIcons name="search" size={24} color="black" />
           </View>
           {/* </Svg> */}
         </View>
@@ -493,6 +509,35 @@ HomeScreen.navigationOptions = (navData) => {
     headerTitle: "Inventario",
     headerRight: () => (
       <View style={{ flexDirection: "row" }}>
+        {/* <HeaderButtons HeaderButtonComponent={HeaderButton2}>
+          <Item
+            title="Producto"
+            // iconColor={"black"}
+            iconName={
+              Platform.OS === "android"
+                ? "settings-outline"
+                : "settings-outline"
+            }
+            onPress={() => {
+              navData.navigation.navigate("Settings", {
+                StoreTitle: Tienda,
+              });
+            }}
+          />
+        </HeaderButtons> */}
+        <HeaderButtons HeaderButtonComponent={HeaderButton}>
+          <Item
+            title="Producto"
+            iconName={Platform.OS === "android" ? "md-add" : "ios-add"}
+            onPress={() => {
+              navData.navigation.navigate("Scan");
+            }}
+          />
+        </HeaderButtons>
+      </View>
+    ),
+    headerLeft: () => (
+      <View style={{ flexDirection: "row" }}>
         <HeaderButtons HeaderButtonComponent={HeaderButton2}>
           <Item
             title="Producto"
@@ -509,31 +554,8 @@ HomeScreen.navigationOptions = (navData) => {
             }}
           />
         </HeaderButtons>
-        <HeaderButtons HeaderButtonComponent={HeaderButton}>
-          <Item
-            title="Producto"
-            iconName={Platform.OS === "android" ? "md-add" : "ios-add"}
-            onPress={() => {
-              navData.navigation.navigate("Scan");
-            }}
-          />
-        </HeaderButtons>
       </View>
     ),
-    headerLeft: () => null,
-    // <HeaderButtons HeaderButtonComponent={HeaderButton2}>
-    //   <Item
-    //     title="Producto"
-    //     iconName={
-    //       Platform.OS === "android" ? "settings-outline" : "settings-outline"
-    //     }
-    //     onPress={() => {
-    //       navData.navigation.navigate("Settings", {
-    //         StoreTitle: Tienda,
-    //       });
-    //     }}
-    //   />
-    // </HeaderButtons>
   };
 };
 
@@ -634,10 +656,11 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   searchText: {
-    // flexDirection: "row",
+    flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 5,
+    marginTop: 10,
   },
   storeText: {
     color: "white",

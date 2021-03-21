@@ -14,7 +14,7 @@ const CustomHeaderButton = (props) => {
         justifyContent: "center",
       }}
     >
-      <Text>Nuevo</Text>
+      {/* <Text>Nuevo</Text> */}
 
       <HeaderButton
         {...props}

@@ -40,7 +40,7 @@ const ProductItem = (props) => {
 
   var a = moment(props.exp, "YYYYMMDD").fromNow();
   var b = props.exp;
-  var c = moment(b).locale("es", localization).format("MMM D, YYYY");
+  var c = moment(b).locale("es", localization).format("D-MM-YYYY");
 
   var date1 = props.exp;
   var date2 = moment();
@@ -161,75 +161,105 @@ const ProductItem = (props) => {
       <View style={styles.itemSpacing}>
         <View style={styles.infoContainer}>
           <Text style={styles.title}>{props.title}</Text>
-          <Text style={styles.address}>Tamaño: {props.size}</Text>
+          {/* <Text style={styles.address}>Tamaño: {props.size}</Text>
           <Text style={styles.address}>Categoria: {props.category}</Text>
-          <Text style={styles.address}>Marca: {props.brand}</Text>
+          <Text style={styles.address}>Marca: {props.brand}</Text> */}
         </View>
-        <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
-          <View
+        {/* <View style={{ justifyContent: "space-around" }}> */}
+        {/* <View
             style={{
               borderLeftWidth: 1,
               borderLeftColor: "black",
               margin: 5,
             }}
-          />
-          <View>
-            <Text style={styles.addressTitle}>Precio</Text>
-            <Text style={styles.addressNumber}>{props.price} bs</Text>
-          </View>
-          <View
+          /> */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Text style={styles.addressTitle}>Precio (bs): </Text>
+          {/* <Text style={[styles.addressTitle, { marginTop: -14 }]}></Text> */}
+          <Text style={styles.addressNumber}>{props.price}</Text>
+        </View>
+        {/* <View
             style={{
               borderLeftWidth: 1,
               borderLeftColor: "black",
               margin: 5,
             }}
-          />
-          <View>
-            <Text style={styles.addressTitle}>Cantidad</Text>
-            <Text
-              style={{
-                fontSize: 23,
-                fontWeight: "bold",
-                textAlign: "center",
-                color: props.quantity < 5 ? "red" : "#666",
-              }}
-            >
-              {props.quantity}
+          /> */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Text style={styles.addressTitle}>Cantidad: </Text>
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              textAlign: "center",
+              color: props.quantity < 5 ? "red" : "#666",
+            }}
+          >
+            {props.quantity}
+          </Text>
+        </View>
+        {/* <View
+            style={{
+              borderLeftWidth: 1,
+              borderLeftColor: "black",
+              margin: 5,
+            }}
+          /> */}
+
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Text style={styles.addressTitle}>Fecha: </Text>
+          {/* </View> */}
+          {/* <View style={{ alignItems: "center" }}> */}
+          <View
+            style={{
+              flexDirection: "row",
+              flex: 1,
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={[styles.dateNumber, { color: "#666", fontSize: 18 }]}>
+              {c}
             </Text>
-          </View>
-          <View
-            style={{
-              borderLeftWidth: 1,
-              borderLeftColor: "black",
-              margin: 5,
-            }}
-          />
-          <View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                alignSelf: "center",
-              }}
-            >
-              <Text style={styles.addressTitle}>Fecha </Text>
-              {dateDiff < 5 && <Octicons name="alert" size={15} color="red" />}
-            </View>
-            <View style={{ alignItems: "center" }}>
-              <Text style={(styles.dateNumber, { color: "#666" })}>{c}</Text>
+            <View style={{ flexDirection: "row" }}>
               {dateDiff > 9000 ? (
-                <Text style={(styles.dateNumber, { color: "red" })}>0</Text>
+                <Text style={[styles.dateNumber, { color: "red" }]}>
+                  {" "}
+                  (0 dias)
+                </Text>
               ) : (
-                <Text style={(styles.dateNumber, { color: "#666" })}>
-                  {dateDiff}
+                <Text style={[styles.dateNumber, { color: "#666" }]}>
+                  {" "}
+                  ({dateDiff} dias)
                 </Text>
               )}
-              <Text>dias</Text>
+              <View style={{ marginBottom: 2 }}>
+                {dateDiff < 5 && (
+                  <Octicons name="alert" size={15} color="red" />
+                )}
+              </View>
             </View>
           </View>
+          {/* <Text style={[styles.dateNumber, { color: "#666" }]}></Text> */}
         </View>
-        {/* </View> */}
       </View>
+
+      {/* </View> */}
+      {/* </View> */}
       <KeyboardAvoidingView
         style={{
           flex: 1,
@@ -581,7 +611,7 @@ const styles = StyleSheet.create({
     elevation: 9,
   },
   itemSpacing: {
-    flexDirection: "row",
+    // flexDirection: "row",
     width: "100%",
     justifyContent: "space-around",
     paddingHorizontal: 15,
@@ -595,7 +625,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   infoContainer: {
-    marginLeft: 2,
+    // marginLeft: 2,
     width: 170,
     justifyContent: "center",
     alignItems: "flex-start",
@@ -607,7 +637,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "black",
-    fontSize: 18,
+    fontSize: 21,
     marginBottom: 5,
     fontWeight: "bold",
   },
@@ -616,11 +646,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   addressTitle: {
-    color: "black",
+    color: "grey",
     fontWeight: "bold",
-    fontSize: 15,
-    marginBottom: 5,
-    textAlign: "center",
+    fontSize: 18,
+    // marginBottom: 15,
+    // textAlign: "center",
   },
   quantityNumber: {
     // color: quantityColor,
@@ -630,7 +660,6 @@ const styles = StyleSheet.create({
   },
   dateNumber: {
     // color: quantityColor,
-    fontSize: 23,
     fontWeight: "bold",
     textAlign: "center",
   },
@@ -638,7 +667,7 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 20,
     fontWeight: "bold",
-    textAlign: "center",
+    // textAlign: "center",
   },
   centeredView: {
     flex: 1,
