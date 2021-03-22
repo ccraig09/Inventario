@@ -15,6 +15,7 @@ import {
   Modal,
   Keyboard,
   ActivityIndicator,
+  ImageBackground,
   TouchableWithoutFeedback,
   TextInput,
 } from "react-native";
@@ -214,8 +215,12 @@ const HomeScreen = (props) => {
 
   return (
     <Container>
-      <View>
+      <View style={styles.topContainer}>
         <View style={styles.topHeader}>
+          {/* <ImageBackground
+            source={require("../assets/tent.png")}
+            style={styles.image}
+          > */}
           {/* <Svg height="20%" width="100%" viewBox="0 0 100 100">
           <Circle
             cx={100 / 2}
@@ -225,13 +230,13 @@ const HomeScreen = (props) => {
             stroke="red"
             strokeWidth="2"
           /> */}
-          <LinearGradient
+          {/* <LinearGradient
             // Background Linear Gradient
             start={{ x: -1, y: 0 }}
             end={{ x: 1, y: 0 }}
-            colors={["#0F25C8", "#2777E9"]}
+            colors={["#CF5555", "#CF5555"]}
             style={styles.background}
-          />
+          /> */}
 
           <View style={styles.searchText}>
             <Text style={styles.storeText}>{createdStoreName} </Text>
@@ -252,7 +257,7 @@ const HomeScreen = (props) => {
               marginBottom: 5,
               marginTop: 25,
               paddingHorizontal: 15,
-              justifyContent: "space-between",
+              justifyContent: "space-around",
             }}
           >
             <TouchableOpacity
@@ -265,11 +270,11 @@ const HomeScreen = (props) => {
               }}
             >
               {productSelect ? (
-                <AntDesign name="checkcircle" size={24} color="orange" />
+                <AntDesign name="checkcircle" size={24} color="white" />
               ) : (
                 <Entypo name="circle" size={24} color="white" />
               )}
-              <Text style={{ color: "white" }}> Producto</Text>
+              <Text style={styles.menuSearch}> Producto</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.menuOption}
@@ -281,11 +286,11 @@ const HomeScreen = (props) => {
               }}
             >
               {categorySelect ? (
-                <AntDesign name="checkcircle" size={24} color="orange" />
+                <AntDesign name="checkcircle" size={24} color="white" />
               ) : (
                 <Entypo name="circle" size={24} color="white" />
               )}
-              <Text style={{ color: "white" }}> Categoria</Text>
+              <Text style={styles.menuSearch}> Categoria</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.menuOption}
@@ -297,13 +302,13 @@ const HomeScreen = (props) => {
               }}
             >
               {brandSelect ? (
-                <AntDesign name="checkcircle" size={24} color="orange" />
+                <AntDesign name="checkcircle" size={24} color="white" />
               ) : (
                 <Entypo name="circle" size={24} color="white" />
               )}
-              <Text style={{ color: "white" }}> Marca</Text>
+              <Text style={styles.menuSearch}> Marca</Text>
             </TouchableOpacity>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.menuOption}
               onPress={() => {
                 setBrandSelect(false);
@@ -313,9 +318,9 @@ const HomeScreen = (props) => {
                 setFilteredDataSource(userProducts);
               }}
             >
-              <MaterialIcons name="clear" size={24} color="red" />
-              <Text style={{ color: "white" }}> Aclarar</Text>
-            </TouchableOpacity>
+              <MaterialIcons name="clear" size={24} color="black" />
+              <Text style={styles.menuSearch}> Aclarar</Text>
+            </TouchableOpacity> */}
           </View>
 
           {/* <TextInput
@@ -370,48 +375,49 @@ const HomeScreen = (props) => {
             <MaterialIcons name="search" size={24} color="black" />
           </View>
           {/* </Svg> */}
+          {/* </ImageBackground> */}
         </View>
-
-        {/* <TextInput
+      </View>
+      {/* <TextInput
           placeholder={"Search"}
           style={sSearchBar}
           onChangeText={searchTerm => this.setState({ searchTerm })}
         /> */}
-        <View style={{ backgroundColor: "#EDEDED" }}>
-          <FlatList
-            refreshControl={
-              <RefreshControl
-                colors={["#9Bd35A", "#689F38"]}
-                refreshing={isRefreshing}
-                onRefresh={loadDetails}
-              />
-            }
-            data={focused ? filteredDataSource : userProducts}
-            keyExtractor={(item) => item.productId}
-            // ItemSeparatorComponent={ItemSeprator}
-            renderItem={(itemData) => (
-              <ProductItem
-                title={itemData.item.productTitle}
-                onSelect={() => {
-                  setModalVisible(true);
-                  // alert(itemData.item.productTitle);
-                }}
-                size={itemData.item.productSize}
-                price={itemData.item.productPrice}
-                category={itemData.item.productCategory}
-                quantity={itemData.item.productQuantity}
-                brand={itemData.item.productBrand}
-                code={itemData.item.productcode}
-                exp={itemData.item.productExp}
-                reload={() => {
-                  loadDetails();
-                }}
-              />
-            )}
-          />
-        </View>
+      <View style={{ backgroundColor: "#EDEDED" }}>
+        <FlatList
+          refreshControl={
+            <RefreshControl
+              colors={["#9Bd35A", "#689F38"]}
+              refreshing={isRefreshing}
+              onRefresh={loadDetails}
+            />
+          }
+          data={focused ? filteredDataSource : userProducts}
+          keyExtractor={(item) => item.productId}
+          // ItemSeparatorComponent={ItemSeprator}
+          renderItem={(itemData) => (
+            <ProductItem
+              title={itemData.item.productTitle}
+              onSelect={() => {
+                setModalVisible(true);
+                // alert(itemData.item.productTitle);
+              }}
+              size={itemData.item.productSize}
+              price={itemData.item.productPrice}
+              category={itemData.item.productCategory}
+              quantity={itemData.item.productQuantity}
+              brand={itemData.item.productBrand}
+              code={itemData.item.productcode}
+              exp={itemData.item.productExp}
+              reload={() => {
+                loadDetails();
+              }}
+            />
+          )}
+        />
+      </View>
 
-        {/* <TextInput
+      {/* <TextInput
           style={styles.textInputStyle}
           onFocus={() => {
             setFocused(true);
@@ -457,7 +463,7 @@ const HomeScreen = (props) => {
           )}
         /> */}
 
-        {/* <View
+      {/* <View
           style={{
             flexDirection: "row",
             justifyContent: "space-around",
@@ -496,7 +502,6 @@ const HomeScreen = (props) => {
             />
           </View>
         </View> */}
-      </View>
     </Container>
   );
 };
@@ -528,7 +533,7 @@ HomeScreen.navigationOptions = (navData) => {
         <HeaderButtons HeaderButtonComponent={HeaderButton}>
           <Item
             title="Producto"
-            iconName={Platform.OS === "android" ? "md-add" : "ios-add"}
+            iconName={Platform.OS === "android" ? "plus-circle" : "plus-circle"}
             onPress={() => {
               navData.navigation.navigate("Scan");
             }}
@@ -543,9 +548,7 @@ HomeScreen.navigationOptions = (navData) => {
             title="Producto"
             // iconColor={"black"}
             iconName={
-              Platform.OS === "android"
-                ? "settings-outline"
-                : "settings-outline"
+              Platform.OS === "android" ? "settings-sharp" : "settings-sharp"
             }
             onPress={() => {
               navData.navigation.navigate("Settings", {
@@ -568,13 +571,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  topContainer: {
+    height: "28%",
+  },
   topHeader: {
-    height: "20%",
-    // backgroundColor: "#F86464",
-    borderBottomLeftRadius: 100,
-    borderBottomRightRadius: 100,
-    overflow: "hidden",
-    marginBottom: 5,
+    height: "90%",
+    backgroundColor: "#FF4949",
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    // overflow: "hidden",
+    // marginBottom: 12,
+    shadowColor: "#FF4949",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.75,
+    shadowRadius: 9.84,
+    elevation: 9,
   },
   textInputStyle: {
     width: "85%",
@@ -637,11 +651,22 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
+  menuSearch: {
+    color: "white",
+    fontWeight: "bold",
+    // textShadowColor: "rgba(0, 0, 0, 0.75)",
+    // textShadowOffset: { width: -1, height: 1 },
+    // textShadowRadius: 5,
+  },
   modalTitle: {
     marginBottom: 10,
     textAlign: "center",
     fontSize: 25,
     fontWeight: "bold",
+  },
+  image: {
+    height: "100%",
+    width: "100%",
   },
   centered: {
     flex: 1,
@@ -666,6 +691,9 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 30,
+    // textShadowColor: "rgba(0, 0, 0, 0.75)",
+    // textShadowOffset: { width: -1, height: 1 },
+    // textShadowRadius: 10,
   },
   background: {
     position: "absolute",
@@ -681,7 +709,7 @@ const styles = StyleSheet.create({
 
 const Container = styled.View`
   flex: 1;
-  background-color: #f2f2f2;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
+  background-color: #ededed;
+  /* border-bottom-left-radius: 20px;
+  border-top-right-radius: 10px; */
 `;

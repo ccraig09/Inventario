@@ -21,7 +21,7 @@ const CustomHeaderButton = (props) => {
         {...props}
         IconComponent={Ionicons}
         iconSize={28}
-        color="grey"
+        color="#FF4949"
       />
     </View>
   );

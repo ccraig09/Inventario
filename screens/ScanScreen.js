@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  Button,
   RefreshControl,
   Platform,
   FlatList,
@@ -20,6 +19,11 @@ import { useSelector, useDispatch } from "react-redux";
 import * as sendProduct from "../store/productActions";
 import * as ProdActions from "../store/productActions";
 import ProductItem from "../components/ProductItem";
+import CategoryGridTile from "../components/CategoryGridTile";
+import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
+import { Avatar, Divider, Input, Button } from "react-native-elements";
+import Icon from "react-native-vector-icons/FontAwesome";
+
 import InputSpinner from "react-native-input-spinner";
 
 // import HeaderButton from "./components/HeaderButton";
@@ -31,6 +35,8 @@ const ScanScreen = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [scanner, setScanner] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [manualAdd, setManualAdd] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState();
   const [scanCount, setScanCount] = useState(0);
@@ -56,6 +62,11 @@ const ScanScreen = (props) => {
   const [masterDataSource, setMasterDataSource] = useState([]);
   const [picker, setPicker] = useState(false);
   const [picked, setPicked] = useState();
+  const [focused, setFocused] = useState(false);
+  const [search, setSearch] = useState("");
+  const [productSelect, setProductSelect] = useState(true);
+  const [categorySelect, setCategorySelect] = useState(false);
+  const [brandSelect, setBrandSelect] = useState(false);
 
   // const Mode = props.navigation.getParam("mode");
 
@@ -119,6 +130,50 @@ const ScanScreen = (props) => {
     setSell((prevState) => !prevState);
     console.log(sell);
     // props.navigation.setParams({ mode: sell });
+  };
+  const searchFilterFunction = (text) => {
+    // Check if searched text is not blank
+    if (text) {
+      // Inserted text is not blank
+      // Filter the masterDataSource and update FilteredDataSource
+      const newData = masterDataSource.filter(function (item) {
+        // Applying filter for the inserted text in search bar
+        if (productSelect) {
+          const itemData = item.productTitle
+            ? item.productTitle.toUpperCase()
+            : "".toUpperCase();
+          const textData = text.toUpperCase();
+          // console.log("ITEMDATA IS===", textData);
+          return itemData.indexOf(textData) > -1;
+        }
+        if (categorySelect) {
+          const itemData = item.productCategory
+            ? item.productCategory.toUpperCase()
+            : "".toUpperCase();
+          const textData = text.toUpperCase();
+          // console.log("ITEMDATA IS===", textData);
+          return itemData.indexOf(textData) > -1;
+        }
+        if (brandSelect) {
+          const itemData = item.productBrand
+            ? item.productBrand.toUpperCase()
+            : "".toUpperCase();
+          const textData = text.toUpperCase();
+          // console.log("ITEMDATA IS===", textData);
+          return itemData.indexOf(textData) > -1;
+        }
+        // const textData = text.toUpperCase();
+        // // console.log("ITEMDATA IS===", textData);
+        // return itemData.indexOf(textData) > -1;
+      });
+      setFilteredDataSource(newData);
+      setSearch(text);
+    } else {
+      // Inserted text is blank
+      // Update FilteredDataSource with masterDataSource
+      setFilteredDataSource(masterDataSource);
+      setSearch(text);
+    }
   };
 
   const newEntry = () => {
@@ -352,7 +407,7 @@ const ScanScreen = (props) => {
     return <Text>No access to camera</Text>;
   }
 
-  if (!scanner) {
+  if (!scanner && !menu) {
     return (
       <View
         style={{
@@ -384,10 +439,510 @@ const ScanScreen = (props) => {
             </Text>
           </View>
         </TouchableOpacity>
-        <Button title={"Abrir Scanner"} onPress={() => setScanner(true)} />
+        <View
+          style={{
+            // flex: 0.8,
+            // height: "80%",
+            marginBottom: 80,
+            justifyContent: "center",
+          }}
+        >
+          <Button
+            icon={{
+              // <Icon
+              iconStyle: styles.menuIcon,
+              name: "qr-code",
+              size: 25,
+              color: "white",
+              // />
+            }}
+            iconRight
+            buttonStyle={styles.menuButton}
+            titleStyle={{
+              fontSize: 25,
+            }}
+            title="Abrir Scanner"
+            onPress={() => setScanner(true)}
+          />
+          <Button
+            icon={{
+              // <Icon
+              iconStyle: styles.menuIcon,
+              name: "list",
+              size: 25,
+              color: "white",
+              // />
+            }}
+            iconRight
+            buttonStyle={styles.menuButton}
+            titleStyle={{
+              fontSize: 25,
+            }}
+            title="Abrir Catálogo"
+            onPress={() => setMenu(true)}
+          />
+          <Button
+            icon={{
+              // <Icon
+              iconStyle: styles.menuIcon,
+              name: "print",
+              size: 25,
+              color: "white",
+              // />
+            }}
+            iconRight
+            buttonStyle={styles.menuButton}
+            titleStyle={{
+              fontSize: 25,
+            }}
+            title="Exportar .PDF"
+            onPress={() => setScanner(true)}
+          />
+        </View>
       </View>
     );
   }
+
+  //////////////////////////
+  //////////////////////////
+  //////////////////////////
+  //////////////////////////
+  if (menu) {
+    return (
+      <View
+        style={{
+          flex: 1,
+        }}
+      >
+        <TouchableOpacity onPress={() => setMenu(false)}>
+          <Text>Menu screen</Text>
+        </TouchableOpacity>
+        <View
+          style={{
+            // height: 50,
+            // flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            alignSelf: "center",
+            marginBottom: 15,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              marginBottom: 5,
+              marginTop: 25,
+              paddingHorizontal: 15,
+              justifyContent: "space-around",
+            }}
+          >
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => {
+                setProductSelect(true);
+                setCategorySelect(false);
+                setBrandSelect(false);
+                setFilteredDataSource([]);
+              }}
+            >
+              {productSelect ? (
+                <AntDesign name="checkcircle" size={24} color="white" />
+              ) : (
+                <Entypo name="circle" size={24} color="white" />
+              )}
+              <Text style={styles.menuSearch}> Producto</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => {
+                setCategorySelect(true);
+                setProductSelect(false);
+                setBrandSelect(false);
+                setFilteredDataSource([]);
+              }}
+            >
+              {categorySelect ? (
+                <AntDesign name="checkcircle" size={24} color="white" />
+              ) : (
+                <Entypo name="circle" size={24} color="white" />
+              )}
+              <Text style={styles.menuSearch}> Categoria</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => {
+                setBrandSelect(true);
+                setCategorySelect(false);
+                setProductSelect(false);
+                setFilteredDataSource([]);
+              }}
+            >
+              {brandSelect ? (
+                <AntDesign name="checkcircle" size={24} color="white" />
+              ) : (
+                <Entypo name="circle" size={24} color="white" />
+              )}
+              <Text style={styles.menuSearch}> Marca</Text>
+            </TouchableOpacity>
+            {/* <TouchableOpacity
+              style={styles.menuOption}
+              onPress={() => {
+                setBrandSelect(false);
+                setCategorySelect(false);
+                setProductSelect(true);
+                setSearch("");
+                setFilteredDataSource(userProducts);
+              }}
+            >
+              <MaterialIcons name="clear" size={24} color="black" />
+              <Text style={styles.menuSearch}> Aclarar</Text>
+            </TouchableOpacity> */}
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                alignSelf: "center",
+                backgroundColor: "#fff",
+                borderWidth: 0.5,
+                borderColor: "#000",
+                height: 40,
+                borderRadius: 5,
+                margin: 10,
+                marginTop: 20,
+                padding: 5,
+                width: "80%",
+              }}
+            >
+              <TextInput
+                style={{ flex: 1 }}
+                onFocus={() => {
+                  setFocused(true);
+                  setFilteredDataSource(userProducts);
+                  setMasterDataSource(userProducts);
+                }}
+                clearButtonMode={"always"}
+                // onBlur={() => {
+                //   setFocused(false);
+                // }}
+                onChangeText={(text) => searchFilterFunction(text)}
+                value={search}
+                underlineColorAndroid="transparent"
+                placeholder="Buscar"
+              />
+            </View>
+            <View
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+                alignSelf: "center",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  setManualAdd(true);
+                }}
+              >
+                <FontAwesome name="plus-circle" size={35} color="#FF4949" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <KeyboardAvoidingView
+          style={
+            {
+              // flex: 1,
+            }
+          }
+          behavior={Platform.OS === "android" ? "padding" : "position"}
+          keyboardVerticalOffset={-80}
+          // style={styles.screen}
+        >
+          <View>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={manualAdd}
+              // onRequestClose={() => {
+              //   Alert.alert("Modal has been closed.");
+              // }}
+            >
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  Keyboard.dismiss();
+                }}
+              >
+                <View style={styles.centeredView}>
+                  <View style={styles.modalView}>
+                    <View>
+                      <Text style={styles.modalTitle}>Nuevo Producto</Text>
+                      <View>
+                        <TextInput
+                          style={styles.textInputStyle}
+                          placeholder="Producto"
+                          value={newProduct}
+                          onChangeText={(name) => {
+                            setNewProduct(name);
+                          }}
+                        />
+                        <TextInput
+                          style={styles.textInputStyle}
+                          placeholder="Marca"
+                          value={newBrand}
+                          onChangeText={(brand) => {
+                            setNewBrand(brand);
+                          }}
+                        />
+                        <TextInput
+                          style={styles.textInputStyle}
+                          keyboardType="numeric"
+                          placeholder="Precio"
+                          value={newPrice}
+                          onChangeText={(price) => {
+                            setNewPrice(price);
+                          }}
+                        />
+                        <TextInput
+                          style={styles.textInputStyle}
+                          placeholder="Tomaño"
+                          value={newSize}
+                          onChangeText={(size) => {
+                            setNewSize(size);
+                          }}
+                        />
+                        <View>
+                          <Text style={styles.modalText}>
+                            Categoria: {newCategory}
+                          </Text>
+                        </View>
+
+                        <TouchableOpacity
+                          style={{
+                            ...styles.openButton,
+                            backgroundColor: "#A251F9",
+                          }}
+                          onPress={() => {
+                            setPicker(true);
+                          }}
+                        >
+                          <Text style={styles.textStyle}>Categoria</Text>
+                        </TouchableOpacity>
+                        <Modal
+                          animationType="slide"
+                          transparent={true}
+                          visible={picker}
+                          // onRequestClose={() => {
+                          //   Alert.alert("Modal has been closed.");
+                          // }}
+                        >
+                          <View style={styles.centeredView}>
+                            <View style={styles.modalView}>
+                              <Picker
+                                selectedValue={picked}
+                                mode="dropdown"
+                                style={{
+                                  height: 30,
+                                  marginTop: 20,
+                                  marginBottom: 30,
+                                  width: 200,
+                                  justifyContent: "center",
+                                }}
+                                itemStyle={{ fontSize: 16 }}
+                                onValueChange={(itemValue) =>
+                                  setPicked(itemValue)
+                                }
+                              >
+                                <Picker.Item
+                                  label="Elige una Categoria"
+                                  color="grey"
+                                  value="N/A"
+                                />
+                                <Picker.Item label="Bebidas" value="Bebidas" />
+                                <Picker.Item label="Sopa" value="Sopa" />
+                                {/* <View></View> */}
+                              </Picker>
+                              <TouchableOpacity
+                                style={{
+                                  ...styles.openButton,
+                                  backgroundColor: "pink",
+                                }}
+                                onPress={() => {
+                                  setNewCategory(picked);
+                                  setPicker(false);
+                                }}
+                              >
+                                <Text style={styles.textStyle}>Guardar</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </Modal>
+                        {/* <TextInput
+                            style={styles.textInputStyle}
+                            onChangeText={(text) => searchFilterFunction(text)}
+                            value={search}
+                            underlineColorAndroid="transparent"
+                            placeholder="Buscar"
+                          /> */}
+                      </View>
+                    </View>
+
+                    {/* <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text style={styles.modalTextCode}>Codigo: </Text>
+                      <Text style={styles.modalTextCodigo}>{code}</Text>
+                    </View> */}
+                    {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
+                    {/* </View> */}
+                    {/* //////////////////
+//////////////////
+//////////////////
+////////////////// */}
+                    {/* {title && (
+                      <View
+                        style={{
+                          margin: 10,
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Text style={styles.quantitySelect}>
+                          (Opcional) Entrar cantidad
+                        </Text>
+
+                        <InputSpinner
+                          max={10000}
+                          min={0}
+                          step={1}
+                          fontSize={20}
+                          onMax={(max) => {
+                            Alert.alert(
+                              "llego al Maximo",
+                              "El maximo seria 1000"
+                            );
+                          }}
+                          colorMax={"red"}
+                          colorMin={"green"}
+                          colorLeft={"red"}
+                          colorRight={"blue"}
+                          value={quantity}
+                          onChange={(num) => {
+                            if (num === quantity) {
+                              null;
+                            } else {
+                              setNewQ(num);
+                            }
+                          }}
+                        />
+                      </View>
+                    )} */}
+
+                    <View
+                      style={{
+                        width: "100%",
+                        flexDirection: "row",
+                        justifyContent: "space-around",
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={{
+                          ...styles.openButton,
+                          backgroundColor: "green",
+                        }}
+                        onPress={() => {
+                          setManualAdd(!manualAdd);
+                          // props.navigation.navigate("Home"),
+                          setScanned(false);
+                        }}
+                      >
+                        <Text style={styles.textStyle}>Volver</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{
+                          ...styles.openButton,
+                          backgroundColor: "#2196F3",
+                        }}
+                        onPress={() => {
+                          if (newMode) {
+                            newEntry();
+                            console.log("theres a new product", newProduct);
+                            continueScan();
+                          }
+                          if (!newMode) {
+                            console.log("NEW PRODUCT ADDED now for inventory");
+                            newInvProd();
+                            setModalVisible(!modalVisible);
+                            continueScan();
+                          }
+                          if (title) {
+                            console.log(
+                              "not adding a new product just to the inventory"
+                            );
+                            quantityUpdateHandler();
+                            setModalVisible(!modalVisible);
+                            continueScan();
+                          }
+                        }}
+                      >
+                        <Text style={styles.textStyle}>Guardar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
+          </View>
+        </KeyboardAvoidingView>
+        <View style={{ flex: 1, marginBottom: 10 }}>
+          <FlatList
+            refreshControl={
+              <RefreshControl
+                colors={["#FF4949", "#FF4949"]}
+                refreshing={isRefreshing}
+                onRefresh={() => {
+                  loadDetails();
+                }}
+              />
+            }
+            data={userProducts}
+            numColumns={2}
+            keyExtractor={(item) => item.productId}
+            renderItem={(itemData) => (
+              <CategoryGridTile
+                title={itemData.item.productTitle}
+                onSelect={() => {
+                  alert("pressed");
+                }}
+                size={itemData.item.productSize}
+                price={itemData.item.productPrice}
+                category={itemData.item.productCategory}
+                quantity={itemData.item.productQuantity}
+                brand={itemData.item.productBrand}
+                code={itemData.item.productcode}
+                reload={() => {
+                  loadDetails();
+                }}
+              />
+            )}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  ///////////////////////////
+  /////////////////////////
+  //////////////////////////
+  /////////////////////////
   if (scanner) {
     return (
       <View
@@ -816,6 +1371,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+  },
+  menuButton: {
+    alignSelf: "center",
+    height: 80,
+    width: "90%",
+    borderRadius: 12,
+    backgroundColor: "#FF4949",
+    marginVertical: 10,
+    shadowColor: "#FF4949",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 0.75,
+    shadowRadius: 3.84,
+    elevation: 1,
+  },
+  menuIcon: {
+    marginLeft: 15,
   },
   centeredView: {
     flex: 1,

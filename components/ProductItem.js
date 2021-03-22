@@ -600,7 +600,8 @@ const styles = StyleSheet.create({
     // marginBottom: 20,
     margin: 5,
     borderRadius: 10,
-    borderWidth: 0.4,
+    borderWidth: 0.9,
+    borderColor: "#FF4949",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

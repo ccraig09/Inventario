@@ -1,6 +1,6 @@
 import React from "react";
 import { HeaderButton } from "react-navigation-header-buttons";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { Platform, View, Text } from "react-native";
 
 // import Colors from "../constants/Colors";
@@ -18,9 +18,9 @@ const CustomHeaderButton = (props) => {
 
       <HeaderButton
         {...props}
-        IconComponent={Ionicons}
+        IconComponent={FontAwesome}
         iconSize={28}
-        color="blue"
+        color="#FF4949"
       />
     </View>
   );
