@@ -275,6 +275,82 @@ export const addedProduct = (
     }
   };
 };
+export const addedRandProduct = (
+  newProduct,
+  newSize,
+  newPrice,
+  newCategory,
+  newBrand,
+  randCode
+) => {
+  console.log("randomized code with product:", newProduct, randCode);
+
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+
+    console.log("going to be creating a new product but with random code");
+    try {
+      await dbP.doc(randCode).set(
+        {
+          Product: newProduct,
+          Size: newSize,
+          Price: newPrice,
+          Category: newCategory,
+          Brand: newBrand,
+          randCode,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp().toString(),
+        },
+        { merge: true }
+      );
+
+      let Product = newProduct;
+      let Size = newSize;
+      let Price = newPrice;
+      let Category = newCategory;
+      let Brand = newBrand;
+      console.log("QUICK TEST", Product, Size, Price);
+
+      // const events = dbP
+      // await events
+      //   .get()
+      //   .then((querySnapshot) => {
+      //     const collection = querySnapshot.docs.map((doc) => {
+      //       return { id: doc.id, ...doc.data() };
+      //     });
+
+      //     const newAddedProduct = collection;
+
+      // console.log("on Create Collection Everything", collection);
+      // dispatch({
+      //   type: ADDED_PRODUCT,
+      //   productData: {
+      //     Product,
+      //     Size,
+      //     Price,
+      //     Category,
+      //     Brand,
+      //     code,
+      // id: collection[0].id,
+      // Title,
+      // ownerId: userId,
+      // Price,
+      // Category,
+      // Quantity,
+      // Size,
+      // time: collection[0].timestamp,
+      // Code,
+      // docTitle: collection[0].id,
+      //   },
+      // });
+      // })
+      // .catch(function (error) {
+      //   console.log("Error getting document: from 5", error);
+      // });
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
 
 export const quantityUpdate = (
   Title,

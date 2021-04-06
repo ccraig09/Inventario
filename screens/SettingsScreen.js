@@ -54,7 +54,7 @@ const SettingsScreen = (props) => {
             <Text style={styles.name}>{storeName} </Text>
           </View>
         </View>
-        <View style={{ backgroundColor: "blue", marginTop: 8 }}>
+        <View style={{ backgroundColor: "#fff", marginTop: 8 }}>
           <View style={styles.Datos}>
             <Text style={styles.title}>Datos</Text>
             {/* <Text style={styles.category}>Nombre</Text> */}
@@ -80,14 +80,35 @@ const SettingsScreen = (props) => {
                   placeholderTextColor={"silver"}
                   onChangeText={(value) => setStoreName(value)}
                 />
+                <Input
+                  style={{ width: 200, fontSize: 25 }}
+                  label="Nombre Completo:"
+                  // placeholder={createdStoreName}
+                  placeholderTextColor={"silver"}
+                  // onChangeText={(value) => setStoreName(value)}
+                />
+                <Input
+                  style={{ width: 200, fontSize: 25 }}
+                  label="Num de celular:"
+                  // placeholder={createdStoreName}
+                  placeholderTextColor={"silver"}
+                  // onChangeText={(value) => setStoreName(value)}
+                />
+                <Input
+                  style={{ width: 200, fontSize: 25 }}
+                  label="Correo Electronico:"
+                  // placeholder={createdStoreName}
+                  placeholderTextColor={"silver"}
+                  // onChangeText={(value) => setStoreName(value)}
+                />
 
                 <View
                   style={{
                     // width: "100%",
-                    height: "45%",
+                    height: "50%",
                     alignSelf: "center",
                     marginBottom: 10,
-                    justifyContent: "space-between",
+                    // justifyContent: "space-between",
                   }}
                 >
                   <Button
@@ -98,6 +119,7 @@ const SettingsScreen = (props) => {
                     buttonStyle={{
                       borderRadius: 12,
                       backgroundColor: "green",
+                      marginBottom: 10,
                     }}
                     onPress={() => {
                       Alert.alert(
@@ -119,7 +141,7 @@ const SettingsScreen = (props) => {
                   <Button
                     buttonStyle={{
                       borderRadius: 12,
-                      backgroundColor: "red",
+                      backgroundColor: "#FF4949",
                     }}
                     title="Cerrar sesión"
                     onPress={() => {
@@ -210,7 +232,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   Datos: {
-    backgroundColor: "red",
+    backgroundColor: "#fff",
     marginLeft: 15,
     marginRight: 15,
     // flex: 1,

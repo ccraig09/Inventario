@@ -50,9 +50,11 @@ const ScanScreen = (props) => {
   const [value, setValue] = useState("");
   const [sell, setSell] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [loadedModal, setLoadedModal] = useState(false);
   const [selected, setSelected] = useState(0);
   const [newQ, setNewQ] = useState();
   const [newMode, setNewMode] = useState(true);
+  const [loadedMode, setLoadedMode] = useState(false);
   const [newProduct, setNewProduct] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newSize, setNewSize] = useState("");
@@ -67,6 +69,7 @@ const ScanScreen = (props) => {
   const [productSelect, setProductSelect] = useState(true);
   const [categorySelect, setCategorySelect] = useState(false);
   const [brandSelect, setBrandSelect] = useState(false);
+  const [hasCode, setHasCode] = useState(false);
 
   // const Mode = props.navigation.getParam("mode");
 
@@ -115,7 +118,6 @@ const ScanScreen = (props) => {
   }, [loadDetails]);
   useEffect(() => {
     loadDetails();
-
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
@@ -177,39 +179,66 @@ const ScanScreen = (props) => {
   };
 
   const newEntry = () => {
-    dispatch(
-      sendProduct.addedProduct(
-        newProduct,
-        newSize,
-        newPrice,
-        newCategory,
-        newBrand,
-        code
-      )
-    );
+    if (!hasCode) {
+      var randCode = Math.random().toString();
+    }
+    if (hasCode) {
+      dispatch(
+        sendProduct.addedProduct(
+          newProduct,
+          newSize,
+          newPrice,
+          newCategory,
+          newBrand,
+          code
+        )
+      );
+    }
+    if (!hasCode) {
+      dispatch(
+        sendProduct.addedRandProduct(
+          newProduct,
+          newSize,
+          newPrice,
+          newCategory,
+          newBrand,
+          randCode
+        )
+      );
+    }
+    console.log("going to test math random code", randCode);
 
-    Alert.alert("Agregar a tu inventario?", "new joint in ya book?", [
-      {
-        text: "No",
-        onPress: () => {
-          setModalVisible(!modalVisible);
-          setScanned(false);
+    Alert.alert(
+      "Agregar a tu inventario?",
+      "Quisiera agregar el producto directo a tu inventario?",
+      [
+        {
+          text: "No",
+          onPress: () => {
+            setManualAdd(!manualAdd);
+            setModalVisible(!modalVisible);
+            setScanned(false);
+          },
         },
-      },
-      {
-        text: "Si",
-        onPress: () => {
-          console.log("ADDING TO BOOK and mode is", newMode);
-          setTitle(newProduct);
-          setPrice(newPrice);
-          setCategory(newCategory);
-          setSize(newSize);
-          setCode(code);
-          setBrand(newBrand);
-          setNewMode(false);
+        {
+          text: "Si",
+          onPress: () => {
+            setManualAdd(!manualAdd);
+            setModalVisible(!modalVisible);
+            setLoadedModal(true);
+            console.log("ADDING TO BOOK and mode is", newMode);
+            setTitle(newProduct);
+            setPrice(newPrice);
+            setCategory(newCategory);
+            setSize(newSize);
+            setCode(randCode);
+            setBrand(newBrand);
+            setNewMode(false);
+            setLoadedMode(true);
+          },
         },
-      },
-    ]);
+      ]
+    );
 
     // setModalVisible(false);
     // setTitle(true);
@@ -217,6 +246,27 @@ const ScanScreen = (props) => {
     setTimeout(() => {
       loadDetails();
     }, 1000);
+  };
+
+  const codePrompt = () => {
+    Alert.alert("Nuevo Producto?", "Este producto tiene un código de barras?", [
+      {
+        text: "No",
+        onPress: () => {
+          setHasCode(false);
+          setNewMode(true);
+          setManualAdd(true);
+        },
+      },
+      {
+        text: "Si",
+        onPress: () => {
+          setHasCode(true);
+          setNewMode(true);
+          setManualAdd(true);
+        },
+      },
+    ]);
   };
 
   const newInvProd = () => {
@@ -241,6 +291,8 @@ const ScanScreen = (props) => {
         Code
       )
     );
+    setLoadedMode(false);
+    setLoadedModal(false);
   };
 
   const quantityUpdateHandler = () => {
@@ -356,6 +408,7 @@ const ScanScreen = (props) => {
 
     if (loadedProduct) {
       setNewMode(false);
+      setLoadedMode(true);
       console.log("THIS IS LOADED PRODUCT", loadedProduct);
       try {
         Title = loadedProduct.Product;
@@ -646,7 +699,7 @@ const ScanScreen = (props) => {
             >
               <TouchableOpacity
                 onPress={() => {
-                  setManualAdd(true);
+                  codePrompt();
                 }}
               >
                 <FontAwesome name="plus-circle" size={35} color="#FF4949" />
@@ -789,6 +842,17 @@ const ScanScreen = (props) => {
                             underlineColorAndroid="transparent"
                             placeholder="Buscar"
                           /> */}
+                        {hasCode && (
+                          <TextInput
+                            style={styles.textInputStyle}
+                            keyboardType="numeric"
+                            placeholder="Código de barras"
+                            value={code}
+                            onChangeText={(codigo) => {
+                              setCode(codigo);
+                            }}
+                          />
+                        )}
                       </View>
                     </View>
 
@@ -877,7 +941,7 @@ const ScanScreen = (props) => {
                             console.log("theres a new product", newProduct);
                             continueScan();
                           }
-                          if (!newMode) {
+                          if (loadedMode) {
                             console.log("NEW PRODUCT ADDED now for inventory");
                             newInvProd();
                             setModalVisible(!modalVisible);
@@ -902,6 +966,187 @@ const ScanScreen = (props) => {
             </Modal>
           </View>
         </KeyboardAvoidingView>
+
+        <KeyboardAvoidingView
+          style={
+            {
+              // flex: 1,
+            }
+          }
+          behavior={Platform.OS === "android" ? "padding" : "position"}
+          keyboardVerticalOffset={-80}
+          // style={styles.screen}
+        >
+          <View>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={loadedModal}
+              // onRequestClose={() => {
+              //   Alert.alert("Modal has been closed.");
+              // }}
+            >
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  Keyboard.dismiss();
+                }}
+              >
+                <View style={styles.centeredView}>
+                  <View style={styles.modalView}>
+                    <View>
+                      <Text style={styles.modalTitle}>Editar Producto:</Text>
+                      <Text style={styles.modalHead}>{title}</Text>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={styles.modalText}>Marca: </Text>
+                        <Text style={styles.modalText}>{brand}</Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={styles.modalText}>Precio: </Text>
+                        <Text style={styles.modalText}>${price}bs</Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={styles.modalText}>Tamaño: </Text>
+                        <Text style={styles.modalText}>{size}</Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={styles.modalText}>Categoria: </Text>
+                        <Text style={styles.modalText}>{category}</Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Text style={styles.modalText}>Cantidad Total: </Text>
+                        <Text style={styles.modalText}>{quantity}</Text>
+                      </View>
+                    </View>
+
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text style={styles.modalTextCode}>Codigo: </Text>
+                      <Text style={styles.modalTextCodigo}>{code}</Text>
+                    </View>
+
+                    <View
+                      style={{
+                        margin: 10,
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text style={styles.quantitySelect}>
+                        (Opcional) Entrar cantidad
+                      </Text>
+
+                      <InputSpinner
+                        max={10000}
+                        min={0}
+                        step={1}
+                        fontSize={20}
+                        onMax={(max) => {
+                          Alert.alert(
+                            "llego al Maximo",
+                            "El maximo seria 1000"
+                          );
+                        }}
+                        colorMax={"red"}
+                        colorMin={"green"}
+                        colorLeft={"red"}
+                        colorRight={"blue"}
+                        value={quantity}
+                        onChange={(num) => {
+                          if (num === quantity) {
+                            null;
+                          } else {
+                            setNewQ(num);
+                          }
+                        }}
+                      />
+                    </View>
+
+                    <View
+                      style={{
+                        width: "100%",
+                        flexDirection: "row",
+                        justifyContent: "space-around",
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={{
+                          ...styles.openButton,
+                          backgroundColor: "green",
+                        }}
+                        onPress={() => {
+                          setLoadedModal(false);
+                          // props.navigation.navigate("Home"),
+                          setScanned(false);
+                        }}
+                      >
+                        <Text style={styles.textStyle}>Volver</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{
+                          ...styles.openButton,
+                          backgroundColor: "#2196F3",
+                        }}
+                        onPress={() => {
+                          if (newMode) {
+                            newEntry();
+                            console.log("theres a new product", newProduct);
+                            continueScan();
+                          }
+                          if (loadedMode) {
+                            console.log("NEW PRODUCT ADDED now for inventory");
+                            newInvProd();
+                            setModalVisible(!modalVisible);
+                            continueScan();
+                          }
+                          if (title) {
+                            console.log(
+                              "not adding a new product just to the inventory"
+                            );
+                            quantityUpdateHandler();
+                            setModalVisible(!modalVisible);
+                            continueScan();
+                          }
+                        }}
+                      >
+                        <Text style={styles.textStyle}>Guardar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
+          </View>
+        </KeyboardAvoidingView>
+
         <View style={{ flex: 1, marginBottom: 10 }}>
           <FlatList
             refreshControl={
@@ -913,21 +1158,20 @@ const ScanScreen = (props) => {
                 }}
               />
             }
-            data={userProducts}
+            data={availableProducts}
             numColumns={2}
-            keyExtractor={(item) => item.productId}
+            keyExtractor={(item) => item.id}
             renderItem={(itemData) => (
               <CategoryGridTile
-                title={itemData.item.productTitle}
+                title={itemData.item.Product}
                 onSelect={() => {
                   alert("pressed");
                 }}
-                size={itemData.item.productSize}
-                price={itemData.item.productPrice}
-                category={itemData.item.productCategory}
-                quantity={itemData.item.productQuantity}
-                brand={itemData.item.productBrand}
-                code={itemData.item.productcode}
+                size={itemData.item.Size}
+                price={itemData.item.Price}
+                category={itemData.item.Category}
+                brand={itemData.item.Brand}
+                code={itemData.item.code}
                 reload={() => {
                   loadDetails();
                 }}
@@ -1259,7 +1503,7 @@ const ScanScreen = (props) => {
                             console.log("theres a new product", newProduct);
                             continueScan();
                           }
-                          if (!newMode) {
+                          if (loadedMode) {
                             console.log("NEW PRODUCT ADDED now for inventory");
                             newInvProd();
                             setModalVisible(!modalVisible);
@@ -1304,7 +1548,7 @@ const ScanScreen = (props) => {
         <View
           style={{
             marginBottom: 20,
-            marginLeft: 20,
+            // marginLeft: 20,
             marginTop: 20,
             height: "35%",
           }}
@@ -1386,7 +1630,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.75,
     shadowRadius: 3.84,
-    elevation: 1,
+    elevation: 0,
   },
   menuIcon: {
     marginLeft: 15,

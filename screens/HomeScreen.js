@@ -217,27 +217,6 @@ const HomeScreen = (props) => {
     <Container>
       <View style={styles.topContainer}>
         <View style={styles.topHeader}>
-          {/* <ImageBackground
-            source={require("../assets/tent.png")}
-            style={styles.image}
-          > */}
-          {/* <Svg height="20%" width="100%" viewBox="0 0 100 100">
-          <Circle
-            cx={100 / 2}
-            cy={`-${898 - 100 + 2}`}
-            r="888.5"
-            fill={null}
-            stroke="red"
-            strokeWidth="2"
-          /> */}
-          {/* <LinearGradient
-            // Background Linear Gradient
-            start={{ x: -1, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            colors={["#CF5555", "#CF5555"]}
-            style={styles.background}
-          /> */}
-
           <View style={styles.searchText}>
             <Text style={styles.storeText}>{createdStoreName} </Text>
             <View style={{ right: 10, position: "absolute" }}>
@@ -255,7 +234,7 @@ const HomeScreen = (props) => {
             style={{
               flexDirection: "row",
               marginBottom: 5,
-              marginTop: 25,
+              marginTop: 15,
               paddingHorizontal: 15,
               justifyContent: "space-around",
             }}
@@ -383,125 +362,39 @@ const HomeScreen = (props) => {
           style={sSearchBar}
           onChangeText={searchTerm => this.setState({ searchTerm })}
         /> */}
-      <View style={{ backgroundColor: "#EDEDED" }}>
-        <FlatList
-          refreshControl={
-            <RefreshControl
-              colors={["#9Bd35A", "#689F38"]}
-              refreshing={isRefreshing}
-              onRefresh={loadDetails}
-            />
-          }
-          data={focused ? filteredDataSource : userProducts}
-          keyExtractor={(item) => item.productId}
-          // ItemSeparatorComponent={ItemSeprator}
-          renderItem={(itemData) => (
-            <ProductItem
-              title={itemData.item.productTitle}
-              onSelect={() => {
-                setModalVisible(true);
-                // alert(itemData.item.productTitle);
-              }}
-              size={itemData.item.productSize}
-              price={itemData.item.productPrice}
-              category={itemData.item.productCategory}
-              quantity={itemData.item.productQuantity}
-              brand={itemData.item.productBrand}
-              code={itemData.item.productcode}
-              exp={itemData.item.productExp}
-              reload={() => {
-                loadDetails();
-              }}
-            />
-          )}
-        />
-      </View>
-
-      {/* <TextInput
-          style={styles.textInputStyle}
-          onFocus={() => {
-            setFocused(true);
-            // setFilteredDataSource(userProducts);
-            // setMasterDataSource(userProducts);
-          }}
-          clearButtonMode={"always"}
-          // onBlur={() => {
-          //   setFocused(false);
-          // }}
-          onChangeText={(text) => searchFilterFunction(text)}
-          value={search}
-          underlineColorAndroid="transparent"
-          placeholder="Buscar"
-        />
-        <FlatList
-          refreshControl={
-            <RefreshControl
-              colors={["#9Bd35A", "#689F38"]}
-              refreshing={isRefreshing}
-              onRefresh={loadDetails}
-            />
-          }
-          data={focused ? filteredDataSource : userProducts}
-          keyExtractor={(item) => item.productId}
-          renderItem={(itemData) => (
-            <ProductItem
-              title={itemData.item.productTitle}
-              onSelect={() => {
-                setModalVisible(true);
-                // alert(itemData.item.productTitle);
-              }}
-              size={itemData.item.productSize}
-              price={itemData.item.productPrice}
-              category={itemData.item.productCategory}
-              quantity={itemData.item.productQuantity}
-              brand={itemData.item.productBrand}
-              code={itemData.item.productcode}
-              reload={() => {
-                loadDetails();
-              }}
-            />
-          )}
-        /> */}
-
-      {/* <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-around",
-            width: "100%",
-            marginTop: 10,
-          }}
-        >
-          <View style={{ width: 170 }}>
-            <Button
-              color="red"
-              title="Cerrar sesión"
-              onPress={() => {
-                Alert.alert("Cerrar sesión?", "", [
-                  {
-                    text: "No",
-                    style: "default",
-                  },
-                  {
-                    text: "Si",
-                    style: "destructive",
-                    onPress: () => {
-                      dispatch(authActions.logout());
-                      props.navigation.navigate("Auth");
-                    },
-                  },
-                ]);
-              }}
-            />
-          </View>
-          <View style={{ width: 170, borderRadius: 15 }}>
-            <Button
-              title={"refrescar"}
-              onPress={() => {
-                loadDetails();
-              }}
-            />
-          </View>
-        </View> */}
+      {/* <View style={{ backgroundColor: "#EDEDED" }}> */}
+      <FlatList
+        refreshControl={
+          <RefreshControl
+            colors={["#9Bd35A", "#689F38"]}
+            refreshing={isRefreshing}
+            onRefresh={loadDetails}
+          />
+        }
+        data={focused ? filteredDataSource : userProducts}
+        keyExtractor={(item) => item.productId}
+        // ItemSeparatorComponent={ItemSeprator}
+        renderItem={(itemData) => (
+          <ProductItem
+            title={itemData.item.productTitle}
+            onSelect={() => {
+              setModalVisible(true);
+              // alert(itemData.item.productTitle);
+            }}
+            size={itemData.item.productSize}
+            price={itemData.item.productPrice}
+            category={itemData.item.productCategory}
+            quantity={itemData.item.productQuantity}
+            brand={itemData.item.productBrand}
+            code={itemData.item.productcode}
+            exp={itemData.item.productExp}
+            reload={() => {
+              loadDetails();
+            }}
+          />
+        )}
+      />
+      {/* </View> */}
     </Container>
   );
 };
@@ -572,7 +465,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   topContainer: {
-    height: "28%",
+    height: 200,
   },
   topHeader: {
     height: "90%",
@@ -588,7 +481,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.75,
     shadowRadius: 9.84,
-    elevation: 9,
+    elevation: 0,
   },
   textInputStyle: {
     width: "85%",
