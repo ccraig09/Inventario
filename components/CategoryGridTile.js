@@ -5,9 +5,11 @@ import {
   Text,
   StyleSheet,
   Platform,
+  Dimensions,
   TouchableNativeFeedback,
 } from "react-native";
-
+const { height, width } = Dimensions.get("window");
+const itemWidth = (width - (15 * 2 + 5 * (2 - 1))) / 2;
 const CategoryGridTile = (props) => {
   let TouchableCmp = TouchableOpacity;
 
@@ -15,6 +17,7 @@ const CategoryGridTile = (props) => {
     TouchableCmp = TouchableNativeFeedback;
   }
   return (
+    // <View>
     <View style={styles.gridItem}>
       <TouchableCmp style={{ flex: 1 }} onPress={props.onSelect}>
         <View
@@ -32,15 +35,16 @@ const CategoryGridTile = (props) => {
         </View>
       </TouchableCmp>
     </View>
+    // </View>
   );
 };
 
 const styles = StyleSheet.create({
   gridItem: {
-    flex: 1,
+    flex: 1 / 2,
     backgroundColor: "#FF4949",
     margin: 15,
-    width: 150,
+    width: "90%",
     height: 150,
     borderRadius: 10,
     shadowColor: "#FF4949",

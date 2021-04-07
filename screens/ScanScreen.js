@@ -141,24 +141,24 @@ const ScanScreen = (props) => {
       const newData = masterDataSource.filter(function (item) {
         // Applying filter for the inserted text in search bar
         if (productSelect) {
-          const itemData = item.productTitle
-            ? item.productTitle.toUpperCase()
+          const itemData = item.Product
+            ? item.Product.toUpperCase()
             : "".toUpperCase();
           const textData = text.toUpperCase();
           // console.log("ITEMDATA IS===", textData);
           return itemData.indexOf(textData) > -1;
         }
         if (categorySelect) {
-          const itemData = item.productCategory
-            ? item.productCategory.toUpperCase()
+          const itemData = item.Category
+            ? item.Category.toUpperCase()
             : "".toUpperCase();
           const textData = text.toUpperCase();
           // console.log("ITEMDATA IS===", textData);
           return itemData.indexOf(textData) > -1;
         }
         if (brandSelect) {
-          const itemData = item.productBrand
-            ? item.productBrand.toUpperCase()
+          const itemData = item.Brand
+            ? item.Brand.toUpperCase()
             : "".toUpperCase();
           const textData = text.toUpperCase();
           // console.log("ITEMDATA IS===", textData);
@@ -677,8 +677,8 @@ const ScanScreen = (props) => {
                 style={{ flex: 1 }}
                 onFocus={() => {
                   setFocused(true);
-                  setFilteredDataSource(userProducts);
-                  setMasterDataSource(userProducts);
+                  setFilteredDataSource(availableProducts);
+                  setMasterDataSource(availableProducts);
                 }}
                 clearButtonMode={"always"}
                 // onBlur={() => {
@@ -1158,8 +1158,12 @@ const ScanScreen = (props) => {
                 }}
               />
             }
-            data={availableProducts}
+            data={focused ? filteredDataSource : availableProducts}
             numColumns={2}
+            columnWrapperStyle={{
+              flex: 1,
+              justifyContent: "space-between",
+            }}
             keyExtractor={(item) => item.id}
             renderItem={(itemData) => (
               <CategoryGridTile
