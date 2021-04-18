@@ -1639,7 +1639,7 @@ const ScanScreen = (props) => {
                                     return (
                                       <Picker.Item
                                         label={item}
-                                        value={index}
+                                        value={item}
                                         key={index}
                                       />
                                     );
