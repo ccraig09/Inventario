@@ -13,6 +13,8 @@ import firebase from "../components/firebase";
 export const db = firebase.firestore().collection("Members");
 export const dbP = firebase.firestore().collection("Products");
 export const dP = firebase.firestore().collection("Members");
+export const dPD = firebase.firestore().collection("Data");
+export const dPs = firebase.firestore().collection("section");
 
 export const fetchProducts = () => {
   return async (dispatch, getState) => {
@@ -66,8 +68,13 @@ export const fetchAvailableProducts = () => {
     const userId = firebase.auth().currentUser.uid;
     // const token = getState().auth.token;
     const events = dbP;
+    // const events = dbP.where("Category", "==", "Bebidas");
     try {
       await events.get().then((querySnapshot) => {
+        // const collection = querySnapshot.forEach((doc) => {
+        //   // doc.data() is never undefined for query doc snapshots
+        //   console.log(doc.id, " => ", doc.data());
+        // });
         const collection = querySnapshot.docs.map((doc) => {
           return { id: doc.id, ...doc.data() };
         });
@@ -159,7 +166,7 @@ export const createProduct = (
           Brand,
           Code,
           ownerId: userId,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp().toString(),
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
@@ -184,7 +191,7 @@ export const createProduct = (
               Quantity,
               Size,
               Brand,
-              time: collection[0].timestamp.toString(),
+              time: collection[0].timestamp,
               Code,
               docTitle: collection[0].id,
             },
@@ -222,7 +229,7 @@ export const addedProduct = (
           Category: newCategory,
           Brand: newBrand,
           code,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp().toString(),
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );
@@ -233,43 +240,6 @@ export const addedProduct = (
       let Category = newCategory;
       let Brand = newBrand;
       console.log("QUICK TEST", Product, Size, Price);
-
-      // const events = dbP
-      // await events
-      //   .get()
-      //   .then((querySnapshot) => {
-      //     const collection = querySnapshot.docs.map((doc) => {
-      //       return { id: doc.id, ...doc.data() };
-      //     });
-
-      //     const newAddedProduct = collection;
-
-      // console.log("on Create Collection Everything", collection);
-      // dispatch({
-      //   type: ADDED_PRODUCT,
-      //   productData: {
-      //     Product,
-      //     Size,
-      //     Price,
-      //     Category,
-      //     Brand,
-      //     code,
-      // id: collection[0].id,
-      // Title,
-      // ownerId: userId,
-      // Price,
-      // Category,
-      // Quantity,
-      // Size,
-      // time: collection[0].timestamp,
-      // Code,
-      // docTitle: collection[0].id,
-      //   },
-      // });
-      // })
-      // .catch(function (error) {
-      //   console.log("Error getting document: from 5", error);
-      // });
     } catch (err) {
       console.log(err.message);
     }
@@ -297,8 +267,8 @@ export const addedRandProduct = (
           Price: newPrice,
           Category: newCategory,
           Brand: newBrand,
-          randCode,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp().toString(),
+          code: randCode,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         },
         { merge: true }
       );

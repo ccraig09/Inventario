@@ -10,16 +10,23 @@ import {
   Alert,
   Picker,
   Modal,
+  SectionList,
   TextInput,
   Keyboard,
   KeyboardAvoidingView,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSelector, useDispatch } from "react-redux";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import XLSX from "xlsx";
+
 import * as sendProduct from "../store/productActions";
 import * as ProdActions from "../store/productActions";
 import ProductItem from "../components/ProductItem";
 import CategoryGridTile from "../components/CategoryGridTile";
+import { AlphabetList } from "react-native-section-alphabet-list";
+
 import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
 import { Avatar, Divider, Input, Button } from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -70,6 +77,7 @@ const ScanScreen = (props) => {
   const [categorySelect, setCategorySelect] = useState(false);
   const [brandSelect, setBrandSelect] = useState(false);
   const [hasCode, setHasCode] = useState(false);
+  const [searchScreen, setSearchScreen] = useState(false);
 
   // const Mode = props.navigation.getParam("mode");
 
@@ -94,6 +102,29 @@ const ScanScreen = (props) => {
     }
     return transformedProducts;
   });
+  const Item = ({ title }) => (
+    <View style={styles.item}>
+      <Text style={styles.title}>{title}</Text>
+    </View>
+  );
+
+  let catArray = [
+    "Embutidos",
+    "Frutas y Verduras",
+    "Panaderia y Dulces",
+    "Huevos y Lacteos",
+    "Infantil",
+    "Aceites y Legumbres",
+    "Pastas",
+    "Conservas y comida preparada",
+    "Bebidas sin alcohol",
+    "Bebidas con alcohol",
+    "Congelados",
+    "Aperitivos",
+    "Cosmetica y Cuidado personal",
+    "Hogar y Limpieza",
+  ];
+  let catOptions = catArray.sort();
 
   const availableProducts = useSelector(
     (state) => state.availableProducts.availableProducts
@@ -126,6 +157,14 @@ const ScanScreen = (props) => {
 
   useEffect(() => {
     dispatch(ProdActions.fetchAvailableProducts());
+    // console.log("try8ing to load DATA array", availableProducts);
+    // setValues(availableProducts);
+    const loadedBebidas = availableProducts.filter(
+      (cat) => cat.Category === "Bebidas"
+    );
+    const loadedSopas = availableProducts.filter(
+      (cat) => cat.Category === "Sopa"
+    );
   }, []);
 
   const modeHandler = () => {
@@ -176,6 +215,27 @@ const ScanScreen = (props) => {
       setFilteredDataSource(masterDataSource);
       setSearch(text);
     }
+  };
+
+  const cell = () => {
+    var ws = XLSX.utils.json_to_sheet(userProducts);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Products");
+    const wbout = XLSX.write(wb, {
+      type: "base64",
+      bookType: "xlsx",
+    });
+    const uri = FileSystem.cacheDirectory + "Productos.xlsx";
+    console.log(`Writing to ${JSON.stringify(uri)} with text: ${wbout}`);
+    FileSystem.writeAsStringAsync(uri, wbout, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    Sharing.shareAsync(uri, {
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      dialogTitle: "MyWater data",
+      UTI: "com.microsoft.excel.xlsx",
+    });
   };
 
   const newEntry = () => {
@@ -249,7 +309,7 @@ const ScanScreen = (props) => {
   };
 
   const codePrompt = () => {
-    Alert.alert("Nuevo Producto?", "Este producto tiene un código de barras?", [
+    Alert.alert("Nuevo Producto", "Este producto tiene un código de barras?", [
       {
         text: "No",
         onPress: () => {
@@ -385,6 +445,7 @@ const ScanScreen = (props) => {
   const continueScan = () => {
     setScanned(false);
   };
+
   let Title;
   let Price;
   let Category;
@@ -443,7 +504,7 @@ const ScanScreen = (props) => {
 
     setModalVisible(true);
 
-    console.log(data);
+    console.log("code scanned", data);
     setTitle(Title);
     setPrice(Price);
     setSize(Size);
@@ -549,7 +610,7 @@ const ScanScreen = (props) => {
               fontSize: 25,
             }}
             title="Exportar .PDF"
-            onPress={() => setScanner(true)}
+            onPress={() => cell()}
           />
         </View>
       </View>
@@ -560,16 +621,9 @@ const ScanScreen = (props) => {
   //////////////////////////
   //////////////////////////
   //////////////////////////
-  if (menu) {
+  if (searchScreen) {
     return (
-      <View
-        style={{
-          flex: 1,
-        }}
-      >
-        <TouchableOpacity onPress={() => setMenu(false)}>
-          <Text>Menu screen</Text>
-        </TouchableOpacity>
+      <View style={{ flex: 1 }}>
         <View
           style={{
             // height: 50,
@@ -580,6 +634,9 @@ const ScanScreen = (props) => {
             marginBottom: 15,
           }}
         >
+          <TouchableOpacity onPress={() => setSearchScreen(false)}>
+            <Text>Menu</Text>
+          </TouchableOpacity>
           <View
             style={{
               flexDirection: "row",
@@ -599,9 +656,9 @@ const ScanScreen = (props) => {
               }}
             >
               {productSelect ? (
-                <AntDesign name="checkcircle" size={24} color="white" />
+                <AntDesign name="checkcircle" size={24} color="#FF4949" />
               ) : (
-                <Entypo name="circle" size={24} color="white" />
+                <Entypo name="circle" size={24} color="#FF4949" />
               )}
               <Text style={styles.menuSearch}> Producto</Text>
             </TouchableOpacity>
@@ -615,9 +672,9 @@ const ScanScreen = (props) => {
               }}
             >
               {categorySelect ? (
-                <AntDesign name="checkcircle" size={24} color="white" />
+                <AntDesign name="checkcircle" size={24} color="#FF4949" />
               ) : (
-                <Entypo name="circle" size={24} color="white" />
+                <Entypo name="circle" size={24} color="#FF4949" />
               )}
               <Text style={styles.menuSearch}> Categoria</Text>
             </TouchableOpacity>
@@ -631,13 +688,13 @@ const ScanScreen = (props) => {
               }}
             >
               {brandSelect ? (
-                <AntDesign name="checkcircle" size={24} color="white" />
+                <AntDesign name="checkcircle" size={24} color="#FF4949" />
               ) : (
-                <Entypo name="circle" size={24} color="white" />
+                <Entypo name="circle" size={24} color="#FF4949" />
               )}
               <Text style={styles.menuSearch}> Marca</Text>
             </TouchableOpacity>
-            {/* <TouchableOpacity
+            <TouchableOpacity
               style={styles.menuOption}
               onPress={() => {
                 setBrandSelect(false);
@@ -647,9 +704,9 @@ const ScanScreen = (props) => {
                 setFilteredDataSource(userProducts);
               }}
             >
-              <MaterialIcons name="clear" size={24} color="black" />
-              <Text style={styles.menuSearch}> Aclarar</Text>
-            </TouchableOpacity> */}
+              {/* <MaterialIcons name="clear" size={24} color="black" /> */}
+              {/* <Text style={styles.menuSearch}> Aclarar</Text> */}
+            </TouchableOpacity>
           </View>
           <View
             style={{
@@ -665,8 +722,8 @@ const ScanScreen = (props) => {
                 backgroundColor: "#fff",
                 borderWidth: 0.5,
                 borderColor: "#000",
-                height: 40,
-                borderRadius: 5,
+                height: 33,
+                borderRadius: 20,
                 margin: 10,
                 marginTop: 20,
                 padding: 5,
@@ -690,23 +747,115 @@ const ScanScreen = (props) => {
                 placeholder="Buscar"
               />
             </View>
-            <View
-              style={{
-                justifyContent: "center",
-                alignItems: "center",
-                alignSelf: "center",
-              }}
-            >
-              <TouchableOpacity
-                onPress={() => {
-                  codePrompt();
-                }}
-              >
-                <FontAwesome name="plus-circle" size={35} color="#FF4949" />
-              </TouchableOpacity>
-            </View>
           </View>
         </View>
+        <View style={{ flex: 1, marginBottom: 30 }}>
+          <FlatList
+            refreshControl={
+              <RefreshControl
+                colors={["#FF4949", "#FF4949"]}
+                refreshing={isRefreshing}
+                onRefresh={() => {
+                  loadDetails();
+                }}
+              />
+            }
+            data={focused ? filteredDataSource : availableProducts}
+            numColumns={2}
+            columnWrapperStyle={{
+              flex: 1,
+              justifyContent: "space-between",
+            }}
+            keyExtractor={(item) => item.id}
+            renderItem={(itemData) => (
+              <CategoryGridTile
+                title={itemData.item.Product}
+                onSelect={() => {
+                  alert("pressed");
+                }}
+                size={itemData.item.Size}
+                price={itemData.item.Price}
+                category={itemData.item.Category}
+                brand={itemData.item.Brand}
+                code={itemData.item.code}
+                reload={() => {
+                  loadDetails();
+                }}
+              />
+            )}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  if (menu) {
+    return (
+      <View
+        style={{
+          flex: 1,
+        }}
+      >
+        <TouchableOpacity onPress={() => setMenu(false)}>
+          <Text>Menu</Text>
+        </TouchableOpacity>
+        <View
+          style={{
+            flexDirection: "row",
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+              alignSelf: "center",
+              backgroundColor: "#fff",
+              borderWidth: 0.5,
+              borderColor: "#000",
+              height: 33,
+              borderRadius: 20,
+              margin: 11,
+              marginTop: 20,
+              padding: 5,
+              width: "80%",
+            }}
+          >
+            <TextInput
+              style={{ flex: 1 }}
+              onFocus={() => {
+                setSearchScreen(true);
+                // setFocused(true);
+                // setFilteredDataSource(availableProducts);
+                // setMasterDataSource(availableProducts);
+              }}
+              // clearButtonMode={"always"}
+              // onBlur={() => {
+              //   setFocused(false);
+              // }}
+              // onChangeText={(text) => searchFilterFunction(text)}
+              // value={search}
+              // underlineColorAndroid="transparent"
+              placeholder="Buscar"
+            />
+          </View>
+          <View
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              alignSelf: "center",
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                codePrompt();
+              }}
+            >
+              <FontAwesome name="plus-circle" size={35} color="#FF4949" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <KeyboardAvoidingView
           style={
             {
@@ -779,12 +928,14 @@ const ScanScreen = (props) => {
                           style={{
                             ...styles.openButton,
                             backgroundColor: "#A251F9",
+                            marginBottom: 7,
                           }}
                           onPress={() => {
                             setPicker(true);
                           }}
                         >
                           <Text style={styles.textStyle}>Categoria</Text>
+                          {/* this is for manual add */}
                         </TouchableOpacity>
                         <Modal
                           animationType="slide"
@@ -803,7 +954,7 @@ const ScanScreen = (props) => {
                                   height: 30,
                                   marginTop: 20,
                                   marginBottom: 30,
-                                  width: 200,
+                                  width: "100%",
                                   justifyContent: "center",
                                 }}
                                 itemStyle={{ fontSize: 16 }}
@@ -811,19 +962,21 @@ const ScanScreen = (props) => {
                                   setPicked(itemValue)
                                 }
                               >
-                                <Picker.Item
-                                  label="Elige una Categoria"
-                                  color="grey"
-                                  value="N/A"
-                                />
-                                <Picker.Item label="Bebidas" value="Bebidas" />
-                                <Picker.Item label="Sopa" value="Sopa" />
-                                {/* <View></View> */}
+                                {catOptions.map((item, index) => {
+                                  return (
+                                    <Picker.Item
+                                      label={item}
+                                      value={item}
+                                      key={index}
+                                    />
+                                  );
+                                })}
                               </Picker>
                               <TouchableOpacity
                                 style={{
                                   ...styles.openButton,
                                   backgroundColor: "pink",
+                                  marginTop: 45,
                                 }}
                                 onPress={() => {
                                   setNewCategory(picked);
@@ -835,13 +988,7 @@ const ScanScreen = (props) => {
                             </View>
                           </View>
                         </Modal>
-                        {/* <TextInput
-                            style={styles.textInputStyle}
-                            onChangeText={(text) => searchFilterFunction(text)}
-                            value={search}
-                            underlineColorAndroid="transparent"
-                            placeholder="Buscar"
-                          /> */}
+
                         {hasCode && (
                           <TextInput
                             style={styles.textInputStyle}
@@ -1147,39 +1294,135 @@ const ScanScreen = (props) => {
           </View>
         </KeyboardAvoidingView>
 
-        <View style={{ flex: 1, marginBottom: 10 }}>
-          <FlatList
-            refreshControl={
-              <RefreshControl
-                colors={["#FF4949", "#FF4949"]}
-                refreshing={isRefreshing}
-                onRefresh={() => {
-                  loadDetails();
-                }}
-              />
-            }
-            data={focused ? filteredDataSource : availableProducts}
-            numColumns={2}
-            columnWrapperStyle={{
-              flex: 1,
-              justifyContent: "space-between",
+        <View style={{ flex: 1, marginBottom: 30 }}>
+          <SectionList
+            refreshing={isRefreshing}
+            onRefresh={() => {
+              loadDetails();
             }}
-            keyExtractor={(item) => item.id}
-            renderItem={(itemData) => (
+            sections={[
+              {
+                title: catOptions[0],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[0]
+                ),
+              },
+              {
+                title: catOptions[1],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[1]
+                ),
+              },
+              {
+                title: catOptions[2],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[2]
+                ),
+              },
+              {
+                title: catOptions[3],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[3]
+                ),
+              },
+              {
+                title: catOptions[4],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[4]
+                ),
+              },
+              {
+                title: catOptions[5],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[5]
+                ),
+              },
+              {
+                title: catOptions[6],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[6]
+                ),
+              },
+              {
+                title: catOptions[7],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[7]
+                ),
+              },
+              {
+                title: catOptions[8],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[8]
+                ),
+              },
+              {
+                title: catOptions[9],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[9]
+                ),
+              },
+              {
+                title: catOptions[10],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[10]
+                ),
+              },
+              {
+                title: catOptions[11],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[11]
+                ),
+              },
+              {
+                title: catOptions[12],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[12]
+                ),
+              },
+              {
+                title: catOptions[13],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[13]
+                ),
+              },
+              {
+                title: catOptions[14],
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[14]
+                ),
+              },
+              {
+                title: "Sin Categoria",
+                data: availableProducts.filter(
+                  (cat) => cat.Category === catOptions[-1]
+                ),
+              },
+            ]}
+            keyExtractor={(item, index) => item + index}
+            stickySectionHeadersEnabled={true}
+            // keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
               <CategoryGridTile
-                title={itemData.item.Product}
-                onSelect={() => {
-                  alert("pressed");
-                }}
-                size={itemData.item.Size}
-                price={itemData.item.Price}
-                category={itemData.item.Category}
-                brand={itemData.item.Brand}
-                code={itemData.item.code}
+                title={item.Product}
+                size={item.Size}
+                price={item.Price}
+                category={item.Category}
+                quantity={item.Quantity}
+                brand={item.Brand}
+                code={item.code}
                 reload={() => {
                   loadDetails();
                 }}
               />
+            )}
+            renderSectionHeader={({ section }) => (
+              <TouchableOpacity
+                onPress={() => {
+                  alert("pressed");
+                }}
+              >
+                <Text style={styles.sectionHeaderStyle}>{section.title}</Text>
+              </TouchableOpacity>
             )}
           />
         </View>
@@ -1201,6 +1444,9 @@ const ScanScreen = (props) => {
         // flexDirection: "column",
         // justifyContent: "flex-end",
       >
+        <TouchableOpacity onPress={() => setScanner(false)}>
+          <Text>Menu</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
             modeHandler();
@@ -1248,7 +1494,7 @@ const ScanScreen = (props) => {
               >
                 <View style={styles.centeredView}>
                   <View style={styles.modalView}>
-                    {title && (
+                    {loadedMode && (
                       <View>
                         <Text style={styles.modalTitle}>
                           Producto escaneado:
@@ -1362,6 +1608,7 @@ const ScanScreen = (props) => {
                             }}
                           >
                             <Text style={styles.textStyle}>Categoria</Text>
+                            {/* this is for scanner true */}
                           </TouchableOpacity>
                           <Modal
                             animationType="slide"
@@ -1388,7 +1635,16 @@ const ScanScreen = (props) => {
                                     setPicked(itemValue)
                                   }
                                 >
-                                  <Picker.Item
+                                  {catOptions.map((item, index) => {
+                                    return (
+                                      <Picker.Item
+                                        label={item}
+                                        value={index}
+                                        key={index}
+                                      />
+                                    );
+                                  })}
+                                  {/* <Picker.Item
                                     label="Elige una Categoria"
                                     color="grey"
                                     value="N/A"
@@ -1397,7 +1653,7 @@ const ScanScreen = (props) => {
                                     label="Bebidas"
                                     value="Bebidas"
                                   />
-                                  <Picker.Item label="Sopa" value="Sopa" />
+                                  <Picker.Item label="Sopa" value="Sopa" /> */}
                                   {/* <View></View> */}
                                 </Picker>
                                 <TouchableOpacity
@@ -1437,7 +1693,7 @@ const ScanScreen = (props) => {
                     {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
                     {/* </View> */}
 
-                    {title && (
+                    {loadedMode && (
                       <View
                         style={{
                           margin: 10,
@@ -1490,6 +1746,7 @@ const ScanScreen = (props) => {
                         }}
                         onPress={() => {
                           setModalVisible(!modalVisible);
+                          setLoadedMode(false);
                           // props.navigation.navigate("Home"),
                           setScanned(false);
                         }}
@@ -1503,6 +1760,7 @@ const ScanScreen = (props) => {
                         }}
                         onPress={() => {
                           if (newMode) {
+                            setHasCode(true);
                             newEntry();
                             console.log("theres a new product", newProduct);
                             continueScan();
@@ -1718,5 +1976,12 @@ const styles = StyleSheet.create({
     margin: 5,
     borderColor: "black",
     backgroundColor: "#FFFFFF",
+  },
+  sectionHeaderStyle: {
+    backgroundColor: "silver",
+    fontSize: 25,
+    fontWeight: "bold",
+    padding: 5,
+    color: "#fff",
   },
 });

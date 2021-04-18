@@ -3,21 +3,14 @@ import {
   StyleSheet,
   Text,
   View,
-  Button,
   Platform,
-  ScrollView,
   FlatList,
   RefreshControl,
-  Alert,
   Dimensions,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Modal,
-  Keyboard,
   ActivityIndicator,
-  ImageBackground,
-  TouchableWithoutFeedback,
   TextInput,
+  SectionList,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";

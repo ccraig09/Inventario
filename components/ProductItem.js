@@ -153,26 +153,14 @@ const ProductItem = (props) => {
     <TouchableOpacity
       onPress={() => {
         setModalVisible(true);
-        // alert(itemData.item.productTitle);
       }}
       style={styles.placeItem}
     >
-      {/* <Image style={styles.image} source={{ uri: props.image }} /> */}
       <View style={styles.itemSpacing}>
         <View style={styles.infoContainer}>
           <Text style={styles.title}>{props.title}</Text>
-          {/* <Text style={styles.address}>Tamaño: {props.size}</Text>
-          <Text style={styles.address}>Categoria: {props.category}</Text>
-          <Text style={styles.address}>Marca: {props.brand}</Text> */}
         </View>
-        {/* <View style={{ justifyContent: "space-around" }}> */}
-        {/* <View
-            style={{
-              borderLeftWidth: 1,
-              borderLeftColor: "black",
-              margin: 5,
-            }}
-          /> */}
+
         <View
           style={{
             flexDirection: "row",
@@ -180,16 +168,9 @@ const ProductItem = (props) => {
           }}
         >
           <Text style={styles.addressTitle}>Precio (bs): </Text>
-          {/* <Text style={[styles.addressTitle, { marginTop: -14 }]}></Text> */}
           <Text style={styles.addressNumber}>{props.price}</Text>
         </View>
-        {/* <View
-            style={{
-              borderLeftWidth: 1,
-              borderLeftColor: "black",
-              margin: 5,
-            }}
-          /> */}
+
         <View
           style={{
             flexDirection: "row",
@@ -208,13 +189,6 @@ const ProductItem = (props) => {
             {props.quantity}
           </Text>
         </View>
-        {/* <View
-            style={{
-              borderLeftWidth: 1,
-              borderLeftColor: "black",
-              margin: 5,
-            }}
-          /> */}
 
         <View
           style={{
@@ -223,8 +197,6 @@ const ProductItem = (props) => {
           }}
         >
           <Text style={styles.addressTitle}>Fecha: </Text>
-          {/* </View> */}
-          {/* <View style={{ alignItems: "center" }}> */}
           <View
             style={{
               flexDirection: "row",
