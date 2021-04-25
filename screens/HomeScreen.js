@@ -6,17 +6,12 @@ import {
   Platform,
   FlatList,
   RefreshControl,
-  Dimensions,
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
   SectionList,
 } from "react-native";
-import Svg, { Circle } from "react-native-svg";
-import { LinearGradient } from "expo-linear-gradient";
 
-import { StatusBar } from "expo-status-bar";
-// import SearchableFlatlist from "searchable-flatlist";
 import HeaderButton from "../components/HeaderButton";
 import HeaderButton2 from "../components/HeaderButton2";
 import styled, { useTheme } from "styled-components";
@@ -28,7 +23,6 @@ import * as ProdActions from "../store/productActions";
 
 import { BarCodeScanner } from "expo-barcode-scanner";
 import ProductItem from "../components/ProductItem";
-let screenWidth = Dimensions.get("window").width;
 
 const HomeScreen = (props) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -77,7 +71,7 @@ const HomeScreen = (props) => {
 
   const loadDetails = async () => {
     setError(null);
-    setIsRefreshing(true);
+    setIsLoading(true);
     try {
       await dispatch(ProdActions.fetchAvailableProducts());
       await dispatch(ProdActions.fetchProducts());
@@ -91,7 +85,7 @@ const HomeScreen = (props) => {
     // console.log("LOADED THE STORENAME", createdStoreName);
 
     props.navigation.setParams({ storeTitle: createdStoreName });
-    setIsRefreshing(false);
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -177,7 +171,10 @@ const HomeScreen = (props) => {
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" />
+        <View>
+          <ActivityIndicator size="large" />
+          <Text>Cargando su inventario </Text>
+        </View>
       </View>
     );
   }

@@ -15,7 +15,6 @@ import {
   Keyboard,
   KeyboardAvoidingView,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import { useSelector, useDispatch } from "react-redux";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
@@ -25,7 +24,6 @@ import * as sendProduct from "../store/productActions";
 import * as ProdActions from "../store/productActions";
 import ProductItem from "../components/ProductItem";
 import CategoryGridTile from "../components/CategoryGridTile";
-import { AlphabetList } from "react-native-section-alphabet-list";
 
 import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
 import { Avatar, Divider, Input, Button } from "react-native-elements";
@@ -134,7 +132,6 @@ const ScanScreen = (props) => {
     try {
       dispatch(ProdActions.fetchProducts());
       dispatch(ProdActions.fetchAvailableProducts());
-      console.log("Gotta figure out how to load these", productList);
     } catch (err) {
       setError(err.message);
     }
@@ -157,14 +154,6 @@ const ScanScreen = (props) => {
 
   useEffect(() => {
     dispatch(ProdActions.fetchAvailableProducts());
-    // console.log("try8ing to load DATA array", availableProducts);
-    // setValues(availableProducts);
-    const loadedBebidas = availableProducts.filter(
-      (cat) => cat.Category === "Bebidas"
-    );
-    const loadedSopas = availableProducts.filter(
-      (cat) => cat.Category === "Sopa"
-    );
   }, []);
 
   const modeHandler = () => {
@@ -576,7 +565,9 @@ const ScanScreen = (props) => {
               fontSize: 25,
             }}
             title="Abrir Scanner"
-            onPress={() => setScanner(true)}
+            onPress={() => {
+              props.navigation.navigate("Scanner");
+            }}
           />
           <Button
             icon={{
@@ -593,7 +584,9 @@ const ScanScreen = (props) => {
               fontSize: 25,
             }}
             title="Abrir Catálogo"
-            onPress={() => setMenu(true)}
+            onPress={() => {
+              props.navigation.navigate("Menu");
+            }}
           />
           <Button
             icon={{
@@ -1444,9 +1437,6 @@ const ScanScreen = (props) => {
         // flexDirection: "column",
         // justifyContent: "flex-end",
       >
-        <TouchableOpacity onPress={() => setScanner(false)}>
-          <Text>Menu</Text>
-        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
             modeHandler();
@@ -1555,7 +1545,7 @@ const ScanScreen = (props) => {
                         </Text> */}
                       </View>
                     )}
-                    {!title && (
+                    {!loadedMode && (
                       <View>
                         <Text style={styles.modalTitle}>Nuevo Producto</Text>
                         <View>
@@ -1614,9 +1604,9 @@ const ScanScreen = (props) => {
                             animationType="slide"
                             transparent={true}
                             visible={picker}
-                            // onRequestClose={() => {
-                            //   Alert.alert("Modal has been closed.");
-                            // }}
+                            onRequestClose={() => {
+                              // setPicker(!picker);
+                            }}
                           >
                             <View style={styles.centeredView}>
                               <View style={styles.modalView}>
@@ -1627,7 +1617,7 @@ const ScanScreen = (props) => {
                                     height: 30,
                                     marginTop: 20,
                                     marginBottom: 30,
-                                    width: 200,
+                                    width: "100%",
                                     justifyContent: "center",
                                   }}
                                   itemStyle={{ fontSize: 16 }}
@@ -1644,17 +1634,6 @@ const ScanScreen = (props) => {
                                       />
                                     );
                                   })}
-                                  {/* <Picker.Item
-                                    label="Elige una Categoria"
-                                    color="grey"
-                                    value="N/A"
-                                  />
-                                  <Picker.Item
-                                    label="Bebidas"
-                                    value="Bebidas"
-                                  />
-                                  <Picker.Item label="Sopa" value="Sopa" /> */}
-                                  {/* <View></View> */}
                                 </Picker>
                                 <TouchableOpacity
                                   style={{
@@ -1853,10 +1832,6 @@ const ScanScreen = (props) => {
               />
             )}
           />
-          {/* <Button
-           title={"Escanear de nuevo"}
-           onPress={() => setScanned(false)}
-         /> */}
         </View>
       </View>
     );
@@ -1865,7 +1840,7 @@ const ScanScreen = (props) => {
 
 ScanScreen.navigationOptions = (navData) => {
   return {
-    headerTitle: "Escanear",
+    headerTitle: "Menú",
   };
 };
 
