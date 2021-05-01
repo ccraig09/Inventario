@@ -66,12 +66,11 @@ const HomeScreen = (props) => {
 
   const createdStoreName = useSelector((state) => state.storeName.storeName);
 
-  // let storeName;
   const dispatch = useDispatch();
 
   const loadDetails = async () => {
     setError(null);
-    setIsLoading(true);
+    setIsRefreshing(true);
     try {
       await dispatch(ProdActions.fetchAvailableProducts());
       await dispatch(ProdActions.fetchProducts());
@@ -82,10 +81,9 @@ const HomeScreen = (props) => {
     setFilteredDataSource(userProducts);
     setMasterDataSource(userProducts);
     setStoreName(createdStoreName);
-    // console.log("LOADED THE STORENAME", createdStoreName);
 
     props.navigation.setParams({ storeTitle: createdStoreName });
-    setIsLoading(false);
+    setIsRefreshing(false);
   };
 
   useEffect(() => {
@@ -139,9 +137,6 @@ const HomeScreen = (props) => {
           // console.log("ITEMDATA IS===", textData);
           return itemData.indexOf(textData) > -1;
         }
-        // const textData = text.toUpperCase();
-        // // console.log("ITEMDATA IS===", textData);
-        // return itemData.indexOf(textData) > -1;
       });
       setFilteredDataSource(newData);
       setSearch(text);
@@ -153,21 +148,6 @@ const HomeScreen = (props) => {
     }
   };
 
-  // const ItemSeprator = () => (
-  //   <View
-  //     style={{
-  //       height: 8,
-  //       width: "100%",
-  //       backgroundColor: "rgba(0,0,0,0.5)",
-  //     }}
-  //   />
-  // );
-
-  // const modeHandler = () => {
-  //   setSell((prevState) => !prevState);
-  //   console.log(sell);
-  //   props.navigation.setParams({ mode: sell });
-  // };
   if (isLoading) {
     return (
       <View style={styles.centered}>
@@ -218,7 +198,6 @@ const HomeScreen = (props) => {
                 <MaterialIcons name="refresh" size={30} color="white" />
               </TouchableOpacity>
             </View>
-            {/* <Text style={{ color: "grey" }}>Buscar Por: </Text> */}
           </View>
           <View
             style={{
@@ -277,37 +256,8 @@ const HomeScreen = (props) => {
               )}
               <Text style={styles.menuSearch}> Marca</Text>
             </TouchableOpacity>
-            {/* <TouchableOpacity
-              style={styles.menuOption}
-              onPress={() => {
-                setBrandSelect(false);
-                setCategorySelect(false);
-                setProductSelect(true);
-                setSearch("");
-                setFilteredDataSource(userProducts);
-              }}
-            >
-              <MaterialIcons name="clear" size={24} color="black" />
-              <Text style={styles.menuSearch}> Aclarar</Text>
-            </TouchableOpacity> */}
           </View>
 
-          {/* <TextInput
-          style={styles.textInputStyle}
-          onFocus={() => {
-            setFocused(true);
-            // setFilteredDataSource(userProducts);
-            // setMasterDataSource(userProducts);
-          }}
-          clearButtonMode={"always"}
-          // onBlur={() => {
-          //   setFocused(false);
-          // }}
-          onChangeText={(searchTerm) => setSearchTerm(searchTerm)}
-          value={search}
-          underlineColorAndroid="transparent"
-          placeholder="Buscar"
-        /> */}
           <View
             style={{
               flexDirection: "row",
@@ -343,16 +293,9 @@ const HomeScreen = (props) => {
             />
             <MaterialIcons name="search" size={24} color="black" />
           </View>
-          {/* </Svg> */}
-          {/* </ImageBackground> */}
         </View>
       </View>
-      {/* <TextInput
-          placeholder={"Search"}
-          style={sSearchBar}
-          onChangeText={searchTerm => this.setState({ searchTerm })}
-        /> */}
-      {/* <View style={{ backgroundColor: "#EDEDED" }}> */}
+
       <FlatList
         refreshControl={
           <RefreshControl
@@ -363,7 +306,6 @@ const HomeScreen = (props) => {
         }
         data={focused ? filteredDataSource : userProducts}
         keyExtractor={(item) => item.productId}
-        // ItemSeparatorComponent={ItemSeprator}
         renderItem={(itemData) => (
           <ProductItem
             title={itemData.item.productTitle}
@@ -397,22 +339,6 @@ HomeScreen.navigationOptions = (navData) => {
     headerTitle: "Inventario",
     headerRight: () => (
       <View style={{ flexDirection: "row" }}>
-        {/* <HeaderButtons HeaderButtonComponent={HeaderButton2}>
-          <Item
-            title="Producto"
-            // iconColor={"black"}
-            iconName={
-              Platform.OS === "android"
-                ? "settings-outline"
-                : "settings-outline"
-            }
-            onPress={() => {
-              navData.navigation.navigate("Settings", {
-                StoreTitle: Tienda,
-              });
-            }}
-          />
-        </HeaderButtons> */}
         <HeaderButtons HeaderButtonComponent={HeaderButton}>
           <Item
             title="Producto"

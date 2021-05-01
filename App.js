@@ -6,7 +6,7 @@ import productsReducer from "./store/productReducer";
 import createdProducts from "./store/createdProductReducer";
 import storeName from "./store/StoreNameReducer";
 import authReducer from "./store/authReducer";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import * as ProdActions from "./store/productActions";
 import AppLoading from "expo-app-loading";
 
@@ -21,16 +21,14 @@ const rootReducer = combineReducers({
 
 const store = createStore(rootReducer, applyMiddleware(ReduxThunk));
 
-// const dispatch = useDispatch();
-
-// const fetchFirebase = () => {
-//   // console.log("synce started");
-//   dispatch(ProdActions.fetchAvailableProducts());
-// dispatch(ProdActions.fetchStoreName())
-//   dispatch(ProdActions.fetchProducts());
-// };
 export default function App() {
   // const [fireBLoaded, setFireBLoaded] = useState(false);
+  // const dispatch = useDispatch();
+  // const fetchFirebase = () => {
+  //   dispatch(ProdActions.fetchAvailableProducts());
+  //   dispatch(ProdActions.fetchStoreName());
+  //   dispatch(ProdActions.fetchProducts());
+  // };
   // if (!fireBLoaded) {
   //   return (
   //     <AppLoading
@@ -39,18 +37,12 @@ export default function App() {
   //       onError={console.warn}
   //     />
   //   );
-  // }
-
+  // } else {
   return (
     <Provider store={store}>
       <InventoryNavigator />
+      {/* <App /> */}
     </Provider>
   );
+  // }
 }
-
-// const fetchFirebase = () => {
-//   // const images = [require('./assets/snack-icon.png')];
-
-//   const cacheImages = dispatch(ProdActions.fetchStoreName());
-//   return Promise.all(cacheImages);
-// };

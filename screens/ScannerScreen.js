@@ -25,6 +25,7 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import InputSpinner from "react-native-input-spinner";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { TouchableWithoutFeedback } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 
 const ScannerScreen = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
@@ -48,7 +49,7 @@ const ScannerScreen = (props) => {
   const [loadedModal, setLoadedModal] = useState(false);
   const [selected, setSelected] = useState(0);
   const [newQ, setNewQ] = useState();
-  const [newMode, setNewMode] = useState(true);
+  const [newMode, setNewMode] = useState(false);
   const [loadedMode, setLoadedMode] = useState(false);
   const [newProduct, setNewProduct] = useState("");
   const [newPrice, setNewPrice] = useState("");
@@ -195,34 +196,16 @@ const ScannerScreen = (props) => {
   };
 
   const newEntry = () => {
-    if (!hasCode) {
-      var randCode = Math.random().toString();
-    }
-    if (hasCode) {
-      dispatch(
-        sendProduct.addedProduct(
-          newProduct,
-          newSize,
-          newPrice,
-          newCategory,
-          newBrand,
-          code
-        )
-      );
-    }
-    if (!hasCode) {
-      dispatch(
-        sendProduct.addedRandProduct(
-          newProduct,
-          newSize,
-          newPrice,
-          newCategory,
-          newBrand,
-          randCode
-        )
-      );
-    }
-    console.log("going to test math random code", randCode);
+    dispatch(
+      sendProduct.addedProduct(
+        newProduct,
+        newSize,
+        newPrice,
+        newCategory,
+        newBrand,
+        code
+      )
+    );
 
     Alert.alert(
       "Agregar a tu inventario?",
@@ -240,14 +223,14 @@ const ScannerScreen = (props) => {
           text: "Si",
           onPress: () => {
             setManualAdd(!manualAdd);
-            setModalVisible(!modalVisible);
-            setLoadedModal(true);
+            // setModalVisible(!modalVisible);
+            // setLoadedModal(true);
             console.log("ADDING TO BOOK and mode is", newMode);
             setTitle(newProduct);
             setPrice(newPrice);
             setCategory(newCategory);
             setSize(newSize);
-            setCode(randCode);
+            setCode(code);
             setBrand(newBrand);
             setNewMode(false);
             setLoadedMode(true);
@@ -329,61 +312,61 @@ const ScannerScreen = (props) => {
     }, 1000);
   };
 
-  const uploadProduct = (
-    Title,
-    Price,
-    Category,
-    Quantity,
-    Size,
-    Brand,
-    Code
-  ) => {
-    console.log("data listed", Quantity);
-    try {
-      if (Quantity > 1) {
-        console.log(
-          "item already exist, updating",
-          Title,
-          Price,
-          Category,
-          Quantity,
-          Size,
-          Brand,
-          Code
-        );
+  // const uploadProduct = (
+  //   Title,
+  //   Price,
+  //   Category,
+  //   Quantity,
+  //   Size,
+  //   Brand,
+  //   Code
+  // ) => {
+  //   console.log("data listed", Quantity);
+  //   try {
+  //     if (Quantity > 1) {
+  //       console.log(
+  //         "item already exist, updating",
+  //         Title,
+  //         Price,
+  //         Category,
+  //         Quantity,
+  //         Size,
+  //         Brand,
+  //         Code
+  //       );
 
-        dispatch(
-          sendProduct.updateProducts(
-            Title,
-            Price,
-            Category,
-            Quantity,
-            Size,
-            Brand,
-            Code
-          )
-        );
-      } else {
-        console.log("first upload");
-        console.log(Title, Price, Category, Quantity, Size, Code);
-        dispatch(
-          sendProduct.createProduct(
-            Title,
-            Price,
-            Category,
-            Quantity,
-            Size,
-            Brand,
-            Code
-          )
-        );
-      }
-    } catch (err) {
-      setError(err.message);
-      console.log(error);
-    }
-    loadDetails();
-  };
+  //       dispatch(
+  //         sendProduct.updateProducts(
+  //           Title,
+  //           Price,
+  //           Category,
+  //           Quantity,
+  //           Size,
+  //           Brand,
+  //           Code
+  //         )
+  //       );
+  //     } else {
+  //       console.log("first upload");
+  //       console.log(Title, Price, Category, Quantity, Size, Code);
+  //       dispatch(
+  //         sendProduct.createProduct(
+  //           Title,
+  //           Price,
+  //           Category,
+  //           Quantity,
+  //           Size,
+  //           Brand,
+  //           Code
+  //         )
+  //       );
+  //     }
+  //   } catch (err) {
+  //     setError(err.message);
+  //     console.log(error);
+  //   }
+  //   loadDetails();
+  // };
 
   const minusProduct = (Title, Price, Category, Quantity, Size, Code) => {
     try {
@@ -417,23 +400,29 @@ const ScannerScreen = (props) => {
     // console.log(availableProducts);
     const userQuantity = userProducts.find((prod) => prod.productcode === data);
     const loadedProduct = availableProducts.find((code) => code.code === data);
+    const userProduct = userProducts.find((code) => code.productcode === data);
 
     if (data) {
       Code = data.toString();
       setCode(data);
     }
 
-    if (loadedProduct) {
-      setNewMode(false);
+    if (typeof loadedProduct === "undefined") {
+      setNewMode(true);
+      setLoadedMode(false);
+    }
+
+    if (userProduct) {
       setLoadedMode(true);
-      console.log("THIS IS LOADED PRODUCT", loadedProduct);
+      setNewMode(false);
+      console.log("THIS IS USERLOADED PRODUCT", userProduct);
       try {
-        Title = loadedProduct.Product;
-        Price = loadedProduct.Price;
-        Category = loadedProduct.Category;
-        Size = loadedProduct.Size;
-        Brand = loadedProduct.Brand;
-        Code = loadedProduct.code.toString();
+        Title = userProduct.productTitle;
+        Price = userProduct.productPrice;
+        Category = userProduct.productCategory;
+        Size = userProduct.productSize;
+        Brand = userProduct.productBrand;
+        Code = userProduct.productcode.toString();
         console.log("THIS IS FIRST CODE TEST", Code);
         Quantity =
           typeof userQuantity === "undefined"
@@ -446,10 +435,57 @@ const ScannerScreen = (props) => {
         setError(err.message);
       }
     }
-
-    if (!sell && loadedProduct) {
-      uploadProduct(Title, Price, Category, Quantity, Size, Brand, Code);
+    if (loadedProduct) {
+      console.log("THIS IS LOADED PRODUCT", loadedProduct);
+      Alert.alert(
+        "Agregar a su inventario?",
+        "Este producto no esta en su inventario, agregarla?",
+        [
+          {
+            text: "No",
+            style: "cancel",
+            onPress: () => {
+              setLoadedMode(false);
+              setModalVisible(!modalVisible);
+              setScanned(false);
+            },
+          },
+          {
+            text: "Si",
+            onPress: () => {
+              setLoadedMode(true);
+              setNewMode(false);
+              try {
+                Title = loadedProduct.Product;
+                Price = loadedProduct.Price;
+                Category = loadedProduct.Category;
+                Size = loadedProduct.Size;
+                Brand = loadedProduct.Brand;
+                Code = loadedProduct.code.toString();
+                console.log("THIS IS FIRST CODE TEST", Code);
+                Quantity =
+                  typeof userQuantity === "undefined"
+                    ? 0
+                    : userQuantity.productQuantity;
+                alertQuantity = !sell ? Quantity + 1 : Quantity - 1;
+                console.log("this is var Quantity", Quantity);
+                setCode(Code);
+                setScanned(false);
+              } catch (err) {
+                setError(err.message);
+              }
+            },
+          },
+          {
+            text: "Ver Detalles",
+          },
+        ]
+      );
     }
+
+    // if (!sell && loadedProduct) {
+    //   uploadProduct(Title, Price, Category, Quantity, Size, Brand, Code);
+    // }
     if (sell) {
       minusProduct(Title, Price, Category, Quantity, Size, Brand, Code);
     }
@@ -464,7 +500,7 @@ const ScannerScreen = (props) => {
     setTitle(Title);
     setPrice(Price);
     setSize(Size);
-    setQuantity(alertQuantity);
+    setQuantity(Quantity);
     setCategory(Category);
     setBrand(Brand);
     setCode(Code);
@@ -534,65 +570,42 @@ const ScannerScreen = (props) => {
               <View style={styles.centeredView}>
                 <View style={styles.modalView}>
                   {loadedMode && (
-                    <View>
-                      <Text style={styles.modalTitle}>Producto escaneado:</Text>
-                      <Text style={styles.modalHead}>{title}</Text>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Marca: </Text>
-                        <Text style={styles.modalText}>{brand}</Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Precio: </Text>
-                        <Text style={styles.modalText}>${price}bs</Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Tamaño: </Text>
-                        <Text style={styles.modalText}>{size}</Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Categoria: </Text>
-                        <Text style={styles.modalText}>{category}</Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Cantidad Total: </Text>
-                        <Text style={styles.modalText}>{quantity}</Text>
-                      </View>
-                      {/* <Text style={styles.modalText}>Tamaño: {size}</Text>
-                          <Text style={styles.modalText}>Marca: {brand}</Text>
-                          <Text style={styles.modalText}>
-                            Categoria: {category}
+                    <ScrollView>
+                      <View>
+                        <Text style={styles.modalTitle}>
+                          Producto escaneado:
+                        </Text>
+                        <Text style={styles.modalHead}>{title}</Text>
+                        <View style={styles.modalItemBorder}>
+                          <Text style={styles.modalTextTitle}>Marca: </Text>
+                          <Text style={styles.modalText}>{brand}</Text>
+                        </View>
+
+                        <View style={styles.modalItemBorder}>
+                          <Text style={styles.modalTextTitle}>Precio: </Text>
+                          <Text style={styles.modalText}>${price}bs</Text>
+                        </View>
+
+                        <View style={styles.modalItemBorder}>
+                          <Text style={styles.modalTextTitle}>Tamaño: </Text>
+                          <Text style={styles.modalText}>{size}</Text>
+                        </View>
+
+                        <View style={styles.modalItemBorder}>
+                          <Text style={styles.modalTextTitle}>Categoria: </Text>
+                          <Text style={styles.modalText}>{category}</Text>
+                        </View>
+
+                        <View style={styles.modalItemBorder}>
+                          <Text style={styles.modalTextTitle}>
+                            Cantidad Total:{" "}
                           </Text>
-                          <Text style={styles.modalText}>
-                            Cantidad Total: {quantity}
-                          </Text> */}
-                    </View>
+                          <Text style={styles.modalText}>{quantity}</Text>
+                        </View>
+                      </View>
+                    </ScrollView>
                   )}
-                  {!loadedMode && (
+                  {newMode && (
                     <View>
                       <Text style={styles.modalTitle}>Nuevo Producto</Text>
                       <View>
@@ -656,14 +669,14 @@ const ScannerScreen = (props) => {
                           }}
                         >
                           <View style={styles.centeredView}>
-                            <View style={styles.modalView}>
+                            <View style={styles.modalViewPicker}>
                               <Picker
                                 selectedValue={picked}
                                 mode="dropdown"
                                 style={{
                                   height: 30,
                                   marginTop: 20,
-                                  marginBottom: 30,
+                                  // marginBottom: 30,
                                   width: "100%",
                                   justifyContent: "center",
                                 }}
@@ -682,18 +695,38 @@ const ScannerScreen = (props) => {
                                   );
                                 })}
                               </Picker>
-                              <TouchableOpacity
+                              <View
                                 style={{
-                                  ...styles.openButton,
-                                  backgroundColor: "pink",
-                                }}
-                                onPress={() => {
-                                  setNewCategory(picked);
-                                  setPicker(false);
+                                  width: "100%",
+                                  flexDirection: "row",
+                                  justifyContent: "space-around",
+                                  marginTop: 90,
                                 }}
                               >
-                                <Text style={styles.textStyle}>Guardar</Text>
-                              </TouchableOpacity>
+                                <TouchableOpacity
+                                  style={{
+                                    ...styles.openButton,
+                                    backgroundColor: "#FF4949",
+                                  }}
+                                  onPress={() => {
+                                    setPicker(!picker);
+                                  }}
+                                >
+                                  <Text style={styles.textStyle}>Volver</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  style={{
+                                    ...styles.openButton,
+                                    // backgroundColor: "#F194FF",
+                                  }}
+                                  onPress={() => {
+                                    setNewCategory(picked);
+                                    setPicker(false);
+                                  }}
+                                >
+                                  <Text style={styles.textStyle}>Guardar</Text>
+                                </TouchableOpacity>
+                              </View>
                             </View>
                           </View>
                         </Modal>
@@ -786,7 +819,6 @@ const ScannerScreen = (props) => {
                       }}
                       onPress={() => {
                         if (newMode) {
-                          setHasCode(true);
                           newEntry();
                           console.log("theres a new product", newProduct);
                           continueScan();
@@ -871,6 +903,27 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  modalViewPicker: {
+    flex: 0.3,
+    justifyContent: "center",
+    height: "40%",
+    width: "95%",
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    alignContent: "center",
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
   openButton: {
     backgroundColor: "#F194FF",
     borderRadius: 20,
@@ -883,10 +936,16 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 20,
   },
+  modalTextTitle: {
+    marginBottom: 10,
+    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
   modalText: {
     marginBottom: 10,
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 22,
   },
   modalTextCode: {
     color: "grey",
@@ -908,11 +967,29 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: "silver",
   },
+  modalItemBorder: {
+    backgroundColor: "#F5F3F3",
+    borderWidth: 2,
+    borderRadius: 8,
+    borderColor: "#F5F3F3",
+    // justifyContent: "space-between",
+    margin: 5,
+    padding: 5,
+    shadowColor: "silver",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.75,
+    shadowRadius: 1.84,
+    elevation: 1,
+  },
   modalHead: {
     marginBottom: 10,
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
+    color: "blue",
   },
   modalTitle: {
     marginBottom: 10,
