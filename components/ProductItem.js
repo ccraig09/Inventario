@@ -21,6 +21,7 @@ import DateTimePicker from "react-native-modal-datetime-picker";
 import moment from "moment";
 import Moment from "moment";
 import localization from "moment/locale/es-us";
+import "moment/locale/es";
 import { extendMoment } from "moment-range";
 
 import * as sendProduct from "../store/productActions";

@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+
 import { createStore, combineReducers, applyMiddleware } from "redux";
 import { Provider } from "react-redux";
 import ReduxThunk from "redux-thunk";
@@ -20,29 +22,51 @@ const rootReducer = combineReducers({
 });
 
 const store = createStore(rootReducer, applyMiddleware(ReduxThunk));
-
-export default function App() {
-  // const [fireBLoaded, setFireBLoaded] = useState(false);
-  // const dispatch = useDispatch();
-  // const fetchFirebase = () => {
-  //   dispatch(ProdActions.fetchAvailableProducts());
-  //   dispatch(ProdActions.fetchStoreName());
-  //   dispatch(ProdActions.fetchProducts());
-  // };
-  // if (!fireBLoaded) {
-  //   return (
-  //     <AppLoading
-  //       startAsync={fetchFirebase}
-  //       onFinish={() => setFireBLoaded(true)}
-  //       onError={console.warn}
-  //     />
-  //   );
-  // } else {
+const AppWrapper = () => {
   return (
     <Provider store={store}>
-      <InventoryNavigator />
-      {/* <App /> */}
+      <App />
     </Provider>
   );
-  // }
-}
+};
+const App = () => {
+  const dispatch = useDispatch();
+
+  const [fireBLoaded, setFireBLoaded] = useState(false);
+
+  useEffect(() => {
+    console.log("PREALOOOOADINF");
+    dispatch(ProdActions.fetchAvailableProducts());
+    dispatch(ProdActions.fetchStoreName());
+    dispatch(ProdActions.fetchProducts()).then(setFireBLoaded(true));
+    // fetchFirebase();
+  }, [dispatch]);
+
+  const fetchFirebase = async () => {
+    console.log("PREALOOOOADINF");
+    dispatch(ProdActions.fetchAvailableProducts());
+    dispatch(ProdActions.fetchStoreName());
+    dispatch(ProdActions.fetchProducts()).then(setFireBLoaded(true));
+  };
+  // const store = createStore(rootReducer, applyMiddleware(ReduxThunk));
+
+  if (!fireBLoaded) {
+    return (
+      <Provider store={store}>
+        <View
+          stlye={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <Text></Text>
+        </View>
+      </Provider>
+    );
+  } else {
+    return (
+      <Provider store={store}>
+        <InventoryNavigator />
+      </Provider>
+    );
+  }
+};
+
+export default AppWrapper;
