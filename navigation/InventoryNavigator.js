@@ -3,7 +3,7 @@ import { createAppContainer, createSwitchNavigator } from "react-navigation";
 import { createStackNavigator } from "react-navigation-stack";
 
 import HomeScreen from "../screens/HomeScreen";
-import ScanScreen from "../screens/ScanScreen";
+import SelectScreen from "../screens/SelectScreen";
 import AuthScreen from "../screens/AuthScreen";
 import LoadingScreen from "../screens/LoadingScreen";
 import SignupScreen from "../screens/SignupScreen";
@@ -20,7 +20,7 @@ const InventoryNavigator = createStackNavigator({
 
 const HomeStack = createStackNavigator({
   Home: HomeScreen,
-  Scan: ScanScreen,
+  Scan: SelectScreen,
   Settings: SettingsScreen,
   Scanner: ScannerScreen,
   Menu: MenuScreen,

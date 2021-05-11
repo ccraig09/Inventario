@@ -72,7 +72,6 @@ const HomeScreen = (props) => {
     setError(null);
     setIsRefreshing(true);
     try {
-      await dispatch(ProdActions.fetchAvailableProducts());
       await dispatch(ProdActions.fetchProducts());
       await dispatch(ProdActions.fetchStoreName());
     } catch (err) {
@@ -95,7 +94,9 @@ const HomeScreen = (props) => {
 
   useEffect(() => {
     setIsLoading(true);
-    loadDetails();
+    loadDetails().then(() => {
+      setIsLoading(false);
+    }, [dispatch, loadDetails]);
 
     console.log("loading homePage");
     (async () => {
@@ -152,14 +153,15 @@ const HomeScreen = (props) => {
     return (
       <View style={styles.centered}>
         <View>
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" color="#FF4949" />
           <Text>Cargando su inventario </Text>
         </View>
       </View>
     );
   }
 
-  if (userProducts.length === 0) {
+  // if (isLoading) {
+  if (!isLoading && userProducts.length === 0) {
     return (
       <View style={styles.centered}>
         <Text>No Productos registrado. Agregar products </Text>

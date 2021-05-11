@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
-
 import { createStore, combineReducers, applyMiddleware } from "redux";
 import { Provider } from "react-redux";
 import ReduxThunk from "redux-thunk";
 import productsReducer from "./store/productReducer";
 import createdProducts from "./store/createdProductReducer";
+import cartReducer from "./store/cartReducer";
 import storeName from "./store/StoreNameReducer";
 import authReducer from "./store/authReducer";
+import firebase from "./components/firebase";
+
 import { useDispatch } from "react-redux";
 import * as ProdActions from "./store/productActions";
 import AppLoading from "expo-app-loading";
 
 import InventoryNavigator from "./navigation/InventoryNavigator";
+export const AUTHENTICATE = "AUTHENTICATE";
 
 const rootReducer = combineReducers({
   products: productsReducer,
   availableProducts: createdProducts,
   auth: authReducer,
   storeName: storeName,
+  cart: cartReducer,
 });
-
 const store = createStore(rootReducer, applyMiddleware(ReduxThunk));
 const AppWrapper = () => {
   return (
@@ -29,36 +31,39 @@ const AppWrapper = () => {
     </Provider>
   );
 };
+
 const App = () => {
+  const [fireBLoaded, setFireBLoaded] = useState(false);
   const dispatch = useDispatch();
 
-  const [fireBLoaded, setFireBLoaded] = useState(false);
-
-  useEffect(() => {
-    console.log("PREALOOOOADINF");
-    dispatch(ProdActions.fetchAvailableProducts());
-    dispatch(ProdActions.fetchStoreName());
-    dispatch(ProdActions.fetchProducts()).then(setFireBLoaded(true));
-    // fetchFirebase();
-  }, [dispatch]);
-
-  const fetchFirebase = async () => {
-    console.log("PREALOOOOADINF");
-    dispatch(ProdActions.fetchAvailableProducts());
-    dispatch(ProdActions.fetchStoreName());
-    dispatch(ProdActions.fetchProducts()).then(setFireBLoaded(true));
+  const authenticate = (userId, token) => {
+    return (dispatch) => {
+      dispatch({ type: AUTHENTICATE, userId: userId });
+    };
   };
-  // const store = createStore(rootReducer, applyMiddleware(ReduxThunk));
+  const fetchFirebase = async () => {
+    return (
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          var userId = user.uid.toString();
+          console.log("THIS IS FROM APP.JS USER ID", userId);
+          dispatch(authenticate(userId));
+        }
+      }),
+      console.log("PREEEELOOOOADADDDIINNNGG"),
+      await dispatch(ProdActions.fetchProducts()),
+      await dispatch(ProdActions.fetchAvailableProducts()),
+      await dispatch(ProdActions.fetchStoreName())
+    );
+  };
 
   if (!fireBLoaded) {
     return (
-      <Provider store={store}>
-        <View
-          stlye={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
-          <Text></Text>
-        </View>
-      </Provider>
+      <AppLoading
+        startAsync={fetchFirebase}
+        onFinish={() => setFireBLoaded(true)}
+        onError={console.warn}
+      />
     );
   } else {
     return (

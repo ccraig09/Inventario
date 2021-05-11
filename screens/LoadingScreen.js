@@ -24,11 +24,11 @@ const LoadingScreen = (props) => {
         console.log("this is id on startup", userId);
 
         dispatch(authenticate(userId));
-        async function fetchThings() {
-          await dispatch(ProdActions.fetchAvailableProducts());
-          await dispatch(ProdActions.fetchProducts());
-        }
-        fetchThings();
+        // async function fetchThings() {
+        //   await dispatch(ProdActions.fetchAvailableProducts());
+        //   await dispatch(ProdActions.fetchProducts());
+        // }
+        // fetchThings();
 
         props.navigation.navigate("HomeStax");
         console.log("pre loading products for homePage");

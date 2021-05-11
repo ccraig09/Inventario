@@ -36,7 +36,7 @@ import InputSpinner from "react-native-input-spinner";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { TouchableWithoutFeedback } from "react-native";
 
-const ScanScreen = (props) => {
+const SelectScreen = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [scanner, setScanner] = useState(false);
@@ -138,23 +138,23 @@ const ScanScreen = (props) => {
 
     setIsRefreshing(false);
   });
-  useEffect(() => {
-    const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
-    return () => {
-      willFocusSub.remove();
-    };
-  }, [loadDetails]);
-  useEffect(() => {
-    loadDetails();
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === "granted");
-    })();
-  }, [code]);
+  // useEffect(() => {
+  //   const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
+  //   return () => {
+  //     willFocusSub.remove();
+  //   };
+  // }, [loadDetails]);
+  // useEffect(() => {
+  //   loadDetails();
+  //   (async () => {
+  //     const { status } = await BarCodeScanner.requestPermissionsAsync();
+  //     setHasPermission(status === "granted");
+  //   })();
+  // }, [code]);
 
-  useEffect(() => {
-    dispatch(ProdActions.fetchAvailableProducts());
-  }, []);
+  // useEffect(() => {
+  //   dispatch(ProdActions.fetchAvailableProducts());
+  // }, []);
 
   const modeHandler = () => {
     setSell((prevState) => !prevState);
@@ -503,13 +503,6 @@ const ScanScreen = (props) => {
     setCode(Code);
   };
 
-  if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
-  }
-  if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
-
   if (!scanner && !menu) {
     return (
       <View
@@ -519,29 +512,6 @@ const ScanScreen = (props) => {
           alignItems: "center",
         }}
       >
-        <TouchableOpacity
-          onPress={() => {
-            modeHandler();
-          }}
-        >
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              margin: 15,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: "bold",
-                color: sell ? "green" : "blue",
-              }}
-            >
-              Modo: {sell ? "Vender" : "Contar"}
-            </Text>
-          </View>
-        </TouchableOpacity>
         <View
           style={{
             // flex: 0.8,
@@ -559,12 +529,11 @@ const ScanScreen = (props) => {
               color: "white",
               // />
             }}
-            iconRight
             buttonStyle={styles.menuButton}
             titleStyle={{
               fontSize: 25,
             }}
-            title="Abrir Scanner"
+            title="Scanner"
             onPress={() => {
               props.navigation.navigate("Scanner");
             }}
@@ -578,12 +547,11 @@ const ScanScreen = (props) => {
               color: "white",
               // />
             }}
-            iconRight
             buttonStyle={styles.menuButton}
             titleStyle={{
               fontSize: 25,
             }}
-            title="Abrir Catálogo"
+            title="Catálogo"
             onPress={() => {
               props.navigation.navigate("Menu");
             }}
@@ -597,12 +565,11 @@ const ScanScreen = (props) => {
               color: "white",
               // />
             }}
-            iconRight
             buttonStyle={styles.menuButton}
             titleStyle={{
               fontSize: 25,
             }}
-            title="Exportar .PDF"
+            title="Exportar"
             onPress={() => cell()}
           />
         </View>
@@ -1838,13 +1805,13 @@ const ScanScreen = (props) => {
   }
 };
 
-ScanScreen.navigationOptions = (navData) => {
+SelectScreen.navigationOptions = (navData) => {
   return {
     headerTitle: "Menú",
   };
 };
 
-export default ScanScreen;
+export default SelectScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -1854,9 +1821,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   menuButton: {
+    justifyContent: "space-evenly",
     alignSelf: "center",
+    alignContent: "center",
     height: 80,
-    width: "90%",
+    width: "75%",
     borderRadius: 12,
     backgroundColor: "#FF4949",
     marginVertical: 10,

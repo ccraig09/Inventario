@@ -18,57 +18,64 @@ export const dPs = firebase.firestore().collection("section");
 
 export const fetchProducts = () => {
   return async (dispatch, getState) => {
-    console.log("fetchProduct Actions initiated");
-    const userId = firebase.auth().currentUser.uid;
-    // const token = getState().auth.token;
-    try {
-      const events = await db.doc(userId).collection("Member Products");
-      events.get().then((querySnapshot) => {
-        const collection = querySnapshot.docs.map((doc) => {
-          return { id: doc.id, ...doc.data() };
-        });
-        // console.log("this is collection FROM THE FETCH", collection);
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        var userId = user.uid.toString();
+        console.log("THIS IS FROM productactions USER ID", userId);
 
-        const loadedProducts = [];
+        // const userId = getState().auth.userId;
+        // console.log("fetchProduct Actions initiated", userId);
+        // const userId = firebase.auth().currentUser.uid;
+        // const token = getState().auth.token;
+        try {
+          const events = db.doc(userId).collection("Member Products");
+          events.get().then((querySnapshot) => {
+            const collection = querySnapshot.docs.map((doc) => {
+              return { id: doc.id, ...doc.data() };
+            });
+            // console.log("this is collection FROM THE FETCH", collection);
 
-        for (const key in collection) {
-          loadedProducts.push(
-            new Product(
-              key,
-              collection[key].Title,
-              collection[key].ownerId,
-              collection[key].Price,
-              collection[key].Category,
-              collection[key].Quantity,
-              collection[key].Size,
-              collection[key].time,
-              collection[key].Brand,
-              collection[key].Code,
-              collection[key].ExpDate,
-              collection[key].id
-            )
-          );
-          //   loadedProducts.sort((a, b) => (a.time > b.time ? 1 : -1));
-          //   console.log("to dispatch:", loadedProducts);
-          // console.log("this is userid for owenr", userId);
-          dispatch({
-            type: SET_PRODUCT,
-            products: loadedProducts.filter((prod) => prod.ownerId === userId),
+            const loadedProducts = [];
+
+            for (const key in collection) {
+              loadedProducts.push(
+                new Product(
+                  key,
+                  collection[key].Title,
+                  collection[key].ownerId,
+                  collection[key].Price,
+                  collection[key].Category,
+                  collection[key].Quantity,
+                  collection[key].Size,
+                  collection[key].time,
+                  collection[key].Brand,
+                  collection[key].Code,
+                  collection[key].ExpDate,
+                  collection[key].id
+                )
+              );
+              //   loadedProducts.sort((a, b) => (a.time > b.time ? 1 : -1));
+              //   console.log("to dispatch:", loadedProducts);
+              // console.log("this is userid for owenr", userId);
+              dispatch({
+                type: SET_PRODUCT,
+                products: loadedProducts.filter(
+                  (prod) => prod.ownerId === userId
+                ),
+              });
+            }
           });
+        } catch (err) {
+          throw err;
         }
-      });
-    } catch (err) {
-      throw err;
-    }
+      }
+    });
   };
 };
 export const fetchAvailableProducts = () => {
-  // console.log("fetching available products Actions initiated");
-  return async (dispatch, getState) => {
-    const userId = firebase.auth().currentUser.uid;
-    // const token = getState().auth.token;
+  console.log("fetching available products Actions initiated");
+  return async (dispatch) => {
     const events = dbP;
-    // const events = dbP.where("Category", "==", "Bebidas");
     try {
       await events.get().then((querySnapshot) => {
         // const collection = querySnapshot.forEach((doc) => {
@@ -104,29 +111,36 @@ export const fetchAvailableProducts = () => {
   };
 };
 export const fetchStoreName = () => {
-  // console.log("FETCHING STORE NAME");
-  return async (dispatch, getState) => {
-    const userId = firebase.auth().currentUser.uid;
-    // const token = getState().auth.token;
-    const events = dP;
-    try {
-      let loadedStore;
-      await events
-        .doc(userId)
-        .get()
-        .then(function (doc) {
-          if (doc.exists) {
-            loadedStore = doc.data().StoreName;
-            console.log(loadedStore);
-            dispatch({ type: SET_STORE_NAME, storeName: loadedStore });
-          } else {
-            // doc.data() will be undefined in this case
-            console.log("No such document!");
-          }
-        });
-    } catch (err) {
-      throw err;
-    }
+  return async (dispatch) => {
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        var userId = user.uid.toString();
+
+        // if (firebase.auth().currentUser.uid === null) {
+        console.log("aint not title");
+        // } else {
+        // const token = getState().auth.token;
+        const events = dP;
+        try {
+          let loadedStore;
+          events
+            .doc(userId)
+            .get()
+            .then(function (doc) {
+              if (doc.exists) {
+                loadedStore = doc.data().StoreName;
+                console.log(loadedStore);
+                dispatch({ type: SET_STORE_NAME, storeName: loadedStore });
+              } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+              }
+            });
+        } catch (err) {
+          throw err;
+        }
+      }
+    });
   };
 };
 
@@ -156,20 +170,24 @@ export const createProduct = (
 
     console.log("creating product to upload");
     try {
-      await db.doc(userId).collection("Member Products").doc(Code).set(
-        {
-          Title,
-          Price,
-          Category,
-          Quantity: increment,
-          Size,
-          Brand,
-          Code,
-          ownerId: userId,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        },
-        { merge: true }
-      );
+      await db
+        .doc(userId)
+        .collection("Member Products")
+        .doc(Code)
+        .set(
+          {
+            Title,
+            Price: parseInt(Price),
+            Category,
+            Quantity: increment,
+            Size,
+            Brand,
+            Code,
+            ownerId: userId,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
 
       const events = db.doc(userId).collection("Member Products");
       await events
@@ -179,7 +197,7 @@ export const createProduct = (
             return { id: doc.id, ...doc.data() };
           });
 
-          // console.log("on Create Collection Everything", collection);
+          console.log("on Create Collection Everything", collection);
           dispatch({
             type: CREATE_PRODUCT,
             productData: {
@@ -217,7 +235,7 @@ export const addedProduct = (
   console.log("new product that is being updated", newProduct, code);
 
   return async (dispatch, getState) => {
-    const userId = firebase.auth().currentUser.uid;
+    // const userId = firebase.auth().currentUser.uid;
 
     console.log("creating new product to be uploaded");
     try {

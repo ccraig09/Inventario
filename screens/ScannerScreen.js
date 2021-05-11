@@ -14,28 +14,32 @@ import {
   TextInput,
   Keyboard,
   KeyboardAvoidingView,
+  Button,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import * as sendProduct from "../store/productActions";
 import * as ProdActions from "../store/productActions";
 import ProductItem from "../components/ProductItem";
 import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
-import { Avatar, Divider, Input, Button } from "react-native-elements";
+import { Avatar, Divider, Input } from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
 import InputSpinner from "react-native-input-spinner";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { TouchableWithoutFeedback } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
+import * as cartActions from "../store/cartAction";
+import Card from "../components/Card";
+import CartItem from "../components/CartItem";
+import Colors from "../constants/Colors";
+import { Audio } from "expo-av";
 
 const ScannerScreen = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [scanner, setScanner] = useState(false);
-  const [menu, setMenu] = useState(false);
-  const [manualAdd, setManualAdd] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState();
-  const [scanCount, setScanCount] = useState(0);
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState();
   const [size, setSize] = useState("");
@@ -43,11 +47,9 @@ const ScannerScreen = (props) => {
   const [category, setCategory] = useState("");
   const [brand, setBrand] = useState("");
   const [quantity, setQuantity] = useState(0);
-  const [value, setValue] = useState("");
   const [sell, setSell] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [loadedModal, setLoadedModal] = useState(false);
-  const [selected, setSelected] = useState(0);
   const [newQ, setNewQ] = useState();
   const [newMode, setNewMode] = useState(false);
   const [loadedMode, setLoadedMode] = useState(false);
@@ -56,17 +58,9 @@ const ScannerScreen = (props) => {
   const [newSize, setNewSize] = useState("");
   const [newBrand, setNewBrand] = useState("");
   const [newCategory, setNewCategory] = useState("");
-  const [filteredDataSource, setFilteredDataSource] = useState([]);
-  const [masterDataSource, setMasterDataSource] = useState([]);
   const [picker, setPicker] = useState(false);
   const [picked, setPicked] = useState();
-  const [focused, setFocused] = useState(false);
-  const [search, setSearch] = useState("");
-  const [productSelect, setProductSelect] = useState(true);
-  const [categorySelect, setCategorySelect] = useState(false);
-  const [brandSelect, setBrandSelect] = useState(false);
-  const [hasCode, setHasCode] = useState(false);
-  const [searchScreen, setSearchScreen] = useState(false);
+  const [sound, setSound] = React.useState();
 
   const dispatch = useDispatch();
 
@@ -89,11 +83,23 @@ const ScannerScreen = (props) => {
     }
     return transformedProducts;
   });
-  const Item = ({ title }) => (
-    <View style={styles.item}>
-      <Text style={styles.title}>{title}</Text>
-    </View>
-  );
+
+  const cartTotalAmount = useSelector((state) => state.cart.totalAmount);
+  const cartItems = useSelector((state) => {
+    const transformedCartItems = [];
+    for (const key in state.cart.items) {
+      transformedCartItems.push({
+        productId: key,
+        productTitle: state.cart.items[key].productTitle,
+        productPrice: state.cart.items[key].productPrice,
+        quantity: state.cart.items[key].quantity,
+        sum: state.cart.items[key].sum,
+      });
+    }
+    return transformedCartItems.sort((a, b) =>
+      a.productId > b.productId ? 1 : -1
+    );
+  });
 
   let catArray = [
     "Embutidos",
@@ -127,14 +133,14 @@ const ScannerScreen = (props) => {
 
     setIsRefreshing(false);
   });
+  // useEffect(() => {
+  //   const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
+  //   return () => {
+  //     willFocusSub.remove();
+  //   };
+  // }, [loadDetails]);
   useEffect(() => {
-    const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
-    return () => {
-      willFocusSub.remove();
-    };
-  }, [loadDetails]);
-  useEffect(() => {
-    loadDetails();
+    // loadDetails();
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
@@ -149,50 +155,6 @@ const ScannerScreen = (props) => {
     setSell((prevState) => !prevState);
     console.log(sell);
     // props.navigation.setParams({ mode: sell });
-  };
-  const searchFilterFunction = (text) => {
-    // Check if searched text is not blank
-    if (text) {
-      // Inserted text is not blank
-      // Filter the masterDataSource and update FilteredDataSource
-      const newData = masterDataSource.filter(function (item) {
-        // Applying filter for the inserted text in search bar
-        if (productSelect) {
-          const itemData = item.Product
-            ? item.Product.toUpperCase()
-            : "".toUpperCase();
-          const textData = text.toUpperCase();
-          // console.log("ITEMDATA IS===", textData);
-          return itemData.indexOf(textData) > -1;
-        }
-        if (categorySelect) {
-          const itemData = item.Category
-            ? item.Category.toUpperCase()
-            : "".toUpperCase();
-          const textData = text.toUpperCase();
-          // console.log("ITEMDATA IS===", textData);
-          return itemData.indexOf(textData) > -1;
-        }
-        if (brandSelect) {
-          const itemData = item.Brand
-            ? item.Brand.toUpperCase()
-            : "".toUpperCase();
-          const textData = text.toUpperCase();
-          // console.log("ITEMDATA IS===", textData);
-          return itemData.indexOf(textData) > -1;
-        }
-        // const textData = text.toUpperCase();
-        // // console.log("ITEMDATA IS===", textData);
-        // return itemData.indexOf(textData) > -1;
-      });
-      setFilteredDataSource(newData);
-      setSearch(text);
-    } else {
-      // Inserted text is blank
-      // Update FilteredDataSource with masterDataSource
-      setFilteredDataSource(masterDataSource);
-      setSearch(text);
-    }
   };
 
   const newEntry = () => {
@@ -214,7 +176,9 @@ const ScannerScreen = (props) => {
         {
           text: "No",
           onPress: () => {
-            setManualAdd(!manualAdd);
+            // setManualAdd(!manualAdd);
+            setNewMode(false);
+            setLoadedMode(false);
             setModalVisible(!modalVisible);
             setScanned(false);
           },
@@ -222,7 +186,7 @@ const ScannerScreen = (props) => {
         {
           text: "Si",
           onPress: () => {
-            setManualAdd(!manualAdd);
+            // setManualAdd(!manualAdd);
             // setModalVisible(!modalVisible);
             // setLoadedModal(true);
             console.log("ADDING TO BOOK and mode is", newMode);
@@ -242,30 +206,9 @@ const ScannerScreen = (props) => {
     // setModalVisible(false);
     // setTitle(true);
 
-    setTimeout(() => {
-      loadDetails();
-    }, 1000);
-  };
-
-  const codePrompt = () => {
-    Alert.alert("Nuevo Producto", "Este producto tiene un código de barras?", [
-      {
-        text: "No",
-        onPress: () => {
-          setHasCode(false);
-          setNewMode(true);
-          setManualAdd(true);
-        },
-      },
-      {
-        text: "Si",
-        onPress: () => {
-          setHasCode(true);
-          setNewMode(true);
-          setManualAdd(true);
-        },
-      },
-    ]);
+    // setTimeout(() => {
+    //   loadDetails();
+    // }, 1000);
   };
 
   const newInvProd = () => {
@@ -291,7 +234,8 @@ const ScannerScreen = (props) => {
       )
     );
     setLoadedMode(false);
-    setLoadedModal(false);
+    continueScan();
+    setModalVisible(false);
   };
 
   const quantityUpdateHandler = () => {
@@ -395,6 +339,50 @@ const ScannerScreen = (props) => {
   let alertQuantity;
   let result;
 
+  const onChargePress = () => {
+    console.log("order up");
+  };
+
+  const handleBarCodeScannedSell = async ({ type, data }) => {
+    setScanned(true);
+
+    const userProduct = userProducts.find((code) => code.productcode === data);
+
+    if (userProduct) {
+      console.log("scanned something to sell");
+      async function playSound() {
+        console.log("Loading Sound");
+        const { sound } = await Audio.Sound.createAsync(
+          require("../assets/beep.mp3")
+        );
+        setSound(sound);
+
+        console.log("Playing Sound");
+        await sound.playAsync();
+      }
+      playSound();
+      Alert.alert("Producto Escaneado", `${userProduct.productTitle}`, [
+        {
+          text: "Continuar",
+          style: "cancel",
+          onPress: () => {
+            setScanned(false);
+          },
+        },
+        {
+          text: "Cobrar",
+          onPress: () => {
+            console.log("cobrandose");
+            setScanned(false);
+          },
+        },
+      ]);
+      dispatch(cartActions.addToCart(userProduct));
+      // setScanned(false);
+    }
+    // continueScan();
+  };
+
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
     // console.log(availableProducts);
@@ -435,53 +423,53 @@ const ScannerScreen = (props) => {
         setError(err.message);
       }
     }
-    if (loadedProduct) {
-      console.log("THIS IS LOADED PRODUCT", loadedProduct);
-      Alert.alert(
-        "Agregar a su inventario?",
-        "Este producto no esta en su inventario, agregarla?",
-        [
-          {
-            text: "No",
-            style: "cancel",
-            onPress: () => {
-              setLoadedMode(false);
-              setModalVisible(!modalVisible);
-              setScanned(false);
-            },
-          },
-          {
-            text: "Si",
-            onPress: () => {
-              setLoadedMode(true);
-              setNewMode(false);
-              try {
-                Title = loadedProduct.Product;
-                Price = loadedProduct.Price;
-                Category = loadedProduct.Category;
-                Size = loadedProduct.Size;
-                Brand = loadedProduct.Brand;
-                Code = loadedProduct.code.toString();
-                console.log("THIS IS FIRST CODE TEST", Code);
-                Quantity =
-                  typeof userQuantity === "undefined"
-                    ? 0
-                    : userQuantity.productQuantity;
-                alertQuantity = !sell ? Quantity + 1 : Quantity - 1;
-                console.log("this is var Quantity", Quantity);
-                setCode(Code);
-                setScanned(false);
-              } catch (err) {
-                setError(err.message);
-              }
-            },
-          },
-          {
-            text: "Ver Detalles",
-          },
-        ]
-      );
-    }
+    // if (loadedProduct) {
+    //   console.log("THIS IS LOADED PRODUCT", loadedProduct);
+    //   Alert.alert(
+    //     "Agregar a su inventario?",
+    //     "Este producto no esta en su inventario, agregarla?",
+    //     [
+    //       {
+    //         text: "No",
+    //         style: "cancel",
+    //         onPress: () => {
+    //           setLoadedMode(false);
+    //           setModalVisible(!modalVisible);
+    //           setScanned(false);
+    //         },
+    //       },
+    //       {
+    //         text: "Si",
+    //         onPress: () => {
+    //           setLoadedMode(true);
+    //           setNewMode(false);
+    //           try {
+    //             Title = loadedProduct.Product;
+    //             Price = loadedProduct.Price;
+    //             Category = loadedProduct.Category;
+    //             Size = loadedProduct.Size;
+    //             Brand = loadedProduct.Brand;
+    //             Code = loadedProduct.code.toString();
+    //             console.log("THIS IS FIRST CODE TEST", Code);
+    //             Quantity =
+    //               typeof userQuantity === "undefined"
+    //                 ? 0
+    //                 : userQuantity.productQuantity;
+    //             alertQuantity = !sell ? Quantity + 1 : Quantity - 1;
+    //             console.log("this is var Quantity", Quantity);
+    //             setCode(Code);
+    //             setScanned(false);
+    //           } catch (err) {
+    //             setError(err.message);
+    //           }
+    //         },
+    //       },
+    //       {
+    //         text: "Ver Detalles",
+    //       },
+    //     ]
+    //   );
+    // }
 
     // if (!sell && loadedProduct) {
     //   uploadProduct(Title, Price, Category, Quantity, Size, Brand, Code);
@@ -490,9 +478,9 @@ const ScannerScreen = (props) => {
       minusProduct(Title, Price, Category, Quantity, Size, Brand, Code);
     }
 
-    setTimeout(() => {
-      loadDetails();
-    }, 1000);
+    // setTimeout(() => {
+    //   loadDetails();
+    // }, 1000);
 
     setModalVisible(true);
 
@@ -511,6 +499,94 @@ const ScannerScreen = (props) => {
   }
   if (hasPermission === false) {
     return <Text>No access to camera</Text>;
+  }
+
+  if (sell) {
+    return (
+      <View
+        style={{
+          flex: 1,
+        }}
+        // marginTop: 40,
+        // flexDirection: "column",
+        // justifyContent: "flex-end",
+      >
+        <TouchableOpacity
+          onPress={() => {
+            modeHandler();
+          }}
+        >
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              margin: 15,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: sell ? "green" : "blue",
+              }}
+            >
+              Modo: {sell ? "Vender" : "Contar"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <View
+          style={{
+            height: "50%",
+            width: "100%",
+            marginBottom: 5,
+          }}
+        >
+          <BarCodeScanner
+            barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScannedSell}
+            style={StyleSheet.absoluteFillObject}
+          />
+        </View>
+
+        <Card style={styles.summary}>
+          <Text style={styles.summaryText}>
+            Total:{" "}
+            <Text style={styles.amount}>
+              {Math.round(cartTotalAmount.toFixed(2) * 100) / 100}bs
+              {/* {cartTotalAmount}jjav */}
+            </Text>
+          </Text>
+          {isLoading ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : (
+            <Button
+              color={Colors.primary}
+              title="Cobrar"
+              disabled={cartItems.length === 0}
+              // onPress={sendOrderHandler}
+              onPress={() => {
+                onChargePress();
+              }}
+            />
+          )}
+        </Card>
+        <FlatList
+          data={cartItems}
+          keyExtractor={(item) => item.productId}
+          renderItem={(itemData) => (
+            <CartItem
+              quantity={itemData.item.quantity}
+              title={itemData.item.productTitle}
+              amount={itemData.item.sum}
+              deletable
+              onRemove={() => {
+                dispatch(cartActions.removeFromCart(itemData.item.productId));
+              }}
+            />
+          )}
+        />
+      </View>
+    );
   }
 
   return (
@@ -570,12 +646,15 @@ const ScannerScreen = (props) => {
               <View style={styles.centeredView}>
                 <View style={styles.modalView}>
                   {loadedMode && (
-                    <ScrollView>
-                      <View>
-                        <Text style={styles.modalTitle}>
-                          Producto escaneado:
-                        </Text>
-                        <Text style={styles.modalHead}>{title}</Text>
+                    <View>
+                      <Text style={styles.modalTitle}>Producto escaneado:</Text>
+                      <Text style={styles.modalHead}>{title}</Text>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
                         <View style={styles.modalItemBorder}>
                           <Text style={styles.modalTextTitle}>Marca: </Text>
                           <Text style={styles.modalText}>{brand}</Text>
@@ -585,25 +664,29 @@ const ScannerScreen = (props) => {
                           <Text style={styles.modalTextTitle}>Precio: </Text>
                           <Text style={styles.modalText}>${price}bs</Text>
                         </View>
+                      </View>
 
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                        }}
+                      >
                         <View style={styles.modalItemBorder}>
                           <Text style={styles.modalTextTitle}>Tamaño: </Text>
                           <Text style={styles.modalText}>{size}</Text>
                         </View>
 
                         <View style={styles.modalItemBorder}>
-                          <Text style={styles.modalTextTitle}>Categoria: </Text>
-                          <Text style={styles.modalText}>{category}</Text>
-                        </View>
-
-                        <View style={styles.modalItemBorder}>
-                          <Text style={styles.modalTextTitle}>
-                            Cantidad Total:{" "}
-                          </Text>
+                          <Text style={styles.modalTextTitle}>Cantidad: </Text>
                           <Text style={styles.modalText}>{quantity}</Text>
                         </View>
                       </View>
-                    </ScrollView>
+                      <View style={styles.modalItemBorderCategoria}>
+                        <Text style={styles.modalTextTitle}>Categoria: </Text>
+                        <Text style={styles.modalText}>{category}</Text>
+                      </View>
+                    </View>
                   )}
                   {newMode && (
                     <View>
@@ -612,6 +695,7 @@ const ScannerScreen = (props) => {
                         <TextInput
                           style={styles.textInputStyle}
                           placeholder="Producto"
+                          placeholderTextColor="silver"
                           value={newProduct}
                           onChangeText={(name) => {
                             setNewProduct(name);
@@ -620,6 +704,7 @@ const ScannerScreen = (props) => {
                         <TextInput
                           style={styles.textInputStyle}
                           placeholder="Marca"
+                          placeholderTextColor="silver"
                           value={newBrand}
                           onChangeText={(brand) => {
                             setNewBrand(brand);
@@ -628,6 +713,7 @@ const ScannerScreen = (props) => {
                         <TextInput
                           style={styles.textInputStyle}
                           keyboardType="numeric"
+                          placeholderTextColor="silver"
                           placeholder="Precio"
                           value={newPrice}
                           onChangeText={(price) => {
@@ -637,6 +723,7 @@ const ScannerScreen = (props) => {
                         <TextInput
                           style={styles.textInputStyle}
                           placeholder="Tomaño"
+                          placeholderTextColor="silver"
                           value={newSize}
                           onChangeText={(size) => {
                             setNewSize(size);
@@ -706,7 +793,6 @@ const ScannerScreen = (props) => {
                                 <TouchableOpacity
                                   style={{
                                     ...styles.openButton,
-                                    backgroundColor: "#FF4949",
                                   }}
                                   onPress={() => {
                                     setPicker(!picker);
@@ -717,7 +803,6 @@ const ScannerScreen = (props) => {
                                 <TouchableOpacity
                                   style={{
                                     ...styles.openButton,
-                                    // backgroundColor: "#F194FF",
                                   }}
                                   onPress={() => {
                                     setNewCategory(picked);
@@ -730,13 +815,6 @@ const ScannerScreen = (props) => {
                             </View>
                           </View>
                         </Modal>
-                        {/* <TextInput
-                              style={styles.textInputStyle}
-                              onChangeText={(text) => searchFilterFunction(text)}
-                              value={search}
-                              underlineColorAndroid="transparent"
-                              placeholder="Buscar"
-                            /> */}
                       </View>
                     </View>
                   )}
@@ -775,10 +853,14 @@ const ScannerScreen = (props) => {
                             "El maximo seria 1000"
                           );
                         }}
+                        skin={"clean"}
+                        background={"#F5F3F3"}
+                        // colorAsBackground={true}
                         colorMax={"red"}
+                        width={"50%"}
                         colorMin={"green"}
-                        colorLeft={"red"}
-                        colorRight={"blue"}
+                        colorLeft={"#FF4949"}
+                        colorRight={"#FF4949"}
                         value={quantity}
                         onChange={(num) => {
                           if (num === quantity) {
@@ -801,12 +883,12 @@ const ScannerScreen = (props) => {
                     <TouchableOpacity
                       style={{
                         ...styles.openButton,
-                        backgroundColor: "green",
+                        backgroundColor: "#FF4949",
                       }}
                       onPress={() => {
                         setModalVisible(!modalVisible);
                         setLoadedMode(false);
-                        // props.navigation.navigate("Home"),
+                        setNewMode(false);
                         setScanned(false);
                       }}
                     >
@@ -815,7 +897,7 @@ const ScannerScreen = (props) => {
                     <TouchableOpacity
                       style={{
                         ...styles.openButton,
-                        backgroundColor: "#2196F3",
+                        backgroundColor: "#FF4949",
                       }}
                       onPress={() => {
                         if (newMode) {
@@ -826,8 +908,8 @@ const ScannerScreen = (props) => {
                         if (loadedMode) {
                           console.log("NEW PRODUCT ADDED now for inventory");
                           newInvProd();
-                          setModalVisible(!modalVisible);
-                          continueScan();
+                          // setModalVisible(!modalVisible);
+                          // continueScan();
                         }
                         if (title) {
                           console.log(
@@ -885,14 +967,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 22,
+    marginTop: 10,
   },
   modalView: {
     width: "95%",
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
-    padding: 35,
+    padding: 10,
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {
@@ -925,9 +1007,15 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   openButton: {
-    backgroundColor: "#F194FF",
+    backgroundColor: "#FF4949",
     borderRadius: 20,
     padding: 10,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.75,
+    shadowRadius: 1.84,
     elevation: 2,
   },
   textStyle: {
@@ -937,13 +1025,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   modalTextTitle: {
-    marginBottom: 10,
+    // marginBottom: 2,
     textAlign: "center",
     fontSize: 24,
     fontWeight: "bold",
   },
   modalText: {
-    marginBottom: 10,
+    marginBottom: 2,
     textAlign: "center",
     fontSize: 22,
   },
@@ -968,6 +1056,24 @@ const styles = StyleSheet.create({
     color: "silver",
   },
   modalItemBorder: {
+    width: 150,
+    backgroundColor: "#F5F3F3",
+    borderWidth: 2,
+    borderRadius: 8,
+    borderColor: "#F5F3F3",
+    // justifyContent: "space-between",
+    margin: 5,
+    padding: 5,
+    shadowColor: "silver",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.75,
+    shadowRadius: 1.84,
+    elevation: 1,
+  },
+  modalItemBorderCategoria: {
     backgroundColor: "#F5F3F3",
     borderWidth: 2,
     borderRadius: 8,
@@ -989,10 +1095,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 24,
     fontWeight: "bold",
-    color: "blue",
+    color: "#FF4949",
   },
   modalTitle: {
-    marginBottom: 10,
+    marginBottom: 2,
     textAlign: "center",
     fontSize: 25,
     fontWeight: "bold",
@@ -1005,5 +1111,19 @@ const styles = StyleSheet.create({
     margin: 5,
     borderColor: "black",
     backgroundColor: "#FFFFFF",
+  },
+  summary: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+    padding: 10,
+  },
+  summaryText: {
+    // fontFamily: "open-sans-bold",
+    fontSize: 30,
+  },
+  amount: {
+    color: Colors.primary,
   },
 });

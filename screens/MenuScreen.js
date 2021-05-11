@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   Picker,
+  ActivityIndicator,
   Modal,
   SectionList,
   TextInput,
@@ -30,6 +31,8 @@ import { TouchableWithoutFeedback } from "react-native";
 
 const MenuScreen = (props) => {
   const [hasPermission, setHasPermission] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const [scanned, setScanned] = useState(false);
   const [scanner, setScanner] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -120,8 +123,8 @@ const MenuScreen = (props) => {
   const loadDetails = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      dispatch(ProdActions.fetchProducts());
-      dispatch(ProdActions.fetchAvailableProducts());
+      // await dispatch(ProdActions.fetchProducts());
+      await dispatch(ProdActions.fetchAvailableProducts());
     } catch (err) {
       setError(err.message);
     }
@@ -134,17 +137,12 @@ const MenuScreen = (props) => {
       willFocusSub.remove();
     };
   }, [loadDetails]);
-  useEffect(() => {
-    loadDetails();
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === "granted");
-    })();
-  }, [code]);
 
   useEffect(() => {
+    setIsLoading(true);
     dispatch(ProdActions.fetchAvailableProducts());
-  }, []);
+    setIsLoading(false);
+  });
 
   const modeHandler = () => {
     setSell((prevState) => !prevState);
@@ -414,69 +412,14 @@ const MenuScreen = (props) => {
   let alertQuantity;
   let result;
 
-  const handleBarCodeScanned = async ({ type, data }) => {
-    setScanned(true);
-    // console.log(availableProducts);
-    const userQuantity = userProducts.find((prod) => prod.productcode === data);
-    const loadedProduct = availableProducts.find((code) => code.code === data);
-
-    if (data) {
-      Code = data.toString();
-      setCode(data);
-    }
-
-    if (loadedProduct) {
-      setNewMode(false);
-      setLoadedMode(true);
-      console.log("THIS IS LOADED PRODUCT", loadedProduct);
-      try {
-        Title = loadedProduct.Product;
-        Price = loadedProduct.Price;
-        Category = loadedProduct.Category;
-        Size = loadedProduct.Size;
-        Brand = loadedProduct.Brand;
-        Code = loadedProduct.code.toString();
-        console.log("THIS IS FIRST CODE TEST", Code);
-        Quantity =
-          typeof userQuantity === "undefined"
-            ? 0
-            : userQuantity.productQuantity;
-        alertQuantity = !sell ? Quantity + 1 : Quantity - 1;
-        console.log("this is var Quantity", Quantity);
-        setCode(Code);
-      } catch (err) {
-        setError(err.message);
-      }
-    }
-
-    if (!sell && loadedProduct) {
-      uploadProduct(Title, Price, Category, Quantity, Size, Brand, Code);
-    }
-    if (sell) {
-      minusProduct(Title, Price, Category, Quantity, Size, Brand, Code);
-    }
-
-    setTimeout(() => {
-      loadDetails();
-    }, 1000);
-
-    setModalVisible(true);
-
-    console.log("code scanned", data);
-    setTitle(Title);
-    setPrice(Price);
-    setSize(Size);
-    setQuantity(alertQuantity);
-    setCategory(Category);
-    setBrand(Brand);
-    setCode(Code);
-  };
-
-  if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
-  }
-  if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <View>
+          <ActivityIndicator size="large" color="#FF4949" />
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -485,9 +428,6 @@ const MenuScreen = (props) => {
         flex: 1,
       }}
     >
-      <TouchableOpacity onPress={() => setMenu(false)}>
-        <Text>Menu</Text>
-      </TouchableOpacity>
       <View
         style={{
           flexDirection: "row",
@@ -1154,6 +1094,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 22,
+  },
+  centered: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalView: {
     width: "95%",
