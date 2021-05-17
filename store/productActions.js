@@ -1,5 +1,6 @@
 export const DELETE_PRODUCT = "DELETE_PRODUCT";
 export const CREATE_PRODUCT = "CREATE_PRODUCT";
+export const ADD_ORDER = "ADD_ORDER";
 export const ADDED_PRODUCT = "ADDED_PRODUCT";
 export const SET_PRODUCT = "SET_PRODUCT";
 export const SET_AVAILABLE_PRODUCT = "SET_AVAILABLE_PRODUCT";
@@ -7,6 +8,7 @@ export const UPDATE_PRODUCT = "UPDATE_PRODUCT";
 export const SET_STORE_NAME = "SET_STORE_NAME";
 import Product from "../models/product";
 import availableProduct from "../models/availableProduct";
+import Order from "../models/order";
 
 import firebase from "../components/firebase";
 
@@ -212,6 +214,52 @@ export const createProduct = (
               time: collection[0].timestamp,
               Code,
               docTitle: collection[0].id,
+            },
+          });
+        })
+        .catch(function (error) {
+          console.log("Error getting document: from 4", error);
+        });
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+
+export const createOrder = (cartItems, cartTotalAmount) => {
+  console.log("Items from new order being created", cartItems, cartTotalAmount);
+
+  return async (dispatch, getState) => {
+    const userId = firebase.auth().currentUser.uid;
+    // const increment = firebase.firestore.FieldValue.increment(1);
+    const date = new Date();
+    console.log("creating order to upload");
+    try {
+      await db.doc(userId).collection("Orders").doc(date.toISOString()).set(
+        {
+          cartItems,
+          cartTotalAmount,
+          date: date.toISOString(),
+        },
+        { merge: true }
+      );
+
+      const events = db.doc(userId).collection("Orders");
+      await events
+        .get()
+        .then((querySnapshot) => {
+          const collection = querySnapshot.docs.map((doc) => {
+            return { id: doc.id, ...doc.data() };
+          });
+
+          console.log("on Create Collection Everything", collection);
+          dispatch({
+            type: ADD_ORDER,
+            orderData: {
+              id: collection[0].id,
+              items: cartItems,
+              amount: cartTotalAmount,
+              date: date,
             },
           });
         })
@@ -468,12 +516,13 @@ export const updateProducts = (
     }
   };
 };
-export const subProducts = (Title, Price, Category, Quantity, Size, Code) => {
+export const subProducts = (scannedUserProduct, subNum) => {
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
-    const increment = firebase.firestore.FieldValue.increment(-1);
+    const Code = scannedUserProduct.productcode;
+    const increment = firebase.firestore.FieldValue.increment(-subNum);
 
-    console.log(Title, Price, Category, Quantity, Size, Code);
+    console.log("number to be subbed", increment);
     try {
       await db.doc(userId).collection("Member Products").doc(Code).update(
         {
@@ -484,37 +533,37 @@ export const subProducts = (Title, Price, Category, Quantity, Size, Code) => {
         // { merge: true }
       );
 
-      const events = db.doc(userId).collection("Member Products");
-      await events
-        .get()
-        .then((querySnapshot) => {
-          const collection = querySnapshot.docs.map((doc) => {
-            return { id: doc.id, ...doc.data() };
-          });
+      //   const events = db.doc(userId).collection("Member Products");
+      //   await events
+      //     .get()
+      //     .then((querySnapshot) => {
+      //       const collection = querySnapshot.docs.map((doc) => {
+      //         return { id: doc.id, ...doc.data() };
+      //       });
 
-          //   console.log(
-          //     "on Create Collection Everything",
-          //     collection[0].timestamp
-          //   );
-          dispatch({
-            type: UPDATE_PRODUCT,
-            productData: {
-              id: collection[0].id,
-              Title,
-              ownerId: userId,
-              Price,
-              Category,
-              Quantity,
-              Size,
-              time: collection[0].timestamp,
-              Code,
-              docTitle: collection[0].id,
-            },
-          });
-        })
-        .catch(function (error) {
-          console.log("Error getting document: from 3", error);
-        });
+      //       //   console.log(
+      //       //     "on Create Collection Everything",
+      //       //     collection[0].timestamp
+      //       //   );
+      //       dispatch({
+      //         type: UPDATE_PRODUCT,
+      //         productData: {
+      //           id: collection[0].id,
+      //           Title,
+      //           ownerId: userId,
+      //           Price,
+      //           Category,
+      //           Quantity,
+      //           Size,
+      //           time: collection[0].timestamp,
+      //           Code,
+      //           docTitle: collection[0].id,
+      //         },
+      //       });
+      //     })
+      //     .catch(function (error) {
+      //       console.log("Error getting document: from 3", error);
+      //     });
     } catch (err) {
       console.log(err.message);
     }

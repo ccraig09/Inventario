@@ -61,7 +61,9 @@ const HomeScreen = (props) => {
         docTitle: state.products.products[key].docTitle,
       });
     }
-    return transformedProducts;
+    return transformedProducts.sort((a, b) =>
+      a.productTitle > b.productTitle ? 1 : -1
+    );
   });
 
   const createdStoreName = useSelector((state) => state.storeName.storeName);

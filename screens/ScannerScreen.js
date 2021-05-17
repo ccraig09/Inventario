@@ -11,6 +11,7 @@ import {
   Picker,
   Modal,
   SectionList,
+  ActivityIndicator,
   TextInput,
   Keyboard,
   KeyboardAvoidingView,
@@ -21,7 +22,6 @@ import * as sendProduct from "../store/productActions";
 import * as ProdActions from "../store/productActions";
 import ProductItem from "../components/ProductItem";
 import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
-import { Avatar, Divider, Input } from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
 import InputSpinner from "react-native-input-spinner";
 import { BarCodeScanner } from "expo-barcode-scanner";
@@ -61,6 +61,7 @@ const ScannerScreen = (props) => {
   const [picker, setPicker] = useState(false);
   const [picked, setPicked] = useState();
   const [sound, setSound] = React.useState();
+  const [scannedResults, setScannedResults] = useState();
 
   const dispatch = useDispatch();
 
@@ -94,6 +95,7 @@ const ScannerScreen = (props) => {
         productPrice: state.cart.items[key].productPrice,
         quantity: state.cart.items[key].quantity,
         sum: state.cart.items[key].sum,
+        productcode: state.cart.items[key].productcode,
       });
     }
     return transformedCartItems.sort((a, b) =>
@@ -339,7 +341,28 @@ const ScannerScreen = (props) => {
   let alertQuantity;
   let result;
 
+  const sendOrderHandler = async () => {
+    console.log("Ready to get it started");
+    setIsLoading(true);
+    await dispatch(sendProduct.createOrder(cartItems, cartTotalAmount));
+    setIsLoading(false);
+  };
+
   const onChargePress = () => {
+    console.log("checking scannedresults", cartItems);
+    const userCode = userProducts.productcode;
+    console.log("what is this usercode", userCode);
+    const scannedUserProduct = cartItems.find(
+      (code) => code.productcode === userCode
+    );
+    console.log("subtracting product quantity", scannedUserProduct);
+    try {
+      const subNum = scannedUserProduct.quantity;
+      dispatch(sendProduct.subProducts(scannedUserProduct, subNum));
+    } catch (err) {
+      setError(err.message);
+      console.log(error);
+    }
     console.log("order up");
   };
 
@@ -373,14 +396,36 @@ const ScannerScreen = (props) => {
           text: "Cobrar",
           onPress: () => {
             console.log("cobrandose");
+            subProudct();
             setScanned(false);
           },
         },
       ]);
-      dispatch(cartActions.addToCart(userProduct));
-      // setScanned(false);
+      await dispatch(cartActions.addToCart(userProduct));
+      // console.log("these are scanned products", cartItems);
     }
-    // continueScan();
+
+    // console.log("these are scanned products", cartItems);
+    const scannedUserProduct = cartItems.find(
+      (code) => code.productcode === data
+    );
+    setScannedResults(cartItems);
+
+    const subProudct = () => {
+      try {
+        const subNum = scannedUserProduct.quantity;
+        console.log("subtracting product quantity", subNum);
+        dispatch(sendProduct.subProducts(scannedUserProduct, subNum));
+      } catch (err) {
+        setError(err.message);
+        console.log(error);
+      }
+    };
+
+    // console.log(
+    //   "THIS SHOULD BE scanneduserproduct",
+    //   scannedUserProduct.quantity
+    // );
   };
 
   const handleBarCodeScanned = async ({ type, data }) => {
@@ -564,9 +609,7 @@ const ScannerScreen = (props) => {
               title="Cobrar"
               disabled={cartItems.length === 0}
               // onPress={sendOrderHandler}
-              onPress={() => {
-                onChargePress();
-              }}
+              onPress={sendOrderHandler}
             />
           )}
         </Card>

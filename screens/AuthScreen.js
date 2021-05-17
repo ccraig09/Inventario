@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TextInput,
-  SafeAreaView,
   TouchableOpacity,
   KeyboardAvoidingView,
   ActivityIndicator,
@@ -97,7 +96,7 @@ const AuthScreen = (props) => {
         Keyboard.dismiss();
       }}
     >
-      <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
         <KeyboardAvoidingView style={styles.container} behavior="padding">
           <Text
             style={{
@@ -191,7 +190,7 @@ const AuthScreen = (props) => {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 };

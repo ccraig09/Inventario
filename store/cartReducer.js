@@ -14,6 +14,7 @@ export default (state = initialState, action) => {
       const addedProduct = action.product;
       const prodPrice = addedProduct.productPrice;
       const prodTitle = addedProduct.productTitle;
+      const prodCode = addedProduct.productcode;
 
       let updatedOrNewCartItem;
 
@@ -23,10 +24,17 @@ export default (state = initialState, action) => {
           state.items[addedProduct.productId].quantity + 1,
           prodPrice,
           prodTitle,
-          state.items[addedProduct.productId].sum + prodPrice
+          state.items[addedProduct.productId].sum + prodPrice,
+          prodCode
         );
       } else {
-        updatedOrNewCartItem = new CartItem(1, prodPrice, prodTitle, prodPrice);
+        updatedOrNewCartItem = new CartItem(
+          1,
+          prodPrice,
+          prodTitle,
+          prodPrice,
+          prodCode
+        );
       }
       return {
         ...state,
@@ -46,7 +54,8 @@ export default (state = initialState, action) => {
           selectedCartItem.quantity - 1,
           selectedCartItem.productPrice,
           selectedCartItem.productTitle,
-          selectedCartItem.sum - selectedCartItem.productPrice
+          selectedCartItem.sum - selectedCartItem.productPrice,
+          selectedCartItem.productcode
         );
         updatedCartItems = { ...state.items, [action.pid]: updatedCartItem };
       } else {
