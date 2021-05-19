@@ -12,6 +12,7 @@ import {
   Modal,
   SectionList,
   ActivityIndicator,
+  LogBox,
   TextInput,
   Keyboard,
   KeyboardAvoidingView,
@@ -62,6 +63,7 @@ const ScannerScreen = (props) => {
   const [picked, setPicked] = useState();
   const [sound, setSound] = React.useState();
   const [scannedResults, setScannedResults] = useState();
+  const [checkoutModal, setCheckoutModal] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -151,6 +153,8 @@ const ScannerScreen = (props) => {
 
   useEffect(() => {
     dispatch(ProdActions.fetchAvailableProducts());
+    continueScan();
+    LogBox.ignoreLogs(["VirtualizedLists should never be nested"]);
   }, []);
 
   const modeHandler = () => {
@@ -343,28 +347,52 @@ const ScannerScreen = (props) => {
 
   const sendOrderHandler = async () => {
     console.log("Ready to get it started");
+
     setIsLoading(true);
     await dispatch(sendProduct.createOrder(cartItems, cartTotalAmount));
     setIsLoading(false);
+    Alert.alert(
+      "Transacción anotada",
+      `usted puede continuar o actualizar su inventario`,
+      [
+        {
+          text: "Continuar",
+          style: "cancel",
+          onPress: () => {
+            setScanned(false);
+            setCheckoutModal(false);
+            //set cart items to 0
+          },
+        },
+        {
+          text: "Actualizar",
+          onPress: () => {
+            setScanned(false);
+            props.navigation.navigate("Order");
+            setCheckoutModal(false);
+          },
+        },
+      ]
+    );
   };
 
-  const onChargePress = () => {
-    console.log("checking scannedresults", cartItems);
-    const userCode = userProducts.productcode;
-    console.log("what is this usercode", userCode);
-    const scannedUserProduct = cartItems.find(
-      (code) => code.productcode === userCode
-    );
-    console.log("subtracting product quantity", scannedUserProduct);
-    try {
-      const subNum = scannedUserProduct.quantity;
-      dispatch(sendProduct.subProducts(scannedUserProduct, subNum));
-    } catch (err) {
-      setError(err.message);
-      console.log(error);
-    }
-    console.log("order up");
-  };
+  // const onChargePress = () => {
+  //   console.log("checking scannedresults", cartItems);
+  //   const userCode = userProducts.productcode;
+  //   console.log("what is this usercode", userCode);
+  //   const scannedUserProduct = cartItems.find(
+  //     (code) => code.productcode === userCode
+  //   );
+  //   console.log("subtracting product quantity", scannedUserProduct);
+  //   try {
+  //     const subNum = scannedUserProduct.quantity;
+  //     dispatch(sendProduct.subProducts(scannedUserProduct, subNum));
+  //   } catch (err) {
+  //     setError(err.message);
+  //     console.log(error);
+  //   }
+  //   console.log("order up");
+  // };
 
   const handleBarCodeScannedSell = async ({ type, data }) => {
     setScanned(true);
@@ -392,14 +420,14 @@ const ScannerScreen = (props) => {
             setScanned(false);
           },
         },
-        {
-          text: "Cobrar",
-          onPress: () => {
-            console.log("cobrandose");
-            subProudct();
-            setScanned(false);
-          },
-        },
+        // {
+        //   text: "Cobrar",
+        //   onPress: () => {
+        //     console.log("cobrandose");
+        //     sendOrderHandler();
+        //     setScanned(false);
+        //   },
+        // },
       ]);
       await dispatch(cartActions.addToCart(userProduct));
       // console.log("these are scanned products", cartItems);
@@ -411,16 +439,16 @@ const ScannerScreen = (props) => {
     );
     setScannedResults(cartItems);
 
-    const subProudct = () => {
-      try {
-        const subNum = scannedUserProduct.quantity;
-        console.log("subtracting product quantity", subNum);
-        dispatch(sendProduct.subProducts(scannedUserProduct, subNum));
-      } catch (err) {
-        setError(err.message);
-        console.log(error);
-      }
-    };
+    // const subProudct = () => {
+    //   try {
+    //     const subNum = scannedUserProduct.quantity;
+    //     console.log("subtracting product quantity", subNum);
+    //     dispatch(sendProduct.subProducts(scannedUserProduct, subNum));
+    //   } catch (err) {
+    //     setError(err.message);
+    //     console.log(error);
+    //   }
+    // };
 
     // console.log(
     //   "THIS SHOULD BE scanneduserproduct",
@@ -548,6 +576,185 @@ const ScannerScreen = (props) => {
 
   if (sell) {
     return (
+      <KeyboardAvoidingView
+        style={{
+          flex: 1,
+        }}
+        behavior={Platform.OS === "android" ? "padding" : "position"}
+        keyboardVerticalOffset={-80}
+        // style={styles.screen}
+      >
+        <TouchableOpacity
+          onPress={() => {
+            modeHandler();
+          }}
+        >
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              margin: 15,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: sell ? "green" : "blue",
+              }}
+            >
+              Modo: {sell ? "Vender" : "Contar"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        <View>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={checkoutModal}
+            // onRequestClose={() => {
+            //   Alert.alert("Modal has been closed.");
+            // }}
+          >
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Keyboard.dismiss();
+              }}
+            >
+              <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <View>
+                    <Text style={styles.modalTitleSell}>Total:</Text>
+                    <Text style={styles.modalHeadSell}>
+                      {Math.round(cartTotalAmount.toFixed(2) * 100) / 100}bs
+                    </Text>
+
+                    <View style={{ height: 300 }}>
+                      <ScrollView>
+                        <View flex={1} onStartShouldSetResponder={() => true}>
+                          <FlatList
+                            data={cartItems}
+                            keyExtractor={(item) => item.productId}
+                            renderItem={(itemData) => (
+                              <CartItem
+                                quantity={itemData.item.quantity}
+                                title={itemData.item.productTitle}
+                                amount={itemData.item.sum}
+                                deletable
+                                onRemove={() => {
+                                  dispatch(
+                                    cartActions.removeFromCart(
+                                      itemData.item.productId
+                                    )
+                                  );
+                                }}
+                              />
+                            )}
+                          />
+                        </View>
+                      </ScrollView>
+                      <View
+                        style={{
+                          width: "100%",
+                          flexDirection: "row",
+                          justifyContent: "space-evenly",
+                        }}
+                      >
+                        <TouchableOpacity
+                          style={{
+                            ...styles.openButton,
+                            backgroundColor: "#FF4949",
+                          }}
+                          onPress={() => {
+                            setCheckoutModal(false);
+                            setScanned(false);
+                          }}
+                        >
+                          <Text style={styles.textStyle}>Modificar</Text>
+                        </TouchableOpacity>
+                        {isLoading ? (
+                          <ActivityIndicator
+                            size="small"
+                            color={Colors.primary}
+                          />
+                        ) : (
+                          <TouchableOpacity
+                            style={{
+                              ...styles.openButton,
+                              backgroundColor: "#FF4949",
+                            }}
+                            onPress={() => {
+                              console.log("Listo, sale complete");
+                              sendOrderHandler();
+                              continueScan();
+                            }}
+                          >
+                            <Text style={styles.textStyle}>Listo!</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
+        </View>
+        <View
+          style={{
+            height: "50%",
+            width: "100%",
+            marginBottom: 5,
+          }}
+        >
+          <BarCodeScanner
+            barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScannedSell}
+            style={StyleSheet.absoluteFillObject}
+          />
+        </View>
+
+        <Card style={styles.summary}>
+          <Text style={styles.summaryText}>
+            Total:{" "}
+            <Text style={styles.amount}>
+              {Math.round(cartTotalAmount.toFixed(2) * 100) / 100}bs
+              {/* {cartTotalAmount}jjav */}
+            </Text>
+          </Text>
+
+          <Button
+            color={Colors.primary}
+            title="Cobrar"
+            disabled={cartItems.length === 0}
+            // onPress={sendOrderHandler}
+            onPress={() => {
+              setCheckoutModal(true);
+            }}
+          />
+        </Card>
+        <FlatList
+          data={cartItems}
+          keyExtractor={(item) => item.productId}
+          renderItem={(itemData) => (
+            <CartItem
+              quantity={itemData.item.quantity}
+              title={itemData.item.productTitle}
+              amount={itemData.item.sum}
+              deletable
+              onRemove={() => {
+                dispatch(cartActions.removeFromCart(itemData.item.productId));
+              }}
+            />
+          )}
+        />
+      </KeyboardAvoidingView>
+    );
+  }
+
+  if (!sell) {
+    return (
       <View
         style={{
           flex: 1,
@@ -579,416 +786,339 @@ const ScannerScreen = (props) => {
             </Text>
           </View>
         </TouchableOpacity>
+
+        <KeyboardAvoidingView
+          style={{
+            flex: 1,
+          }}
+          behavior={Platform.OS === "android" ? "padding" : "position"}
+          keyboardVerticalOffset={-80}
+          // style={styles.screen}
+        >
+          <View>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modalVisible}
+              // onRequestClose={() => {
+              //   Alert.alert("Modal has been closed.");
+              // }}
+            >
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  Keyboard.dismiss();
+                }}
+              >
+                <View style={styles.centeredView}>
+                  <View style={styles.modalView}>
+                    {loadedMode && (
+                      <View>
+                        <Text style={styles.modalTitle}>
+                          Producto escaneado:
+                        </Text>
+                        <Text style={styles.modalHead}>{title}</Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <View style={styles.modalItemBorder}>
+                            <Text style={styles.modalTextTitle}>Marca: </Text>
+                            <Text style={styles.modalText}>{brand}</Text>
+                          </View>
+
+                          <View style={styles.modalItemBorder}>
+                            <Text style={styles.modalTextTitle}>Precio: </Text>
+                            <Text style={styles.modalText}>${price}bs</Text>
+                          </View>
+                        </View>
+
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <View style={styles.modalItemBorder}>
+                            <Text style={styles.modalTextTitle}>Tamaño: </Text>
+                            <Text style={styles.modalText}>{size}</Text>
+                          </View>
+
+                          <View style={styles.modalItemBorder}>
+                            <Text style={styles.modalTextTitle}>
+                              Cantidad:{" "}
+                            </Text>
+                            <Text style={styles.modalText}>{quantity}</Text>
+                          </View>
+                        </View>
+                        <View style={styles.modalItemBorderCategoria}>
+                          <Text style={styles.modalTextTitle}>Categoria: </Text>
+                          <Text style={styles.modalText}>{category}</Text>
+                        </View>
+                      </View>
+                    )}
+                    {newMode && (
+                      <View>
+                        <Text style={styles.modalTitle}>Nuevo Producto</Text>
+                        <View>
+                          <TextInput
+                            style={styles.textInputStyle}
+                            placeholder="Producto"
+                            placeholderTextColor="silver"
+                            value={newProduct}
+                            onChangeText={(name) => {
+                              setNewProduct(name);
+                            }}
+                          />
+                          <TextInput
+                            style={styles.textInputStyle}
+                            placeholder="Marca"
+                            placeholderTextColor="silver"
+                            value={newBrand}
+                            onChangeText={(brand) => {
+                              setNewBrand(brand);
+                            }}
+                          />
+                          <TextInput
+                            style={styles.textInputStyle}
+                            keyboardType="numeric"
+                            placeholderTextColor="silver"
+                            placeholder="Precio"
+                            value={newPrice}
+                            onChangeText={(price) => {
+                              setNewPrice(price);
+                            }}
+                          />
+                          <TextInput
+                            style={styles.textInputStyle}
+                            placeholder="Tomaño"
+                            placeholderTextColor="silver"
+                            value={newSize}
+                            onChangeText={(size) => {
+                              setNewSize(size);
+                            }}
+                          />
+                          <View>
+                            <Text style={styles.modalText}>
+                              Categoria: {newCategory}
+                            </Text>
+                          </View>
+
+                          <TouchableOpacity
+                            style={{
+                              ...styles.openButton,
+                              backgroundColor: "#A251F9",
+                            }}
+                            onPress={() => {
+                              setPicker(true);
+                            }}
+                          >
+                            <Text style={styles.textStyle}>Categoria</Text>
+                            {/* this is for scanner true */}
+                          </TouchableOpacity>
+                          <Modal
+                            animationType="slide"
+                            transparent={true}
+                            visible={picker}
+                            onRequestClose={() => {
+                              // setPicker(!picker);
+                            }}
+                          >
+                            <View style={styles.centeredView}>
+                              <View style={styles.modalViewPicker}>
+                                <Picker
+                                  selectedValue={picked}
+                                  mode="dropdown"
+                                  style={{
+                                    height: 30,
+                                    marginTop: 20,
+                                    // marginBottom: 30,
+                                    width: "100%",
+                                    justifyContent: "center",
+                                  }}
+                                  itemStyle={{ fontSize: 16 }}
+                                  onValueChange={(itemValue) =>
+                                    setPicked(itemValue)
+                                  }
+                                >
+                                  {catOptions.map((item, index) => {
+                                    return (
+                                      <Picker.Item
+                                        label={item}
+                                        value={item}
+                                        key={index}
+                                      />
+                                    );
+                                  })}
+                                </Picker>
+                                <View
+                                  style={{
+                                    width: "100%",
+                                    flexDirection: "row",
+                                    justifyContent: "space-around",
+                                    marginTop: 90,
+                                  }}
+                                >
+                                  <TouchableOpacity
+                                    style={{
+                                      ...styles.openButton,
+                                    }}
+                                    onPress={() => {
+                                      setPicker(!picker);
+                                    }}
+                                  >
+                                    <Text style={styles.textStyle}>Volver</Text>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity
+                                    style={{
+                                      ...styles.openButton,
+                                    }}
+                                    onPress={() => {
+                                      setNewCategory(picked);
+                                      setPicker(false);
+                                    }}
+                                  >
+                                    <Text style={styles.textStyle}>
+                                      Guardar
+                                    </Text>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            </View>
+                          </Modal>
+                        </View>
+                      </View>
+                    )}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text style={styles.modalTextCode}>Codigo: </Text>
+                      <Text style={styles.modalTextCodigo}>{code}</Text>
+                    </View>
+                    {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
+                    {/* </View> */}
+
+                    {loadedMode && (
+                      <View
+                        style={{
+                          margin: 10,
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Text style={styles.quantitySelect}>
+                          (Opcional) Entrar cantidad
+                        </Text>
+
+                        <InputSpinner
+                          max={10000}
+                          min={0}
+                          step={1}
+                          fontSize={20}
+                          onMax={(max) => {
+                            Alert.alert(
+                              "llego al Maximo",
+                              "El maximo seria 1000"
+                            );
+                          }}
+                          skin={"clean"}
+                          background={"#F5F3F3"}
+                          // colorAsBackground={true}
+                          colorMax={"red"}
+                          width={"50%"}
+                          colorMin={"green"}
+                          colorLeft={"#FF4949"}
+                          colorRight={"#FF4949"}
+                          value={quantity}
+                          onChange={(num) => {
+                            if (num === quantity) {
+                              null;
+                            } else {
+                              setNewQ(num);
+                            }
+                          }}
+                        />
+                      </View>
+                    )}
+
+                    <View
+                      style={{
+                        width: "100%",
+                        flexDirection: "row",
+                        justifyContent: "space-around",
+                      }}
+                    >
+                      <TouchableOpacity
+                        style={{
+                          ...styles.openButton,
+                          backgroundColor: "#FF4949",
+                        }}
+                        onPress={() => {
+                          setModalVisible(!modalVisible);
+                          setLoadedMode(false);
+                          setNewMode(false);
+                          setScanned(false);
+                        }}
+                      >
+                        <Text style={styles.textStyle}>Volver</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{
+                          ...styles.openButton,
+                          backgroundColor: "#FF4949",
+                        }}
+                        onPress={() => {
+                          if (newMode) {
+                            newEntry();
+                            console.log("theres a new product", newProduct);
+                            continueScan();
+                          }
+                          if (loadedMode) {
+                            console.log("NEW PRODUCT ADDED now for inventory");
+                            newInvProd();
+                            // setModalVisible(!modalVisible);
+                            // continueScan();
+                          }
+                          if (title) {
+                            console.log(
+                              "not adding a new product just to the inventory"
+                            );
+                            quantityUpdateHandler();
+                            setModalVisible(!modalVisible);
+                            continueScan();
+                          }
+                        }}
+                      >
+                        <Text style={styles.textStyle}>Guardar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </Modal>
+          </View>
+        </KeyboardAvoidingView>
+
         <View
           style={{
-            height: "50%",
+            height: "80%",
             width: "100%",
-            marginBottom: 5,
+            marginBottom: 40,
           }}
         >
           <BarCodeScanner
             barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
-            onBarCodeScanned={scanned ? undefined : handleBarCodeScannedSell}
+            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
             style={StyleSheet.absoluteFillObject}
           />
         </View>
-
-        <Card style={styles.summary}>
-          <Text style={styles.summaryText}>
-            Total:{" "}
-            <Text style={styles.amount}>
-              {Math.round(cartTotalAmount.toFixed(2) * 100) / 100}bs
-              {/* {cartTotalAmount}jjav */}
-            </Text>
-          </Text>
-          {isLoading ? (
-            <ActivityIndicator size="small" color={Colors.primary} />
-          ) : (
-            <Button
-              color={Colors.primary}
-              title="Cobrar"
-              disabled={cartItems.length === 0}
-              // onPress={sendOrderHandler}
-              onPress={sendOrderHandler}
-            />
-          )}
-        </Card>
-        <FlatList
-          data={cartItems}
-          keyExtractor={(item) => item.productId}
-          renderItem={(itemData) => (
-            <CartItem
-              quantity={itemData.item.quantity}
-              title={itemData.item.productTitle}
-              amount={itemData.item.sum}
-              deletable
-              onRemove={() => {
-                dispatch(cartActions.removeFromCart(itemData.item.productId));
-              }}
-            />
-          )}
-        />
       </View>
     );
   }
-
-  return (
-    <View
-      style={{
-        flex: 1,
-      }}
-      // marginTop: 40,
-      // flexDirection: "column",
-      // justifyContent: "flex-end",
-    >
-      <TouchableOpacity
-        onPress={() => {
-          modeHandler();
-        }}
-      >
-        <View
-          style={{
-            alignItems: "center",
-            justifyContent: "center",
-            margin: 15,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              color: sell ? "green" : "blue",
-            }}
-          >
-            Modo: {sell ? "Vender" : "Contar"}
-          </Text>
-        </View>
-      </TouchableOpacity>
-      <KeyboardAvoidingView
-        style={{
-          flex: 1,
-        }}
-        behavior={Platform.OS === "android" ? "padding" : "position"}
-        keyboardVerticalOffset={-80}
-        // style={styles.screen}
-      >
-        <View>
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={modalVisible}
-            // onRequestClose={() => {
-            //   Alert.alert("Modal has been closed.");
-            // }}
-          >
-            <TouchableWithoutFeedback
-              onPress={() => {
-                Keyboard.dismiss();
-              }}
-            >
-              <View style={styles.centeredView}>
-                <View style={styles.modalView}>
-                  {loadedMode && (
-                    <View>
-                      <Text style={styles.modalTitle}>Producto escaneado:</Text>
-                      <Text style={styles.modalHead}>{title}</Text>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <View style={styles.modalItemBorder}>
-                          <Text style={styles.modalTextTitle}>Marca: </Text>
-                          <Text style={styles.modalText}>{brand}</Text>
-                        </View>
-
-                        <View style={styles.modalItemBorder}>
-                          <Text style={styles.modalTextTitle}>Precio: </Text>
-                          <Text style={styles.modalText}>${price}bs</Text>
-                        </View>
-                      </View>
-
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <View style={styles.modalItemBorder}>
-                          <Text style={styles.modalTextTitle}>Tamaño: </Text>
-                          <Text style={styles.modalText}>{size}</Text>
-                        </View>
-
-                        <View style={styles.modalItemBorder}>
-                          <Text style={styles.modalTextTitle}>Cantidad: </Text>
-                          <Text style={styles.modalText}>{quantity}</Text>
-                        </View>
-                      </View>
-                      <View style={styles.modalItemBorderCategoria}>
-                        <Text style={styles.modalTextTitle}>Categoria: </Text>
-                        <Text style={styles.modalText}>{category}</Text>
-                      </View>
-                    </View>
-                  )}
-                  {newMode && (
-                    <View>
-                      <Text style={styles.modalTitle}>Nuevo Producto</Text>
-                      <View>
-                        <TextInput
-                          style={styles.textInputStyle}
-                          placeholder="Producto"
-                          placeholderTextColor="silver"
-                          value={newProduct}
-                          onChangeText={(name) => {
-                            setNewProduct(name);
-                          }}
-                        />
-                        <TextInput
-                          style={styles.textInputStyle}
-                          placeholder="Marca"
-                          placeholderTextColor="silver"
-                          value={newBrand}
-                          onChangeText={(brand) => {
-                            setNewBrand(brand);
-                          }}
-                        />
-                        <TextInput
-                          style={styles.textInputStyle}
-                          keyboardType="numeric"
-                          placeholderTextColor="silver"
-                          placeholder="Precio"
-                          value={newPrice}
-                          onChangeText={(price) => {
-                            setNewPrice(price);
-                          }}
-                        />
-                        <TextInput
-                          style={styles.textInputStyle}
-                          placeholder="Tomaño"
-                          placeholderTextColor="silver"
-                          value={newSize}
-                          onChangeText={(size) => {
-                            setNewSize(size);
-                          }}
-                        />
-                        <View>
-                          <Text style={styles.modalText}>
-                            Categoria: {newCategory}
-                          </Text>
-                        </View>
-
-                        <TouchableOpacity
-                          style={{
-                            ...styles.openButton,
-                            backgroundColor: "#A251F9",
-                          }}
-                          onPress={() => {
-                            setPicker(true);
-                          }}
-                        >
-                          <Text style={styles.textStyle}>Categoria</Text>
-                          {/* this is for scanner true */}
-                        </TouchableOpacity>
-                        <Modal
-                          animationType="slide"
-                          transparent={true}
-                          visible={picker}
-                          onRequestClose={() => {
-                            // setPicker(!picker);
-                          }}
-                        >
-                          <View style={styles.centeredView}>
-                            <View style={styles.modalViewPicker}>
-                              <Picker
-                                selectedValue={picked}
-                                mode="dropdown"
-                                style={{
-                                  height: 30,
-                                  marginTop: 20,
-                                  // marginBottom: 30,
-                                  width: "100%",
-                                  justifyContent: "center",
-                                }}
-                                itemStyle={{ fontSize: 16 }}
-                                onValueChange={(itemValue) =>
-                                  setPicked(itemValue)
-                                }
-                              >
-                                {catOptions.map((item, index) => {
-                                  return (
-                                    <Picker.Item
-                                      label={item}
-                                      value={item}
-                                      key={index}
-                                    />
-                                  );
-                                })}
-                              </Picker>
-                              <View
-                                style={{
-                                  width: "100%",
-                                  flexDirection: "row",
-                                  justifyContent: "space-around",
-                                  marginTop: 90,
-                                }}
-                              >
-                                <TouchableOpacity
-                                  style={{
-                                    ...styles.openButton,
-                                  }}
-                                  onPress={() => {
-                                    setPicker(!picker);
-                                  }}
-                                >
-                                  <Text style={styles.textStyle}>Volver</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  style={{
-                                    ...styles.openButton,
-                                  }}
-                                  onPress={() => {
-                                    setNewCategory(picked);
-                                    setPicker(false);
-                                  }}
-                                >
-                                  <Text style={styles.textStyle}>Guardar</Text>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          </View>
-                        </Modal>
-                      </View>
-                    </View>
-                  )}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Text style={styles.modalTextCode}>Codigo: </Text>
-                    <Text style={styles.modalTextCodigo}>{code}</Text>
-                  </View>
-                  {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
-                  {/* </View> */}
-
-                  {loadedMode && (
-                    <View
-                      style={{
-                        margin: 10,
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={styles.quantitySelect}>
-                        (Opcional) Entrar cantidad
-                      </Text>
-
-                      <InputSpinner
-                        max={10000}
-                        min={0}
-                        step={1}
-                        fontSize={20}
-                        onMax={(max) => {
-                          Alert.alert(
-                            "llego al Maximo",
-                            "El maximo seria 1000"
-                          );
-                        }}
-                        skin={"clean"}
-                        background={"#F5F3F3"}
-                        // colorAsBackground={true}
-                        colorMax={"red"}
-                        width={"50%"}
-                        colorMin={"green"}
-                        colorLeft={"#FF4949"}
-                        colorRight={"#FF4949"}
-                        value={quantity}
-                        onChange={(num) => {
-                          if (num === quantity) {
-                            null;
-                          } else {
-                            setNewQ(num);
-                          }
-                        }}
-                      />
-                    </View>
-                  )}
-
-                  <View
-                    style={{
-                      width: "100%",
-                      flexDirection: "row",
-                      justifyContent: "space-around",
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={{
-                        ...styles.openButton,
-                        backgroundColor: "#FF4949",
-                      }}
-                      onPress={() => {
-                        setModalVisible(!modalVisible);
-                        setLoadedMode(false);
-                        setNewMode(false);
-                        setScanned(false);
-                      }}
-                    >
-                      <Text style={styles.textStyle}>Volver</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{
-                        ...styles.openButton,
-                        backgroundColor: "#FF4949",
-                      }}
-                      onPress={() => {
-                        if (newMode) {
-                          newEntry();
-                          console.log("theres a new product", newProduct);
-                          continueScan();
-                        }
-                        if (loadedMode) {
-                          console.log("NEW PRODUCT ADDED now for inventory");
-                          newInvProd();
-                          // setModalVisible(!modalVisible);
-                          // continueScan();
-                        }
-                        if (title) {
-                          console.log(
-                            "not adding a new product just to the inventory"
-                          );
-                          quantityUpdateHandler();
-                          setModalVisible(!modalVisible);
-                          continueScan();
-                        }
-                      }}
-                    >
-                      <Text style={styles.textStyle}>Guardar</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </TouchableWithoutFeedback>
-          </Modal>
-        </View>
-      </KeyboardAvoidingView>
-
-      <View
-        style={{
-          height: "80%",
-          width: "100%",
-          marginBottom: 40,
-        }}
-      >
-        <BarCodeScanner
-          barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
-          onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-          style={StyleSheet.absoluteFillObject}
-        />
-      </View>
-    </View>
-  );
 };
 
 ScannerScreen.navigationOptions = (navData) => {
@@ -1015,7 +1145,7 @@ const styles = StyleSheet.create({
   modalView: {
     width: "95%",
     margin: 20,
-    backgroundColor: "white",
+    backgroundColor: "#F5F3F3",
     borderRadius: 20,
     padding: 10,
     alignItems: "center",
@@ -1055,7 +1185,7 @@ const styles = StyleSheet.create({
     padding: 10,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
     shadowOpacity: 0.75,
     shadowRadius: 1.84,
@@ -1144,6 +1274,19 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     textAlign: "center",
     fontSize: 25,
+    fontWeight: "bold",
+  },
+  modalHeadSell: {
+    marginBottom: 10,
+    textAlign: "center",
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#FF4949",
+  },
+  modalTitleSell: {
+    marginBottom: 2,
+    textAlign: "center",
+    fontSize: 30,
     fontWeight: "bold",
   },
   textInputStyle: {

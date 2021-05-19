@@ -11,8 +11,8 @@ import { useSelector, useDispatch } from "react-redux";
 // import { HeaderButtons, Item } from "react-navigation-header-buttons";
 
 // import HeaderButton from "../components/UI/HeaderButton";
-// import OrderItem from "../components/shop/OrderItem";
-// import * as ordersActions from "../store/orders";
+import OrderItem from "../components/OrderItem";
+import * as ProdActions from "../store/productActions";
 import Colors from "../constants/Colors";
 
 const OrdersScreen = (props) => {
@@ -23,7 +23,7 @@ const OrdersScreen = (props) => {
 
   useEffect(() => {
     setIsLoading(true);
-    dispatch(ordersActions.fetchOrders()).then(() => {
+    dispatch(ProdActions.fetchOrders()).then(() => {
       setIsLoading(false);
     });
   }, [dispatch]);
@@ -43,23 +43,22 @@ const OrdersScreen = (props) => {
       </View>
     );
   }
-};
 
-//   return (
-//     <FlatList
-//       data={orders}
-//       keyExtractor={(item) => item.id}
-//       renderItem={(itemData) => (
-//         <OrderItem
-//           amount={itemData.item.totalAmount}
-//           date={itemData.item.readableDate}
-//           // time={itemData.item.readableTime}
-//           items={itemData.item.items}
-//         />
-//       )}
-//     />
-//   );
-// };
+  return (
+    <FlatList
+      data={orders}
+      keyExtractor={(item) => item.id}
+      renderItem={(itemData) => (
+        <OrderItem
+          amount={itemData.item.totalAmount}
+          date={itemData.item.readableDate}
+          // time={itemData.item.readableTime}
+          items={itemData.item.items}
+        />
+      )}
+    />
+  );
+};
 
 // OrdersScreen.navigationOptions = (navData) => {
 //   return {

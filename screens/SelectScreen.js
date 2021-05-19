@@ -572,6 +572,24 @@ const SelectScreen = (props) => {
             title="Exportar"
             onPress={() => cell()}
           />
+          <Button
+            icon={{
+              // <Icon
+              iconStyle: styles.menuIcon,
+              name: "shop",
+              size: 25,
+              color: "white",
+              // />
+            }}
+            buttonStyle={styles.menuButton}
+            titleStyle={{
+              fontSize: 25,
+            }}
+            title="Ventas"
+            onPress={() => {
+              props.navigation.navigate("Order");
+            }}
+          />
         </View>
       </View>
     );

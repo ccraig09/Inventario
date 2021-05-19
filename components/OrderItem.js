@@ -10,12 +10,13 @@ const OrderItem = (props) => {
   return (
     <Card style={styles.orderItem}>
       <View style={styles.summary}>
-        <Text style={styles.totalAmount}>${props.amount.toFixed(2)}</Text>
+        {/* <Text style={styles.totalAmount}>${props.amount.toFixed(2)}</Text> */}
+        <Text style={styles.totalAmount}>${props.amount}</Text>
         <Text style={styles.date}>{props.date}</Text>
       </View>
       {/* <Text style={styles.time}>{props.time}</Text> */}
       <Button
-        color={Colors.noExprimary}
+        color={Colors.primary}
         title={showDetails ? "Ocultar" : "Detalles"}
         onPress={() => {
           setShowDetails((prevState) => !prevState);
@@ -51,17 +52,17 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   amount: {
-    fontFamily: "open-sans-bold",
+    // fontFamily: "open-sans-bold",
     fontSize: 16,
   },
   date: {
     fontSize: 16,
-    fontFamily: "open-sans",
+    // fontFamily: "open-sans",
     color: "#888",
   },
   time: {
     fontSize: 13,
-    fontFamily: "open-sans",
+    // fontFamily: "open-sans",
     color: "#888",
   },
   detailItems: {

@@ -1,6 +1,7 @@
 export const DELETE_PRODUCT = "DELETE_PRODUCT";
 export const CREATE_PRODUCT = "CREATE_PRODUCT";
 export const ADD_ORDER = "ADD_ORDER";
+export const SET_ORDERS = "SET_ORDERS";
 export const ADDED_PRODUCT = "ADDED_PRODUCT";
 export const SET_PRODUCT = "SET_PRODUCT";
 export const SET_AVAILABLE_PRODUCT = "SET_AVAILABLE_PRODUCT";
@@ -16,7 +17,6 @@ export const db = firebase.firestore().collection("Members");
 export const dbP = firebase.firestore().collection("Products");
 export const dP = firebase.firestore().collection("Members");
 export const dPD = firebase.firestore().collection("Data");
-export const dPs = firebase.firestore().collection("section");
 
 export const fetchProducts = () => {
   return async (dispatch, getState) => {
@@ -146,6 +146,40 @@ export const fetchStoreName = () => {
   };
 };
 
+export const fetchOrders = () => {
+  console.log("fetching ORDERS");
+  return async (dispatch) => {
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        var userId = user.uid.toString();
+        const events = db.doc(userId).collection("Orders");
+        try {
+          events.get().then((querySnapshot) => {
+            const collection = querySnapshot.docs.map((doc) => {
+              return { id: doc.id, ...doc.data() };
+            });
+            const loadedOrders = [];
+
+            for (const key in collection) {
+              loadedOrders.push(
+                new Order(
+                  key,
+                  collection[key].cartItems,
+                  collection[key].totalAmount,
+                  new Date(collection[key].date)
+                )
+              );
+            }
+            dispatch({ type: SET_ORDERS, orders: loadedOrders });
+          });
+        } catch (err) {
+          throw err;
+        }
+      }
+    });
+  };
+};
+
 export const createProduct = (
   Title,
   Price,
@@ -226,8 +260,8 @@ export const createProduct = (
   };
 };
 
-export const createOrder = (cartItems, cartTotalAmount) => {
-  console.log("Items from new order being created", cartItems, cartTotalAmount);
+export const createOrder = (cartItems, totalAmount) => {
+  console.log("Items from new order being created", cartItems, totalAmount);
 
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
@@ -235,10 +269,10 @@ export const createOrder = (cartItems, cartTotalAmount) => {
     const date = new Date();
     console.log("creating order to upload");
     try {
-      await db.doc(userId).collection("Orders").doc(date.toISOString()).set(
+      await db.doc(userId).collection("Orders").doc().set(
         {
           cartItems,
-          cartTotalAmount,
+          totalAmount,
           date: date.toISOString(),
         },
         { merge: true }
@@ -252,13 +286,13 @@ export const createOrder = (cartItems, cartTotalAmount) => {
             return { id: doc.id, ...doc.data() };
           });
 
-          console.log("on Create Collection Everything", collection);
+          // console.log("on Create Collection Everything", collection);
           dispatch({
             type: ADD_ORDER,
             orderData: {
               id: collection[0].id,
               items: cartItems,
-              amount: cartTotalAmount,
+              amount: totalAmount,
               date: date,
             },
           });

@@ -42,6 +42,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginHorizontal: 20,
+    borderRadius: 15,
+    marginVertical: 3,
   },
   itemData: {
     flexDirection: "row",

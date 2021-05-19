@@ -7,6 +7,7 @@ import createdProducts from "./store/createdProductReducer";
 import cartReducer from "./store/cartReducer";
 import storeName from "./store/StoreNameReducer";
 import authReducer from "./store/authReducer";
+import orderReducer from "./store/orders";
 import firebase from "./components/firebase";
 
 import { useDispatch } from "react-redux";
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   storeName: storeName,
   cart: cartReducer,
+  orders: orderReducer,
 });
 const store = createStore(rootReducer, applyMiddleware(ReduxThunk));
 const AppWrapper = () => {
