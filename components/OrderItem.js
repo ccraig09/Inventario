@@ -1,17 +1,41 @@
 import React, { useState } from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
+import { View, Text, Button, StyleSheet, Alert } from "react-native";
 
 import CartItem from "./CartItem";
 import Colors from "../constants/Colors";
 import Card from "../components/Card";
+import { Ionicons } from "@expo/vector-icons";
+
+import * as orderActions from "../store/productActions";
+import { useSelector, useDispatch } from "react-redux";
 
 const OrderItem = (props) => {
   const [showDetails, setShowDetails] = useState(false);
+  const dispatch = useDispatch();
+  const id = props.id;
+  const refresh = props.reload;
+
   return (
     <Card style={styles.orderItem}>
+      <View
+        style={{
+          alignSelf: "flex-end",
+          position: "absolute",
+          right: -1,
+          top: -15,
+        }}
+      >
+        {!props.checked ? (
+          <Ionicons name="alert-circle" size={29} color={Colors.primary} />
+        ) : (
+          <Text></Text>
+        )}
+      </View>
       <View style={styles.summary}>
         {/* <Text style={styles.totalAmount}>${props.amount.toFixed(2)}</Text> */}
+
         <Text style={styles.totalAmount}>${props.amount}</Text>
+
         <Text style={styles.date}>{props.date}</Text>
       </View>
       {/* <Text style={styles.time}>{props.time}</Text> */}
@@ -29,7 +53,30 @@ const OrderItem = (props) => {
               key={cartItem.productId}
               quantity={cartItem.quantity}
               amount={cartItem.sum}
+              checkable={props.checkable}
+              checked={props.checked}
               title={cartItem.productTitle}
+              onCheck={() => {
+                Alert.alert(
+                  "Actualizar?",
+                  `${cartItem.productTitle} se actualizará menos ${cartItem.quantity} de su inventario.`,
+                  [
+                    {
+                      text: "No",
+                      style: "cancel",
+                    },
+                    {
+                      text: "Si",
+                      onPress: () => {
+                        console.log("updating quantity test");
+                        dispatch(orderActions.orderQuantityUpdate(cartItem));
+                        dispatch(orderActions.updateChecked(id));
+                        refresh();
+                      },
+                    },
+                  ]
+                );
+              }}
             />
           ))}
         </View>
@@ -49,11 +96,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: 15,
+    marginBottom: 10,
+    marginTop: 15,
   },
-  amount: {
+  totalAmount: {
     // fontFamily: "open-sans-bold",
     fontSize: 16,
+    fontWeight: "bold",
   },
   date: {
     fontSize: 16,

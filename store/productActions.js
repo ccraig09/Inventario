@@ -166,7 +166,9 @@ export const fetchOrders = () => {
                   key,
                   collection[key].cartItems,
                   collection[key].totalAmount,
-                  new Date(collection[key].date)
+                  new Date(collection[key].date),
+                  collection[key].checked,
+                  collection[key].id
                 )
               );
             }
@@ -274,8 +276,9 @@ export const createOrder = (cartItems, totalAmount) => {
           cartItems,
           totalAmount,
           date: date.toISOString(),
-        },
-        { merge: true }
+          checked: false,
+        }
+        // { merge: true }
       );
 
       const events = db.doc(userId).collection("Orders");
@@ -294,6 +297,7 @@ export const createOrder = (cartItems, totalAmount) => {
               items: cartItems,
               amount: totalAmount,
               date: date,
+              checked: checked,
             },
           });
         })
@@ -550,6 +554,49 @@ export const updateProducts = (
     }
   };
 };
+export const orderQuantityUpdate = (cartItem) => {
+  return async () => {
+    console.log("check cartitem", cartItem.quantity);
+    const subNum = cartItem.quantity;
+    const Code = cartItem.productcode;
+    const userId = firebase.auth().currentUser.uid;
+    const increment = firebase.firestore.FieldValue.increment(-subNum);
+
+    try {
+      await db.doc(userId).collection("Member Products").doc(Code).update(
+        {
+          Quantity: increment,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+
+export const updateChecked = (id) => {
+  return async () => {
+    console.log("updated checked status", id);
+    const userId = firebase.auth().currentUser.uid;
+
+    try {
+      await db.doc(userId).collection("Orders").doc(id).update(
+        {
+          checked: true,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+
 export const subProducts = (scannedUserProduct, subNum) => {
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;

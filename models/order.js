@@ -1,11 +1,13 @@
 import moment from "moment";
 
 class Order {
-  constructor(id, items, totalAmount, date) {
+  constructor(id, items, totalAmount, date, checked, doc) {
     this.id = id;
     this.items = items;
     this.totalAmount = totalAmount;
     this.date = date;
+    this.checked = checked;
+    this.doc = doc;
 
     // this.time = time;
   }

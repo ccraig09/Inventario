@@ -7,6 +7,7 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import Colors from "../constants/Colors";
 
 const CartItem = (props) => {
   return (
@@ -29,6 +30,28 @@ const CartItem = (props) => {
               color="red"
             />
           </TouchableOpacity>
+        )}
+        {props.checkable && (
+          <View style={styles.deleteButton}>
+            {props.checked ? (
+              <Ionicons
+                name={"checkmark-circle"}
+                size={25}
+                color={Colors.primary}
+              />
+            ) : (
+              <TouchableOpacity
+                onPress={props.onCheck}
+                style={styles.deleteButton}
+              >
+                <Ionicons
+                  name={"checkmark-circle-outline"}
+                  size={25}
+                  color={Colors.primary}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
         )}
       </View>
     </View>

@@ -641,7 +641,7 @@ const ScannerScreen = (props) => {
                                 quantity={itemData.item.quantity}
                                 title={itemData.item.productTitle}
                                 amount={itemData.item.sum}
-                                deletable
+                                // deletable
                                 onRemove={() => {
                                   dispatch(
                                     cartActions.removeFromCart(

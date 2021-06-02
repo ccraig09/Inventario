@@ -4,8 +4,10 @@ import {
   FlatList,
   Text,
   Platform,
+  RefreshControl,
   ActivityIndicator,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 // import { HeaderButtons, Item } from "react-navigation-header-buttons";
@@ -17,8 +19,11 @@ import Colors from "../constants/Colors";
 
 const OrdersScreen = (props) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const orders = useSelector((state) => state.orders.orders);
+  let sortedOrders = orders.sort((a, b) => (a.date < b.date ? 1 : -1));
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -27,6 +32,13 @@ const OrdersScreen = (props) => {
       setIsLoading(false);
     });
   }, [dispatch]);
+
+  const loadDetails = async () => {
+    console.log("reloading");
+    setIsRefreshing(true);
+    await dispatch(ProdActions.fetchOrders());
+    setIsRefreshing(false);
+  };
 
   if (isLoading) {
     return (
@@ -46,14 +58,31 @@ const OrdersScreen = (props) => {
 
   return (
     <FlatList
-      data={orders}
+      refreshControl={
+        <RefreshControl
+          colors={Colors.primary}
+          refreshing={isRefreshing}
+          onRefresh={loadDetails}
+        />
+      }
+      data={sortedOrders}
       keyExtractor={(item) => item.id}
       renderItem={(itemData) => (
         <OrderItem
           amount={itemData.item.totalAmount}
           date={itemData.item.readableDate}
+          checkable
+          id={itemData.item.doc}
           // time={itemData.item.readableTime}
           items={itemData.item.items}
+          checked={itemData.item.checked}
+          reload={() => {
+            loadDetails();
+          }}
+          // onCheck={() => {
+          //   console.log(itemData.item.items[0].productcode);
+          //   Alert.alert("itemData.item.items");
+          // }}
         />
       )}
     />
