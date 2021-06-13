@@ -1,4 +1,4 @@
-import { AUTHENTICATE, LOGOUT } from "../screens/AuthScreen";
+import { AUTHENTICATE, LOGOUT } from "../screens/LoginScreen";
 
 const initialState = {
   token: null,

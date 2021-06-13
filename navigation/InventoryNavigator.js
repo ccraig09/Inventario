@@ -4,7 +4,7 @@ import { createStackNavigator } from "react-navigation-stack";
 
 import HomeScreen from "../screens/HomeScreen";
 import SelectScreen from "../screens/SelectScreen";
-import AuthScreen from "../screens/AuthScreen";
+import LoginScreen from "../screens/LoginScreen";
 import LoadingScreen from "../screens/LoadingScreen";
 import SignupScreen from "../screens/SignupScreen";
 import SettingsScreen from "../screens/SettingsScreen";
@@ -14,7 +14,7 @@ import OrderScreen from "../screens/OrdersScreen";
 
 const InventoryNavigator = createStackNavigator({
   Loading: LoadingScreen,
-  Auth: AuthScreen,
+  Login: LoginScreen,
   Signup: SignupScreen,
   // HomeStaks: HomeStack,
 });

@@ -264,7 +264,7 @@ export const createProduct = (
 
 export const createOrder = (cartItems, totalAmount) => {
   console.log("Items from new order being created", cartItems, totalAmount);
-
+  let checked;
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
     // const increment = firebase.firestore.FieldValue.increment(1);

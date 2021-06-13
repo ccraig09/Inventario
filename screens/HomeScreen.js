@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -20,14 +20,19 @@ import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import { useSelector, useDispatch } from "react-redux";
 import * as authActions from "../store/authAction";
 import * as ProdActions from "../store/productActions";
+import firebase from "../components/firebase";
 
 import { BarCodeScanner } from "expo-barcode-scanner";
 import ProductItem from "../components/ProductItem";
+import { AuthContext } from "../navigation/AuthProvider";
 
 const HomeScreen = (props) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useContext(AuthContext);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState();
   const [focused, setFocused] = useState(false);
+  const [inventory, setInventory] = useState(null);
+  const [userId, setUserId] = useState();
 
   const [hasPermission, setHasPermission] = useState(null);
   const [scanner, setScanner] = useState(false);
@@ -71,43 +76,176 @@ const HomeScreen = (props) => {
   const dispatch = useDispatch();
 
   const loadDetails = async () => {
-    setError(null);
-    setIsRefreshing(true);
+    // setError(null);
+    console.log("refreshing");
     try {
-      await dispatch(ProdActions.fetchProducts());
-      await dispatch(ProdActions.fetchStoreName());
-    } catch (err) {
-      setError(err.message);
+      const list = [];
+      await firebase
+        .firestore()
+        .collection("Members")
+        .doc(user.uid)
+        .collection("Member Products")
+        .orderBy("Title", "asc")
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const {
+              Title,
+              Quantity,
+              Category,
+              Price,
+              ownerId,
+              Brand,
+              Code,
+              ExpDate,
+              Size,
+              docTitle,
+            } = doc.data();
+            list.push({
+              id: doc.id,
+              productTitle: Title,
+              productPrice: Price,
+              productCategory: Category,
+              productOwner: ownerId,
+              productQuantity: Quantity,
+              productSize: Size,
+              productBrand: Brand,
+              productcode: Code,
+              productExp: ExpDate,
+              docTitle: docTitle,
+            });
+          });
+        });
+      setInventory(list);
+    } catch (e) {
+      console.log(e);
     }
-    setFilteredDataSource(userProducts);
-    setMasterDataSource(userProducts);
-    setStoreName(createdStoreName);
+    try {
+      await firebase
+        .firestore()
+        .collection("Members")
+        .doc(user.uid)
+        .get()
+        .then((doc) => {
+          if (doc.exists) {
+            // console.log("Document data:", doc.data().StoreName);
+            setStoreName(doc.data().StoreName);
+          } else {
+            // doc.data() will be undefined in this case
+            console.log("No such document!");
+          }
+        });
+    } catch (e) {
+      console.log(e);
+    }
 
-    props.navigation.setParams({ storeTitle: createdStoreName });
     setIsRefreshing(false);
   };
 
+  // props.navigation.setParams({ storeTitle: createdStoreName });
+
+  // useEffect(() => {
+  //   const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
+  //   return () => {
+  //     willFocusSub.remove();
+  //   };
+  // }, [loadDetails]);
+
   useEffect(() => {
-    const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
-    return () => {
-      willFocusSub.remove();
+    const fetchPost = async () => {
+      try {
+        const list = [];
+        await firebase
+          .firestore()
+          .collection("Members")
+          .doc(user.uid)
+          .collection("Member Products")
+          .orderBy("Title", "asc")
+          .get()
+          .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              const {
+                Title,
+                Quantity,
+                Category,
+                Price,
+                ownerId,
+                Brand,
+                Code,
+                ExpDate,
+                Size,
+                docTitle,
+              } = doc.data();
+              list.push({
+                id: doc.id,
+                productTitle: Title,
+                productPrice: Price,
+                productCategory: Category,
+                productOwner: ownerId,
+                productQuantity: Quantity,
+                productSize: Size,
+                productBrand: Brand,
+                productcode: Code,
+                productExp: ExpDate,
+                docTitle: docTitle,
+              });
+            });
+          });
+        setInventory(list);
+      } catch (e) {
+        console.log(e);
+      }
     };
-  }, [loadDetails]);
-
-  useEffect(() => {
-    setIsLoading(true);
-    loadDetails().then(() => {
-      setIsLoading(false);
-    }, [dispatch, loadDetails]);
-
-    console.log("loading homePage");
+    const fetchStoreName = async () => {
+      try {
+        await firebase
+          .firestore()
+          .collection("Members")
+          .doc(user.uid)
+          .get()
+          .then((doc) => {
+            if (doc.exists) {
+              // console.log("Document data:", doc.data().StoreName);
+              setStoreName(doc.data().StoreName);
+            } else {
+              // doc.data() will be undefined in this case
+              console.log("No such document!");
+            }
+          });
+        if (isLoading) {
+          setIsLoading(false);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    fetchPost();
+    fetchStoreName();
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
+      console.log("loading homePage");
+      setScanner(false);
+      setIsLoading(false);
     })();
-    setScanner(false);
-    setIsLoading(false);
   }, []);
+
+  //     const list = [];
+
+  //           const {
+
+  //         });
+  //       });
+  //     setPosts(list);
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // };
+  //   fetchPost();
+  //   // loadDetails();
+
+  //   setIsLoading(false);
+  // },
 
   const searchFilterFunction = (text) => {
     // Check if searched text is not blank
@@ -163,22 +301,22 @@ const HomeScreen = (props) => {
   }
 
   // if (isLoading) {
-  if (!isLoading && userProducts.length === 0) {
-    return (
-      <View style={styles.centered}>
-        <Text>No Productos registrado. Agregar products </Text>
-        <TouchableOpacity
-          onPress={() => {
-            props.navigation.navigate("Scan");
-          }}
-        >
-          <View>
-            <Text style={{ color: "blue" }}>Aqui</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  // if (!isLoading && posts.length === 0) {
+  //   return (
+  //     <View style={styles.centered}>
+  //       <Text>No Productos registrado. Agregar products </Text>
+  //       <TouchableOpacity
+  //         onPress={() => {
+  //           props.navigation.navigate("Scan");
+  //         }}
+  //       >
+  //         <View>
+  //           <Text style={{ color: "blue" }}>Aqui</Text>
+  //         </View>
+  //       </TouchableOpacity>
+  //     </View>
+  //   );
+  // }
 
   if (hasPermission === null) {
     return <Text>Requesting for camera permission</Text>;
@@ -192,7 +330,7 @@ const HomeScreen = (props) => {
       <View style={styles.topContainer}>
         <View style={styles.topHeader}>
           <View style={styles.searchText}>
-            <Text style={styles.storeText}>{createdStoreName} </Text>
+            <Text style={styles.storeText}>{storeName} </Text>
             <View style={{ right: 10, position: "absolute" }}>
               <TouchableOpacity
                 onPress={() => {
@@ -303,13 +441,13 @@ const HomeScreen = (props) => {
       <FlatList
         refreshControl={
           <RefreshControl
-            colors={["#9Bd35A", "#689F38"]}
+            colors={["#FF4949", "#FF4949"]}
             refreshing={isRefreshing}
             onRefresh={loadDetails}
           />
         }
-        data={focused ? filteredDataSource : userProducts}
-        keyExtractor={(item) => item.productId}
+        data={focused ? filteredDataSource : inventory}
+        keyExtractor={(item) => item.id}
         renderItem={(itemData) => (
           <ProductItem
             title={itemData.item.productTitle}
@@ -335,45 +473,45 @@ const HomeScreen = (props) => {
   );
 };
 
-HomeScreen.navigationOptions = (navData) => {
-  const Tienda = navData.navigation.getParam("storeTitle");
-  return {
-    headerLeftShown: false,
-    headerBackTitleVisible: false,
-    headerTitle: "Inventario",
-    headerRight: () => (
-      <View style={{ flexDirection: "row" }}>
-        <HeaderButtons HeaderButtonComponent={HeaderButton}>
-          <Item
-            title="Producto"
-            iconName={Platform.OS === "android" ? "plus-circle" : "plus-circle"}
-            onPress={() => {
-              navData.navigation.navigate("Scan");
-            }}
-          />
-        </HeaderButtons>
-      </View>
-    ),
-    headerLeft: () => (
-      <View style={{ flexDirection: "row" }}>
-        <HeaderButtons HeaderButtonComponent={HeaderButton2}>
-          <Item
-            title="Producto"
-            // iconColor={"black"}
-            iconName={
-              Platform.OS === "android" ? "settings-sharp" : "settings-sharp"
-            }
-            onPress={() => {
-              navData.navigation.navigate("Settings", {
-                StoreTitle: Tienda,
-              });
-            }}
-          />
-        </HeaderButtons>
-      </View>
-    ),
-  };
-};
+// HomeScreen.navigationOptions = (navData) => {
+//   const Tienda = navData.navigation.getParam("storeTitle");
+//   return {
+//     headerLeftShown: false,
+//     headerBackTitleVisible: false,
+//     headerTitle: "Inventario",
+//     headerRight: () => (
+//       <View style={{ flexDirection: "row" }}>
+//         <HeaderButtons HeaderButtonComponent={HeaderButton}>
+//           <Item
+//             title="Producto"
+//             iconName={Platform.OS === "android" ? "plus-circle" : "plus-circle"}
+//             onPress={() => {
+//               navData.navigation.navigate("Scan");
+//             }}
+//           />
+//         </HeaderButtons>
+//       </View>
+//     ),
+//     headerLeft: () => (
+//       <View style={{ flexDirection: "row" }}>
+//         <HeaderButtons HeaderButtonComponent={HeaderButton2}>
+//           <Item
+//             title="Producto"
+//             // iconColor={"black"}
+//             iconName={
+//               Platform.OS === "android" ? "settings-sharp" : "settings-sharp"
+//             }
+//             onPress={() => {
+//               navData.navigation.navigate("Settings", {
+//                 StoreTitle: Tienda,
+//               });
+//             }}
+//           />
+//         </HeaderButtons>
+//       </View>
+//     ),
+//   };
+// };
 
 export default HomeScreen;
 

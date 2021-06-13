@@ -59,7 +59,7 @@ const OrderItem = (props) => {
               onCheck={() => {
                 Alert.alert(
                   "Actualizar?",
-                  `${cartItem.productTitle} se actualizará menos ${cartItem.quantity} de su inventario.`,
+                  `${cartItem.productTitle}se actualizará menos ${cartItem.quantity} de su inventario.`,
                   [
                     {
                       text: "No",
@@ -67,11 +67,16 @@ const OrderItem = (props) => {
                     },
                     {
                       text: "Si",
-                      onPress: () => {
+                      onPress: async () => {
                         console.log("updating quantity test");
-                        dispatch(orderActions.orderQuantityUpdate(cartItem));
-                        dispatch(orderActions.updateChecked(id));
-                        refresh();
+                        await dispatch(
+                          orderActions.orderQuantityUpdate(cartItem)
+                        );
+                        await dispatch(orderActions.updateChecked(id)).then(
+                          () => {
+                            refresh();
+                          }
+                        );
                       },
                     },
                   ]

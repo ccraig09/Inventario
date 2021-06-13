@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Text, ActivityIndicator } from "react-native";
 import firebase from "../components/firebase";
 import * as ProdActions from "../store/productActions";
 
@@ -40,7 +40,8 @@ const LoadingScreen = (props) => {
 
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" />
+      <ActivityIndicator size="large" color={"red"} />
+      <Text>cargando</Text>
     </View>
   );
 };

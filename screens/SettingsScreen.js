@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -14,11 +14,13 @@ import { useSelector, useDispatch } from "react-redux";
 import { Avatar, Divider, Input, Button } from "react-native-elements";
 
 import * as authActions from "../store/authAction";
+import { AuthContext } from "../navigation/AuthProvider";
 
-const SettingsScreen = (props) => {
+const SettingsScreen = () => {
+  const { user, logout } = useContext(AuthContext);
   const [storeName, setStoreName] = useState();
   const dispatch = useDispatch();
-  const Tienda = props.navigation.getParam("StoreTitle");
+  // const Tienda = props.navigation.getParam("StoreTitle");
   const createdStoreName = useSelector((state) => state.storeName.storeName);
 
   useEffect(() => {
@@ -154,8 +156,7 @@ const SettingsScreen = (props) => {
                           text: "Si",
                           style: "destructive",
                           onPress: () => {
-                            dispatch(authActions.logout());
-                            props.navigation.navigate("Auth");
+                            logout();
                           },
                         },
                       ]);
@@ -171,12 +172,7 @@ const SettingsScreen = (props) => {
     </KeyboardAvoidingView>
   );
 };
-
-SettingsScreen.navigationOptions = (navData) => {
-  return {
-    headerTitle: "Configuraciones",
-  };
-};
+export default SettingsScreen;
 
 const styles = StyleSheet.create({
   screen: {
@@ -238,5 +234,3 @@ const styles = StyleSheet.create({
     // flex: 1,
   },
 });
-
-export default SettingsScreen;
