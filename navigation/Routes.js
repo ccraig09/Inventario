@@ -4,7 +4,7 @@ import firebase from "../components/firebase";
 import { AuthContext } from "./AuthProvider";
 
 import AuthStack from "./AuthStack";
-import FeedStack from "./AppStack";
+import AppStack from "./AppStack";
 
 const Routes = () => {
   const { user, setUser } = useContext(AuthContext);
@@ -24,7 +24,7 @@ const Routes = () => {
 
   return (
     <NavigationContainer>
-      {user ? <FeedStack /> : <AuthStack />}
+      {user ? <AppStack /> : <AuthStack />}
     </NavigationContainer>
   );
 };

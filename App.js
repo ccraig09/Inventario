@@ -10,12 +10,16 @@ import * as Font from "expo-font";
 import AppLoading from "expo-app-loading";
 import InventoryNavigator from "./navigation/InventoryNavigator";
 import Providers from "./navigation";
+import orderReducer from "./store/orders";
+import cartReducer from "./store/cartReducer";
 
 const rootReducer = combineReducers({
   products: productsReducer,
   availableProducts: createdProducts,
   auth: authReducer,
   storeName: storeName,
+  cart: cartReducer,
+  orders: orderReducer,
 });
 
 const store = createStore(rootReducer, applyMiddleware(ReduxThunk));

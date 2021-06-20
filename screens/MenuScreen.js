@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -25,14 +25,17 @@ import { Avatar, Divider, Input, Button } from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
 import InputSpinner from "react-native-input-spinner";
 import CategoryGridTile from "../components/CategoryGridTile";
+import { AuthContext } from "../navigation/AuthProvider";
+import firebase from "../components/firebase";
 
-import { BarCodeScanner } from "expo-barcode-scanner";
+
 import { TouchableWithoutFeedback } from "react-native";
 
 const MenuScreen = (props) => {
-  const [hasPermission, setHasPermission] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useContext(AuthContext);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [availableProducts, setAvailableProducts] = useState([])
   const [scanned, setScanned] = useState(false);
   const [scanner, setScanner] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -74,30 +77,104 @@ const MenuScreen = (props) => {
 
   const dispatch = useDispatch();
 
-  const userProducts = useSelector((state) => {
-    const transformedProducts = [];
-    for (const key in state.products.products) {
-      transformedProducts.push({
-        productId: key,
-        productTitle: state.products.products[key].Title,
-        productPrice: state.products.products[key].Price,
-        productCategory: state.products.products[key].Category,
-        productOwner: state.products.products[key].ownerId,
-        productQuantity: state.products.products[key].Quantity,
-        productSize: state.products.products[key].Size,
-        productBrand: state.products.products[key].Brand,
-        productTime: state.products.products[key].time,
-        productcode: state.products.products[key].Code,
-        docTitle: state.products.products[key].docTitle,
-      });
+  // const userProducts = useSelector((state) => {
+  //   const transformedProducts = [];
+  //   for (const key in state.products.products) {
+  //     transformedProducts.push({
+  //       productId: key,
+  //       productTitle: state.products.products[key].Title,
+  //       productPrice: state.products.products[key].Price,
+  //       productCategory: state.products.products[key].Category,
+  //       productOwner: state.products.products[key].ownerId,
+  //       productQuantity: state.products.products[key].Quantity,
+  //       productSize: state.products.products[key].Size,
+  //       productBrand: state.products.products[key].Brand,
+  //       productTime: state.products.products[key].time,
+  //       productcode: state.products.products[key].Code,
+  //       docTitle: state.products.products[key].docTitle,
+  //     });
+  //   }
+  //   return transformedProducts;
+  // });
+  // const Item = ({ title }) => (
+  //   <View style={styles.item}>
+  //     <Text style={styles.title}>{title}</Text>
+  //   </View>
+  // );
+
+  const fetchAvailableProducts = async () => {
+setIsRefreshing(true)
+    try {
+      const list = [];
+      await firebase
+        .firestore()
+        .collection("Products")
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const {
+              Product,
+              Quantity,
+              Category,
+              Price,
+              Brand,
+              code,
+              Size,
+            } = doc.data();
+            list.push({
+              productId: doc.id,
+               Product,
+               Price,
+               Category,
+               Quantity,
+               Size,
+               Brand,
+               code,
+            });
+          });
+        });
+      setAvailableProducts(list);
+      setIsRefreshing(false)
+    } catch (e) {
+      console.log(e);
     }
-    return transformedProducts;
-  });
-  const Item = ({ title }) => (
-    <View style={styles.item}>
-      <Text style={styles.title}>{title}</Text>
-    </View>
-  );
+  };
+
+  const startAvailableProducts = async () => {
+        try {
+          const list = [];
+          await firebase
+            .firestore()
+            .collection("Products")
+            .get()
+            .then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                const {
+                  Product,
+                  Quantity,
+                  Category,
+                  Price,
+                  Brand,
+                  code,
+                  Size,
+                } = doc.data();
+                list.push({
+                  productId: doc.id,
+                   Product,
+                   Price,
+                   Category,
+                   Quantity,
+                   Size,
+                   Brand,
+                   code,
+                });
+              });
+            });
+          setAvailableProducts(list);
+        } catch (e) {
+          console.log(e);
+        }
+      };
 
   let catArray = [
     "Embutidos",
@@ -117,30 +194,11 @@ const MenuScreen = (props) => {
   ];
   let catOptions = catArray.sort();
 
-  const availableProducts = useSelector(
-    (state) => state.availableProducts.availableProducts
-  );
-  const loadDetails = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      // await dispatch(ProdActions.fetchProducts());
-      await dispatch(ProdActions.fetchAvailableProducts());
-    } catch (err) {
-      setError(err.message);
-    }
 
-    setIsRefreshing(false);
-  });
-  useEffect(() => {
-    const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
-    return () => {
-      willFocusSub.remove();
-    };
-  }, [loadDetails]);
 
   useEffect(() => {
     setIsLoading(true);
-    dispatch(ProdActions.fetchAvailableProducts());
+    startAvailableProducts()
     setIsLoading(false);
   });
 
@@ -260,7 +318,7 @@ const MenuScreen = (props) => {
     // setTitle(true);
 
     setTimeout(() => {
-      loadDetails();
+      fetchAvailableProducts();
     }, 1000);
   };
 
@@ -325,7 +383,7 @@ const MenuScreen = (props) => {
       sendProduct.quantityUpdate(title, price, category, newQ, size, code)
     );
     setTimeout(() => {
-      loadDetails();
+      fetchAvailableProducts();
     }, 1000);
   };
 
@@ -382,21 +440,10 @@ const MenuScreen = (props) => {
       setError(err.message);
       console.log(error);
     }
-    loadDetails();
+    fetchAvailableProducts();
   };
 
-  const minusProduct = (Title, Price, Category, Quantity, Size, Code) => {
-    try {
-      console.log("subtracting product quantity");
-      dispatch(
-        sendProduct.subProducts(Title, Price, Category, Quantity, Size, Code)
-      );
-    } catch (err) {
-      setError(err.message);
-      console.log(error);
-    }
-    loadDetails();
-  };
+
 
   const continueScan = () => {
     setScanned(false);
@@ -924,7 +971,7 @@ const MenuScreen = (props) => {
         <SectionList
           refreshing={isRefreshing}
           onRefresh={() => {
-            loadDetails();
+            fetchAvailableProducts();
           }}
           sections={[
             {
@@ -1037,14 +1084,14 @@ const MenuScreen = (props) => {
               brand={item.Brand}
               code={item.code}
               reload={() => {
-                loadDetails();
+                fetchAvailableProducts();
               }}
             />
           )}
           renderSectionHeader={({ section }) => (
             <TouchableOpacity
               onPress={() => {
-                alert("pressed");
+                
               }}
             >
               <Text style={styles.sectionHeaderStyle}>{section.title}</Text>
@@ -1176,7 +1223,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   sectionHeaderStyle: {
-    backgroundColor: "silver",
+    backgroundColor: "#CBBDBD",
     fontSize: 25,
     fontWeight: "bold",
     padding: 5,

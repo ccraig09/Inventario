@@ -6,6 +6,7 @@ import {
   Image,
   Platform,
   StyleSheet,
+  ActivityIndicator,
   ScrollView,
 } from "react-native";
 import FormInput from "../components/FormInput";
@@ -15,6 +16,8 @@ import { AuthContext } from "../navigation/AuthProvider";
 // import { AuthContext } from "../navigation/AuthProvider";
 
 const LoginScreen = (props) => {
+  const [isLoading, setIsLoading] = useState(false);
+
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
 
@@ -42,13 +45,23 @@ const LoginScreen = (props) => {
         iconType="lock"
         secureTextEntry={true}
       />
+      <View style={{width: '100%'}}>
+      {isLoading ? (
+        <ActivityIndicator size="small"  />
+      ) : (
+        <FormButton
+          buttonTitle="Iniciar Sesión"
+          onPress={() =>(
+            setIsLoading(true), login(email, password))}
+        />
+      )
+        }
 
-      <FormButton
-        buttonTitle="Iniciar Sesión"
-        onPress={() => login(email, password)}
-      />
+      </View>
 
-      <TouchableOpacity style={styles.forgotButton} onPress={() => {}}>
+
+      <TouchableOpacity style={styles.forgotButton} onPress={() => props.navigation.navigate("Forgot")}
+>
         <Text style={styles.navButtonText}>Olvidé mi contranseña</Text>
       </TouchableOpacity>
 

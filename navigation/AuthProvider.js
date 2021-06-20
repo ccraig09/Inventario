@@ -1,4 +1,5 @@
 import React, { createContext, useState } from "react";
+import { Alert } from "react-native";
 import firebase from "../components/firebase";
 
 export const AuthContext = createContext();
@@ -33,6 +34,15 @@ export const AuthProvider = ({ children }) => {
             console.log(e);
           }
         },
+        forgotPassword: async (email) => {
+          try {
+            await firebase.auth().sendPasswordResetEmail(email);
+            Alert.alert('Correo Enviado')
+
+          }  catch (e) {
+            console.log(e);
+          }
+        }
       }}
     >
       {children}

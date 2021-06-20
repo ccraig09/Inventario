@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   Picker,
+  ScrollView,
   Modal,
   SectionList,
   TextInput,
@@ -19,6 +20,8 @@ import { useSelector, useDispatch } from "react-redux";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import XLSX from "xlsx";
+import SkeletonPlaceholder from "react-native-skeleton-placeholder";
+
 
 import * as sendProduct from "../store/productActions";
 import * as ProdActions from "../store/productActions";
@@ -36,7 +39,7 @@ import InputSpinner from "react-native-input-spinner";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { TouchableWithoutFeedback } from "react-native";
 
-const SelectScreen = (props) => {
+const SelectScreen = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [scanner, setScanner] = useState(false);
@@ -503,1325 +506,1380 @@ const SelectScreen = (props) => {
     setCode(Code);
   };
 
-  if (!scanner && !menu) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <View
-          style={{
-            // flex: 0.8,
-            // height: "80%",
-            marginBottom: 80,
-            justifyContent: "center",
-          }}
-        >
-          <Button
-            icon={{
-              // <Icon
-              iconStyle: styles.menuIcon,
-              name: "qr-code",
-              size: 25,
-              color: "white",
-              // />
-            }}
-            buttonStyle={styles.menuButton}
-            titleStyle={{
-              fontSize: 25,
-            }}
-            title="Scanner"
-            onPress={() => {
-              props.navigation.navigate("Scanner");
-            }}
-          />
-          <Button
-            icon={{
-              // <Icon
-              iconStyle: styles.menuIcon,
-              name: "list",
-              size: 25,
-              color: "white",
-              // />
-            }}
-            buttonStyle={styles.menuButton}
-            titleStyle={{
-              fontSize: 25,
-            }}
-            title="Catálogo"
-            onPress={() => {
-              props.navigation.navigate("Menu");
-            }}
-          />
-          <Button
-            icon={{
-              // <Icon
-              iconStyle: styles.menuIcon,
-              name: "print",
-              size: 25,
-              color: "white",
-              // />
-            }}
-            buttonStyle={styles.menuButton}
-            titleStyle={{
-              fontSize: 25,
-            }}
-            title="Exportar"
-            onPress={() => cell()}
-          />
-          <Button
-            icon={{
-              // <Icon
-              iconStyle: styles.menuIcon,
-              name: "shop",
-              size: 25,
-              color: "white",
-              // />
-            }}
-            buttonStyle={styles.menuButton}
-            titleStyle={{
-              fontSize: 25,
-            }}
-            title="Ventas"
-            onPress={() => {
-              props.navigation.navigate("Order");
-            }}
+
+
+
+  return (
+    <ScrollView style={{flex: 1}} contentContainerStyle={{alignItems: "center"}}>
+
+<SkeletonPlaceholder>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+        <View style={{ marginLeft: 20 }}>
+          <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+          <View
+            style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
           />
         </View>
-      </View>
+        </View>
+        <View style={{marginTop:10, marginBottom: 30}}>
+          <View style={{width: 300, height: 20, borderRadius:4}} />
+          <View style={{marginTop: 6, width: 350, height: 200, borderRadius:4}} />
+        </View>
+    </SkeletonPlaceholder>
+<SkeletonPlaceholder>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+        <View style={{ marginLeft: 20 }}>
+          <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+          <View
+            style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
+          />
+        </View>
+        </View>
+        <View style={{marginTop:10, marginBottom: 30}}>
+          <View style={{width: 300, height: 20, borderRadius:4}} />
+          <View style={{marginTop: 6, width: 350, height: 200, borderRadius:4}} />
+        </View>
+    </SkeletonPlaceholder>
+<SkeletonPlaceholder>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+        <View style={{ marginLeft: 20 }}>
+          <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+          <View
+            style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
+          />
+        </View>
+        </View>
+        <View style={{marginTop:10, marginBottom: 30}}>
+          <View style={{width: 300, height: 20, borderRadius:4}} />
+          <View style={{marginTop: 6, width: 350, height: 200, borderRadius:4}} />
+        </View>
+    </SkeletonPlaceholder>
+    </ScrollView>
     );
-  }
+}
 
-  //////////////////////////
-  //////////////////////////
-  //////////////////////////
-  //////////////////////////
-  if (searchScreen) {
-    return (
-      <View style={{ flex: 1 }}>
-        <View
-          style={{
-            // height: 50,
-            // flexDirection: "row",
-            justifyContent: "center",
-            alignItems: "center",
-            alignSelf: "center",
-            marginBottom: 15,
-          }}
-        >
-          <TouchableOpacity onPress={() => setSearchScreen(false)}>
-            <Text>Menu</Text>
-          </TouchableOpacity>
-          <View
-            style={{
-              flexDirection: "row",
-              marginBottom: 5,
-              marginTop: 25,
-              paddingHorizontal: 15,
-              justifyContent: "space-around",
-            }}
-          >
-            <TouchableOpacity
-              style={styles.menuOption}
-              onPress={() => {
-                setProductSelect(true);
-                setCategorySelect(false);
-                setBrandSelect(false);
-                setFilteredDataSource([]);
-              }}
-            >
-              {productSelect ? (
-                <AntDesign name="checkcircle" size={24} color="#FF4949" />
-              ) : (
-                <Entypo name="circle" size={24} color="#FF4949" />
-              )}
-              <Text style={styles.menuSearch}> Producto</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.menuOption}
-              onPress={() => {
-                setCategorySelect(true);
-                setProductSelect(false);
-                setBrandSelect(false);
-                setFilteredDataSource([]);
-              }}
-            >
-              {categorySelect ? (
-                <AntDesign name="checkcircle" size={24} color="#FF4949" />
-              ) : (
-                <Entypo name="circle" size={24} color="#FF4949" />
-              )}
-              <Text style={styles.menuSearch}> Categoria</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.menuOption}
-              onPress={() => {
-                setBrandSelect(true);
-                setCategorySelect(false);
-                setProductSelect(false);
-                setFilteredDataSource([]);
-              }}
-            >
-              {brandSelect ? (
-                <AntDesign name="checkcircle" size={24} color="#FF4949" />
-              ) : (
-                <Entypo name="circle" size={24} color="#FF4949" />
-              )}
-              <Text style={styles.menuSearch}> Marca</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.menuOption}
-              onPress={() => {
-                setBrandSelect(false);
-                setCategorySelect(false);
-                setProductSelect(true);
-                setSearch("");
-                setFilteredDataSource(userProducts);
-              }}
-            >
-              {/* <MaterialIcons name="clear" size={24} color="black" /> */}
-              {/* <Text style={styles.menuSearch}> Aclarar</Text> */}
-            </TouchableOpacity>
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                alignSelf: "center",
-                backgroundColor: "#fff",
-                borderWidth: 0.5,
-                borderColor: "#000",
-                height: 33,
-                borderRadius: 20,
-                margin: 10,
-                marginTop: 20,
-                padding: 5,
-                width: "80%",
-              }}
-            >
-              <TextInput
-                style={{ flex: 1 }}
-                onFocus={() => {
-                  setFocused(true);
-                  setFilteredDataSource(availableProducts);
-                  setMasterDataSource(availableProducts);
-                }}
-                clearButtonMode={"always"}
-                // onBlur={() => {
-                //   setFocused(false);
-                // }}
-                onChangeText={(text) => searchFilterFunction(text)}
-                value={search}
-                underlineColorAndroid="transparent"
-                placeholder="Buscar"
-              />
-            </View>
-          </View>
-        </View>
-        <View style={{ flex: 1, marginBottom: 30 }}>
-          <FlatList
-            refreshControl={
-              <RefreshControl
-                colors={["#FF4949", "#FF4949"]}
-                refreshing={isRefreshing}
-                onRefresh={() => {
-                  loadDetails();
-                }}
-              />
-            }
-            data={focused ? filteredDataSource : availableProducts}
-            numColumns={2}
-            columnWrapperStyle={{
-              flex: 1,
-              justifyContent: "space-between",
-            }}
-            keyExtractor={(item) => item.id}
-            renderItem={(itemData) => (
-              <CategoryGridTile
-                title={itemData.item.Product}
-                onSelect={() => {
-                  alert("pressed");
-                }}
-                size={itemData.item.Size}
-                price={itemData.item.Price}
-                category={itemData.item.Category}
-                brand={itemData.item.Brand}
-                code={itemData.item.code}
-                reload={() => {
-                  loadDetails();
-                }}
-              />
-            )}
-          />
-        </View>
-      </View>
-    );
-  }
+//   if (!scanner && !menu) {
+//     return (
+//       <View
+//         style={{
+//           flex: 1,
+//           justifyContent: "center",
+//           alignItems: "center",
+//         }}
+//       >
+//         <View
+//           style={{
+//             // flex: 0.8,
+//             // height: "80%",
+//             marginBottom: 80,
+//             justifyContent: "center",
+//           }}
+//         >
+//           <Button
+//             icon={{
+//               // <Icon
+//               iconStyle: styles.menuIcon,
+//               name: "qr-code",
+//               size: 25,
+//               color: "white",
+//               // />
+//             }}
+//             buttonStyle={styles.menuButton}
+//             titleStyle={{
+//               fontSize: 25,
+//             }}
+//             title="Scanner"
+//             onPress={() => {
+//               navigation.navigate("Scanner");
+//             }}
+//           />
+//           <Button
+//             icon={{
+//               // <Icon
+//               iconStyle: styles.menuIcon,
+//               name: "list",
+//               size: 25,
+//               color: "white",
+//               // />
+//             }}
+//             buttonStyle={styles.menuButton}
+//             titleStyle={{
+//               fontSize: 25,
+//             }}
+//             title="Catálogo"
+//             onPress={() => {
+//               navigation.navigate("Menu");
+//             }}
+//           />
+//           <Button
+//             icon={{
+//               // <Icon
+//               iconStyle: styles.menuIcon,
+//               name: "print",
+//               size: 25,
+//               color: "white",
+//               // />
+//             }}
+//             buttonStyle={styles.menuButton}
+//             titleStyle={{
+//               fontSize: 25,
+//             }}
+//             title="Exportar"
+//             onPress={() => cell()}
+//           />
+//           <Button
+//             icon={{
+//               // <Icon
+//               iconStyle: styles.menuIcon,
+//               name: "shop",
+//               size: 25,
+//               color: "white",
+//               // />
+//             }}
+//             buttonStyle={styles.menuButton}
+//             titleStyle={{
+//               fontSize: 25,
+//             }}
+//             title="Ventas"
+//             onPress={() => {
+//               props.navigation.navigate("Order");
+//             }}
+//           />
+//         </View>
+//       </View>
+//     );
+//   }
 
-  if (menu) {
-    return (
-      <View
-        style={{
-          flex: 1,
-        }}
-      >
-        <TouchableOpacity onPress={() => setMenu(false)}>
-          <Text>Menu</Text>
-        </TouchableOpacity>
-        <View
-          style={{
-            flexDirection: "row",
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "center",
-              alignItems: "center",
-              alignSelf: "center",
-              backgroundColor: "#fff",
-              borderWidth: 0.5,
-              borderColor: "#000",
-              height: 33,
-              borderRadius: 20,
-              margin: 11,
-              marginTop: 20,
-              padding: 5,
-              width: "80%",
-            }}
-          >
-            <TextInput
-              style={{ flex: 1 }}
-              onFocus={() => {
-                setSearchScreen(true);
-                // setFocused(true);
-                // setFilteredDataSource(availableProducts);
-                // setMasterDataSource(availableProducts);
-              }}
-              // clearButtonMode={"always"}
-              // onBlur={() => {
-              //   setFocused(false);
-              // }}
-              // onChangeText={(text) => searchFilterFunction(text)}
-              // value={search}
-              // underlineColorAndroid="transparent"
-              placeholder="Buscar"
-            />
-          </View>
-          <View
-            style={{
-              justifyContent: "center",
-              alignItems: "center",
-              alignSelf: "center",
-            }}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                codePrompt();
-              }}
-            >
-              <FontAwesome name="plus-circle" size={35} color="#FF4949" />
-            </TouchableOpacity>
-          </View>
-        </View>
+//   //////////////////////////
+//   //////////////////////////
+//   //////////////////////////
+//   //////////////////////////
+//   if (searchScreen) {
+//     return (
+//       <View style={{ flex: 1 }}>
+//         <View
+//           style={{
+//             // height: 50,
+//             // flexDirection: "row",
+//             justifyContent: "center",
+//             alignItems: "center",
+//             alignSelf: "center",
+//             marginBottom: 15,
+//           }}
+//         >
+//           <TouchableOpacity onPress={() => setSearchScreen(false)}>
+//             <Text>Menu</Text>
+//           </TouchableOpacity>
+//           <View
+//             style={{
+//               flexDirection: "row",
+//               marginBottom: 5,
+//               marginTop: 25,
+//               paddingHorizontal: 15,
+//               justifyContent: "space-around",
+//             }}
+//           >
+//             <TouchableOpacity
+//               style={styles.menuOption}
+//               onPress={() => {
+//                 setProductSelect(true);
+//                 setCategorySelect(false);
+//                 setBrandSelect(false);
+//                 setFilteredDataSource([]);
+//               }}
+//             >
+//               {productSelect ? (
+//                 <AntDesign name="checkcircle" size={24} color="#FF4949" />
+//               ) : (
+//                 <Entypo name="circle" size={24} color="#FF4949" />
+//               )}
+//               <Text style={styles.menuSearch}> Producto</Text>
+//             </TouchableOpacity>
+//             <TouchableOpacity
+//               style={styles.menuOption}
+//               onPress={() => {
+//                 setCategorySelect(true);
+//                 setProductSelect(false);
+//                 setBrandSelect(false);
+//                 setFilteredDataSource([]);
+//               }}
+//             >
+//               {categorySelect ? (
+//                 <AntDesign name="checkcircle" size={24} color="#FF4949" />
+//               ) : (
+//                 <Entypo name="circle" size={24} color="#FF4949" />
+//               )}
+//               <Text style={styles.menuSearch}> Categoria</Text>
+//             </TouchableOpacity>
+//             <TouchableOpacity
+//               style={styles.menuOption}
+//               onPress={() => {
+//                 setBrandSelect(true);
+//                 setCategorySelect(false);
+//                 setProductSelect(false);
+//                 setFilteredDataSource([]);
+//               }}
+//             >
+//               {brandSelect ? (
+//                 <AntDesign name="checkcircle" size={24} color="#FF4949" />
+//               ) : (
+//                 <Entypo name="circle" size={24} color="#FF4949" />
+//               )}
+//               <Text style={styles.menuSearch}> Marca</Text>
+//             </TouchableOpacity>
+//             <TouchableOpacity
+//               style={styles.menuOption}
+//               onPress={() => {
+//                 setBrandSelect(false);
+//                 setCategorySelect(false);
+//                 setProductSelect(true);
+//                 setSearch("");
+//                 setFilteredDataSource(userProducts);
+//               }}
+//             >
+//               {/* <MaterialIcons name="clear" size={24} color="black" /> */}
+//               {/* <Text style={styles.menuSearch}> Aclarar</Text> */}
+//             </TouchableOpacity>
+//           </View>
+//           <View
+//             style={{
+//               flexDirection: "row",
+//             }}
+//           >
+//             <View
+//               style={{
+//                 flexDirection: "row",
+//                 justifyContent: "center",
+//                 alignItems: "center",
+//                 alignSelf: "center",
+//                 backgroundColor: "#fff",
+//                 borderWidth: 0.5,
+//                 borderColor: "#000",
+//                 height: 33,
+//                 borderRadius: 20,
+//                 margin: 10,
+//                 marginTop: 20,
+//                 padding: 5,
+//                 width: "80%",
+//               }}
+//             >
+//               <TextInput
+//                 style={{ flex: 1 }}
+//                 onFocus={() => {
+//                   setFocused(true);
+//                   setFilteredDataSource(availableProducts);
+//                   setMasterDataSource(availableProducts);
+//                 }}
+//                 clearButtonMode={"always"}
+//                 // onBlur={() => {
+//                 //   setFocused(false);
+//                 // }}
+//                 onChangeText={(text) => searchFilterFunction(text)}
+//                 value={search}
+//                 underlineColorAndroid="transparent"
+//                 placeholder="Buscar"
+//               />
+//             </View>
+//           </View>
+//         </View>
+//         <View style={{ flex: 1, marginBottom: 30 }}>
+//           <FlatList
+//             refreshControl={
+//               <RefreshControl
+//                 colors={["#FF4949", "#FF4949"]}
+//                 refreshing={isRefreshing}
+//                 onRefresh={() => {
+//                   loadDetails();
+//                 }}
+//               />
+//             }
+//             data={focused ? filteredDataSource : availableProducts}
+//             numColumns={2}
+//             columnWrapperStyle={{
+//               flex: 1,
+//               justifyContent: "space-between",
+//             }}
+//             keyExtractor={(item) => item.id}
+//             renderItem={(itemData) => (
+//               <CategoryGridTile
+//                 title={itemData.item.Product}
+//                 onSelect={() => {
+//                   alert("pressed");
+//                 }}
+//                 size={itemData.item.Size}
+//                 price={itemData.item.Price}
+//                 category={itemData.item.Category}
+//                 brand={itemData.item.Brand}
+//                 code={itemData.item.code}
+//                 reload={() => {
+//                   loadDetails();
+//                 }}
+//               />
+//             )}
+//           />
+//         </View>
+//       </View>
+//     );
+//   }
 
-        <KeyboardAvoidingView
-          style={
-            {
-              // flex: 1,
-            }
-          }
-          behavior={Platform.OS === "android" ? "padding" : "position"}
-          keyboardVerticalOffset={-80}
-          // style={styles.screen}
-        >
-          <View>
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={manualAdd}
-              // onRequestClose={() => {
-              //   Alert.alert("Modal has been closed.");
-              // }}
-            >
-              <TouchableWithoutFeedback
-                onPress={() => {
-                  Keyboard.dismiss();
-                }}
-              >
-                <View style={styles.centeredView}>
-                  <View style={styles.modalView}>
-                    <View>
-                      <Text style={styles.modalTitle}>Nuevo Producto</Text>
-                      <View>
-                        <TextInput
-                          style={styles.textInputStyle}
-                          placeholder="Producto"
-                          value={newProduct}
-                          onChangeText={(name) => {
-                            setNewProduct(name);
-                          }}
-                        />
-                        <TextInput
-                          style={styles.textInputStyle}
-                          placeholder="Marca"
-                          value={newBrand}
-                          onChangeText={(brand) => {
-                            setNewBrand(brand);
-                          }}
-                        />
-                        <TextInput
-                          style={styles.textInputStyle}
-                          keyboardType="numeric"
-                          placeholder="Precio"
-                          value={newPrice}
-                          onChangeText={(price) => {
-                            setNewPrice(price);
-                          }}
-                        />
-                        <TextInput
-                          style={styles.textInputStyle}
-                          placeholder="Tomaño"
-                          value={newSize}
-                          onChangeText={(size) => {
-                            setNewSize(size);
-                          }}
-                        />
-                        <View>
-                          <Text style={styles.modalText}>
-                            Categoria: {newCategory}
-                          </Text>
-                        </View>
+//   if (menu) {
+//     return (
+//       <View
+//         style={{
+//           flex: 1,
+//         }}
+//       >
+//         <TouchableOpacity onPress={() => setMenu(false)}>
+//           <Text>Menu</Text>
+//         </TouchableOpacity>
+//         <View
+//           style={{
+//             flexDirection: "row",
+//           }}
+//         >
+//           <View
+//             style={{
+//               flexDirection: "row",
+//               justifyContent: "center",
+//               alignItems: "center",
+//               alignSelf: "center",
+//               backgroundColor: "#fff",
+//               borderWidth: 0.5,
+//               borderColor: "#000",
+//               height: 33,
+//               borderRadius: 20,
+//               margin: 11,
+//               marginTop: 20,
+//               padding: 5,
+//               width: "80%",
+//             }}
+//           >
+//             <TextInput
+//               style={{ flex: 1 }}
+//               onFocus={() => {
+//                 setSearchScreen(true);
+//                 // setFocused(true);
+//                 // setFilteredDataSource(availableProducts);
+//                 // setMasterDataSource(availableProducts);
+//               }}
+//               // clearButtonMode={"always"}
+//               // onBlur={() => {
+//               //   setFocused(false);
+//               // }}
+//               // onChangeText={(text) => searchFilterFunction(text)}
+//               // value={search}
+//               // underlineColorAndroid="transparent"
+//               placeholder="Buscar"
+//             />
+//           </View>
+//           <View
+//             style={{
+//               justifyContent: "center",
+//               alignItems: "center",
+//               alignSelf: "center",
+//             }}
+//           >
+//             <TouchableOpacity
+//               onPress={() => {
+//                 codePrompt();
+//               }}
+//             >
+//               <FontAwesome name="plus-circle" size={35} color="#FF4949" />
+//             </TouchableOpacity>
+//           </View>
+//         </View>
 
-                        <TouchableOpacity
-                          style={{
-                            ...styles.openButton,
-                            backgroundColor: "#A251F9",
-                            marginBottom: 7,
-                          }}
-                          onPress={() => {
-                            setPicker(true);
-                          }}
-                        >
-                          <Text style={styles.textStyle}>Categoria</Text>
-                          {/* this is for manual add */}
-                        </TouchableOpacity>
-                        <Modal
-                          animationType="slide"
-                          transparent={true}
-                          visible={picker}
-                          // onRequestClose={() => {
-                          //   Alert.alert("Modal has been closed.");
-                          // }}
-                        >
-                          <View style={styles.centeredView}>
-                            <View style={styles.modalView}>
-                              <Picker
-                                selectedValue={picked}
-                                mode="dropdown"
-                                style={{
-                                  height: 30,
-                                  marginTop: 20,
-                                  marginBottom: 30,
-                                  width: "100%",
-                                  justifyContent: "center",
-                                }}
-                                itemStyle={{ fontSize: 16 }}
-                                onValueChange={(itemValue) =>
-                                  setPicked(itemValue)
-                                }
-                              >
-                                {catOptions.map((item, index) => {
-                                  return (
-                                    <Picker.Item
-                                      label={item}
-                                      value={item}
-                                      key={index}
-                                    />
-                                  );
-                                })}
-                              </Picker>
-                              <TouchableOpacity
-                                style={{
-                                  ...styles.openButton,
-                                  backgroundColor: "pink",
-                                  marginTop: 45,
-                                }}
-                                onPress={() => {
-                                  setNewCategory(picked);
-                                  setPicker(false);
-                                }}
-                              >
-                                <Text style={styles.textStyle}>Guardar</Text>
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                        </Modal>
+//         <KeyboardAvoidingView
+//           style={
+//             {
+//               // flex: 1,
+//             }
+//           }
+//           behavior={Platform.OS === "android" ? "padding" : "position"}
+//           keyboardVerticalOffset={-80}
+//           // style={styles.screen}
+//         >
+//           <View>
+//             <Modal
+//               animationType="slide"
+//               transparent={true}
+//               visible={manualAdd}
+//               // onRequestClose={() => {
+//               //   Alert.alert("Modal has been closed.");
+//               // }}
+//             >
+//               <TouchableWithoutFeedback
+//                 onPress={() => {
+//                   Keyboard.dismiss();
+//                 }}
+//               >
+//                 <View style={styles.centeredView}>
+//                   <View style={styles.modalView}>
+//                     <View>
+//                       <Text style={styles.modalTitle}>Nuevo Producto</Text>
+//                       <View>
+//                         <TextInput
+//                           style={styles.textInputStyle}
+//                           placeholder="Producto"
+//                           value={newProduct}
+//                           onChangeText={(name) => {
+//                             setNewProduct(name);
+//                           }}
+//                         />
+//                         <TextInput
+//                           style={styles.textInputStyle}
+//                           placeholder="Marca"
+//                           value={newBrand}
+//                           onChangeText={(brand) => {
+//                             setNewBrand(brand);
+//                           }}
+//                         />
+//                         <TextInput
+//                           style={styles.textInputStyle}
+//                           keyboardType="numeric"
+//                           placeholder="Precio"
+//                           value={newPrice}
+//                           onChangeText={(price) => {
+//                             setNewPrice(price);
+//                           }}
+//                         />
+//                         <TextInput
+//                           style={styles.textInputStyle}
+//                           placeholder="Tomaño"
+//                           value={newSize}
+//                           onChangeText={(size) => {
+//                             setNewSize(size);
+//                           }}
+//                         />
+//                         <View>
+//                           <Text style={styles.modalText}>
+//                             Categoria: {newCategory}
+//                           </Text>
+//                         </View>
 
-                        {hasCode && (
-                          <TextInput
-                            style={styles.textInputStyle}
-                            keyboardType="numeric"
-                            placeholder="Código de barras"
-                            value={code}
-                            onChangeText={(codigo) => {
-                              setCode(codigo);
-                            }}
-                          />
-                        )}
-                      </View>
-                    </View>
+//                         <TouchableOpacity
+//                           style={{
+//                             ...styles.openButton,
+//                             backgroundColor: "#A251F9",
+//                             marginBottom: 7,
+//                           }}
+//                           onPress={() => {
+//                             setPicker(true);
+//                           }}
+//                         >
+//                           <Text style={styles.textStyle}>Categoria</Text>
+//                           {/* this is for manual add */}
+//                         </TouchableOpacity>
+//                         <Modal
+//                           animationType="slide"
+//                           transparent={true}
+//                           visible={picker}
+//                           // onRequestClose={() => {
+//                           //   Alert.alert("Modal has been closed.");
+//                           // }}
+//                         >
+//                           <View style={styles.centeredView}>
+//                             <View style={styles.modalView}>
+//                               <Picker
+//                                 selectedValue={picked}
+//                                 mode="dropdown"
+//                                 style={{
+//                                   height: 30,
+//                                   marginTop: 20,
+//                                   marginBottom: 30,
+//                                   width: "100%",
+//                                   justifyContent: "center",
+//                                 }}
+//                                 itemStyle={{ fontSize: 16 }}
+//                                 onValueChange={(itemValue) =>
+//                                   setPicked(itemValue)
+//                                 }
+//                               >
+//                                 {catOptions.map((item, index) => {
+//                                   return (
+//                                     <Picker.Item
+//                                       label={item}
+//                                       value={item}
+//                                       key={index}
+//                                     />
+//                                   );
+//                                 })}
+//                               </Picker>
+//                               <TouchableOpacity
+//                                 style={{
+//                                   ...styles.openButton,
+//                                   backgroundColor: "pink",
+//                                   marginTop: 45,
+//                                 }}
+//                                 onPress={() => {
+//                                   setNewCategory(picked);
+//                                   setPicker(false);
+//                                 }}
+//                               >
+//                                 <Text style={styles.textStyle}>Guardar</Text>
+//                               </TouchableOpacity>
+//                             </View>
+//                           </View>
+//                         </Modal>
 
-                    {/* <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Text style={styles.modalTextCode}>Codigo: </Text>
-                      <Text style={styles.modalTextCodigo}>{code}</Text>
-                    </View> */}
-                    {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
-                    {/* </View> */}
-                    {/* //////////////////
-//////////////////
-//////////////////
-////////////////// */}
-                    {/* {title && (
-                      <View
-                        style={{
-                          margin: 10,
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Text style={styles.quantitySelect}>
-                          (Opcional) Entrar cantidad
-                        </Text>
+//                         {hasCode && (
+//                           <TextInput
+//                             style={styles.textInputStyle}
+//                             keyboardType="numeric"
+//                             placeholder="Código de barras"
+//                             value={code}
+//                             onChangeText={(codigo) => {
+//                               setCode(codigo);
+//                             }}
+//                           />
+//                         )}
+//                       </View>
+//                     </View>
 
-                        <InputSpinner
-                          max={10000}
-                          min={0}
-                          step={1}
-                          fontSize={20}
-                          onMax={(max) => {
-                            Alert.alert(
-                              "llego al Maximo",
-                              "El maximo seria 1000"
-                            );
-                          }}
-                          colorMax={"red"}
-                          colorMin={"green"}
-                          colorLeft={"red"}
-                          colorRight={"blue"}
-                          value={quantity}
-                          onChange={(num) => {
-                            if (num === quantity) {
-                              null;
-                            } else {
-                              setNewQ(num);
-                            }
-                          }}
-                        />
-                      </View>
-                    )} */}
+//                     {/* <View
+//                       style={{
+//                         flexDirection: "row",
+//                         justifyContent: "space-between",
+//                       }}
+//                     >
+//                       <Text style={styles.modalTextCode}>Codigo: </Text>
+//                       <Text style={styles.modalTextCodigo}>{code}</Text>
+//                     </View> */}
+//                     {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
+//                     {/* </View> */}
+//                     {/* //////////////////
+// //////////////////
+// //////////////////
+// ////////////////// */}
+//                     {/* {title && (
+//                       <View
+//                         style={{
+//                           margin: 10,
+//                           justifyContent: "center",
+//                           alignItems: "center",
+//                         }}
+//                       >
+//                         <Text style={styles.quantitySelect}>
+//                           (Opcional) Entrar cantidad
+//                         </Text>
 
-                    <View
-                      style={{
-                        width: "100%",
-                        flexDirection: "row",
-                        justifyContent: "space-around",
-                      }}
-                    >
-                      <TouchableOpacity
-                        style={{
-                          ...styles.openButton,
-                          backgroundColor: "green",
-                        }}
-                        onPress={() => {
-                          setManualAdd(!manualAdd);
-                          // props.navigation.navigate("Home"),
-                          setScanned(false);
-                        }}
-                      >
-                        <Text style={styles.textStyle}>Volver</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={{
-                          ...styles.openButton,
-                          backgroundColor: "#2196F3",
-                        }}
-                        onPress={() => {
-                          if (newMode) {
-                            newEntry();
-                            console.log("theres a new product", newProduct);
-                            continueScan();
-                          }
-                          if (loadedMode) {
-                            console.log("NEW PRODUCT ADDED now for inventory");
-                            newInvProd();
-                            setModalVisible(!modalVisible);
-                            continueScan();
-                          }
-                          if (title) {
-                            console.log(
-                              "not adding a new product just to the inventory"
-                            );
-                            quantityUpdateHandler();
-                            setModalVisible(!modalVisible);
-                            continueScan();
-                          }
-                        }}
-                      >
-                        <Text style={styles.textStyle}>Guardar</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </Modal>
-          </View>
-        </KeyboardAvoidingView>
+//                         <InputSpinner
+//                           max={10000}
+//                           min={0}
+//                           step={1}
+//                           fontSize={20}
+//                           onMax={(max) => {
+//                             Alert.alert(
+//                               "llego al Maximo",
+//                               "El maximo seria 1000"
+//                             );
+//                           }}
+//                           colorMax={"red"}
+//                           colorMin={"green"}
+//                           colorLeft={"red"}
+//                           colorRight={"blue"}
+//                           value={quantity}
+//                           onChange={(num) => {
+//                             if (num === quantity) {
+//                               null;
+//                             } else {
+//                               setNewQ(num);
+//                             }
+//                           }}
+//                         />
+//                       </View>
+//                     )} */}
 
-        <KeyboardAvoidingView
-          style={
-            {
-              // flex: 1,
-            }
-          }
-          behavior={Platform.OS === "android" ? "padding" : "position"}
-          keyboardVerticalOffset={-80}
-          // style={styles.screen}
-        >
-          <View>
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={loadedModal}
-              // onRequestClose={() => {
-              //   Alert.alert("Modal has been closed.");
-              // }}
-            >
-              <TouchableWithoutFeedback
-                onPress={() => {
-                  Keyboard.dismiss();
-                }}
-              >
-                <View style={styles.centeredView}>
-                  <View style={styles.modalView}>
-                    <View>
-                      <Text style={styles.modalTitle}>Editar Producto:</Text>
-                      <Text style={styles.modalHead}>{title}</Text>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Marca: </Text>
-                        <Text style={styles.modalText}>{brand}</Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Precio: </Text>
-                        <Text style={styles.modalText}>${price}bs</Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Tamaño: </Text>
-                        <Text style={styles.modalText}>{size}</Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Categoria: </Text>
-                        <Text style={styles.modalText}>{category}</Text>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Cantidad Total: </Text>
-                        <Text style={styles.modalText}>{quantity}</Text>
-                      </View>
-                    </View>
+//                     <View
+//                       style={{
+//                         width: "100%",
+//                         flexDirection: "row",
+//                         justifyContent: "space-around",
+//                       }}
+//                     >
+//                       <TouchableOpacity
+//                         style={{
+//                           ...styles.openButton,
+//                           backgroundColor: "green",
+//                         }}
+//                         onPress={() => {
+//                           setManualAdd(!manualAdd);
+//                           // props.navigation.navigate("Home"),
+//                           setScanned(false);
+//                         }}
+//                       >
+//                         <Text style={styles.textStyle}>Volver</Text>
+//                       </TouchableOpacity>
+//                       <TouchableOpacity
+//                         style={{
+//                           ...styles.openButton,
+//                           backgroundColor: "#2196F3",
+//                         }}
+//                         onPress={() => {
+//                           if (newMode) {
+//                             newEntry();
+//                             console.log("theres a new product", newProduct);
+//                             continueScan();
+//                           }
+//                           if (loadedMode) {
+//                             console.log("NEW PRODUCT ADDED now for inventory");
+//                             newInvProd();
+//                             setModalVisible(!modalVisible);
+//                             continueScan();
+//                           }
+//                           if (title) {
+//                             console.log(
+//                               "not adding a new product just to the inventory"
+//                             );
+//                             quantityUpdateHandler();
+//                             setModalVisible(!modalVisible);
+//                             continueScan();
+//                           }
+//                         }}
+//                       >
+//                         <Text style={styles.textStyle}>Guardar</Text>
+//                       </TouchableOpacity>
+//                     </View>
+//                   </View>
+//                 </View>
+//               </TouchableWithoutFeedback>
+//             </Modal>
+//           </View>
+//         </KeyboardAvoidingView>
 
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Text style={styles.modalTextCode}>Codigo: </Text>
-                      <Text style={styles.modalTextCodigo}>{code}</Text>
-                    </View>
+//         <KeyboardAvoidingView
+//           style={
+//             {
+//               // flex: 1,
+//             }
+//           }
+//           behavior={Platform.OS === "android" ? "padding" : "position"}
+//           keyboardVerticalOffset={-80}
+//           // style={styles.screen}
+//         >
+//           <View>
+//             <Modal
+//               animationType="slide"
+//               transparent={true}
+//               visible={loadedModal}
+//               // onRequestClose={() => {
+//               //   Alert.alert("Modal has been closed.");
+//               // }}
+//             >
+//               <TouchableWithoutFeedback
+//                 onPress={() => {
+//                   Keyboard.dismiss();
+//                 }}
+//               >
+//                 <View style={styles.centeredView}>
+//                   <View style={styles.modalView}>
+//                     <View>
+//                       <Text style={styles.modalTitle}>Editar Producto:</Text>
+//                       <Text style={styles.modalHead}>{title}</Text>
+//                       <View
+//                         style={{
+//                           flexDirection: "row",
+//                           justifyContent: "space-between",
+//                         }}
+//                       >
+//                         <Text style={styles.modalText}>Marca: </Text>
+//                         <Text style={styles.modalText}>{brand}</Text>
+//                       </View>
+//                       <View
+//                         style={{
+//                           flexDirection: "row",
+//                           justifyContent: "space-between",
+//                         }}
+//                       >
+//                         <Text style={styles.modalText}>Precio: </Text>
+//                         <Text style={styles.modalText}>${price}bs</Text>
+//                       </View>
+//                       <View
+//                         style={{
+//                           flexDirection: "row",
+//                           justifyContent: "space-between",
+//                         }}
+//                       >
+//                         <Text style={styles.modalText}>Tamaño: </Text>
+//                         <Text style={styles.modalText}>{size}</Text>
+//                       </View>
+//                       <View
+//                         style={{
+//                           flexDirection: "row",
+//                           justifyContent: "space-between",
+//                         }}
+//                       >
+//                         <Text style={styles.modalText}>Categoria: </Text>
+//                         <Text style={styles.modalText}>{category}</Text>
+//                       </View>
+//                       <View
+//                         style={{
+//                           flexDirection: "row",
+//                           justifyContent: "space-between",
+//                         }}
+//                       >
+//                         <Text style={styles.modalText}>Cantidad Total: </Text>
+//                         <Text style={styles.modalText}>{quantity}</Text>
+//                       </View>
+//                     </View>
 
-                    <View
-                      style={{
-                        margin: 10,
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={styles.quantitySelect}>
-                        (Opcional) Entrar cantidad
-                      </Text>
+//                     <View
+//                       style={{
+//                         flexDirection: "row",
+//                         justifyContent: "space-between",
+//                       }}
+//                     >
+//                       <Text style={styles.modalTextCode}>Codigo: </Text>
+//                       <Text style={styles.modalTextCodigo}>{code}</Text>
+//                     </View>
 
-                      <InputSpinner
-                        max={10000}
-                        min={0}
-                        step={1}
-                        fontSize={20}
-                        onMax={(max) => {
-                          Alert.alert(
-                            "llego al Maximo",
-                            "El maximo seria 1000"
-                          );
-                        }}
-                        colorMax={"red"}
-                        colorMin={"green"}
-                        colorLeft={"red"}
-                        colorRight={"blue"}
-                        value={quantity}
-                        onChange={(num) => {
-                          if (num === quantity) {
-                            null;
-                          } else {
-                            setNewQ(num);
-                          }
-                        }}
-                      />
-                    </View>
+//                     <View
+//                       style={{
+//                         margin: 10,
+//                         justifyContent: "center",
+//                         alignItems: "center",
+//                       }}
+//                     >
+//                       <Text style={styles.quantitySelect}>
+//                         (Opcional) Entrar cantidad
+//                       </Text>
 
-                    <View
-                      style={{
-                        width: "100%",
-                        flexDirection: "row",
-                        justifyContent: "space-around",
-                      }}
-                    >
-                      <TouchableOpacity
-                        style={{
-                          ...styles.openButton,
-                          backgroundColor: "green",
-                        }}
-                        onPress={() => {
-                          setLoadedModal(false);
-                          // props.navigation.navigate("Home"),
-                          setScanned(false);
-                        }}
-                      >
-                        <Text style={styles.textStyle}>Volver</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={{
-                          ...styles.openButton,
-                          backgroundColor: "#2196F3",
-                        }}
-                        onPress={() => {
-                          if (newMode) {
-                            newEntry();
-                            console.log("theres a new product", newProduct);
-                            continueScan();
-                          }
-                          if (loadedMode) {
-                            console.log("NEW PRODUCT ADDED now for inventory");
-                            newInvProd();
-                            setModalVisible(!modalVisible);
-                            continueScan();
-                          }
-                          if (title) {
-                            console.log(
-                              "not adding a new product just to the inventory"
-                            );
-                            quantityUpdateHandler();
-                            setModalVisible(!modalVisible);
-                            continueScan();
-                          }
-                        }}
-                      >
-                        <Text style={styles.textStyle}>Guardar</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </Modal>
-          </View>
-        </KeyboardAvoidingView>
+//                       <InputSpinner
+//                         max={10000}
+//                         min={0}
+//                         step={1}
+//                         fontSize={20}
+//                         onMax={(max) => {
+//                           Alert.alert(
+//                             "llego al Maximo",
+//                             "El maximo seria 1000"
+//                           );
+//                         }}
+//                         colorMax={"red"}
+//                         colorMin={"green"}
+//                         colorLeft={"red"}
+//                         colorRight={"blue"}
+//                         value={quantity}
+//                         onChange={(num) => {
+//                           if (num === quantity) {
+//                             null;
+//                           } else {
+//                             setNewQ(num);
+//                           }
+//                         }}
+//                       />
+//                     </View>
 
-        <View style={{ flex: 1, marginBottom: 30 }}>
-          <SectionList
-            refreshing={isRefreshing}
-            onRefresh={() => {
-              loadDetails();
-            }}
-            sections={[
-              {
-                title: catOptions[0],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[0]
-                ),
-              },
-              {
-                title: catOptions[1],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[1]
-                ),
-              },
-              {
-                title: catOptions[2],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[2]
-                ),
-              },
-              {
-                title: catOptions[3],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[3]
-                ),
-              },
-              {
-                title: catOptions[4],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[4]
-                ),
-              },
-              {
-                title: catOptions[5],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[5]
-                ),
-              },
-              {
-                title: catOptions[6],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[6]
-                ),
-              },
-              {
-                title: catOptions[7],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[7]
-                ),
-              },
-              {
-                title: catOptions[8],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[8]
-                ),
-              },
-              {
-                title: catOptions[9],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[9]
-                ),
-              },
-              {
-                title: catOptions[10],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[10]
-                ),
-              },
-              {
-                title: catOptions[11],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[11]
-                ),
-              },
-              {
-                title: catOptions[12],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[12]
-                ),
-              },
-              {
-                title: catOptions[13],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[13]
-                ),
-              },
-              {
-                title: catOptions[14],
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[14]
-                ),
-              },
-              {
-                title: "Sin Categoria",
-                data: availableProducts.filter(
-                  (cat) => cat.Category === catOptions[-1]
-                ),
-              },
-            ]}
-            keyExtractor={(item, index) => item + index}
-            stickySectionHeadersEnabled={true}
-            // keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <CategoryGridTile
-                title={item.Product}
-                size={item.Size}
-                price={item.Price}
-                category={item.Category}
-                quantity={item.Quantity}
-                brand={item.Brand}
-                code={item.code}
-                reload={() => {
-                  loadDetails();
-                }}
-              />
-            )}
-            renderSectionHeader={({ section }) => (
-              <TouchableOpacity
-                onPress={() => {
-                  alert("pressed");
-                }}
-              >
-                <Text style={styles.sectionHeaderStyle}>{section.title}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      </View>
-    );
-  }
+//                     <View
+//                       style={{
+//                         width: "100%",
+//                         flexDirection: "row",
+//                         justifyContent: "space-around",
+//                       }}
+//                     >
+//                       <TouchableOpacity
+//                         style={{
+//                           ...styles.openButton,
+//                           backgroundColor: "green",
+//                         }}
+//                         onPress={() => {
+//                           setLoadedModal(false);
+//                           // props.navigation.navigate("Home"),
+//                           setScanned(false);
+//                         }}
+//                       >
+//                         <Text style={styles.textStyle}>Volver</Text>
+//                       </TouchableOpacity>
+//                       <TouchableOpacity
+//                         style={{
+//                           ...styles.openButton,
+//                           backgroundColor: "#2196F3",
+//                         }}
+//                         onPress={() => {
+//                           if (newMode) {
+//                             newEntry();
+//                             console.log("theres a new product", newProduct);
+//                             continueScan();
+//                           }
+//                           if (loadedMode) {
+//                             console.log("NEW PRODUCT ADDED now for inventory");
+//                             newInvProd();
+//                             setModalVisible(!modalVisible);
+//                             continueScan();
+//                           }
+//                           if (title) {
+//                             console.log(
+//                               "not adding a new product just to the inventory"
+//                             );
+//                             quantityUpdateHandler();
+//                             setModalVisible(!modalVisible);
+//                             continueScan();
+//                           }
+//                         }}
+//                       >
+//                         <Text style={styles.textStyle}>Guardar</Text>
+//                       </TouchableOpacity>
+//                     </View>
+//                   </View>
+//                 </View>
+//               </TouchableWithoutFeedback>
+//             </Modal>
+//           </View>
+//         </KeyboardAvoidingView>
 
-  ///////////////////////////
-  /////////////////////////
-  //////////////////////////
-  /////////////////////////
-  if (scanner) {
-    return (
-      <View
-        style={{
-          flex: 1,
-        }}
-        // marginTop: 40,
-        // flexDirection: "column",
-        // justifyContent: "flex-end",
-      >
-        <TouchableOpacity
-          onPress={() => {
-            modeHandler();
-          }}
-        >
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              margin: 15,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: "bold",
-                color: sell ? "green" : "blue",
-              }}
-            >
-              Modo: {sell ? "Vender" : "Contar"}
-            </Text>
-          </View>
-        </TouchableOpacity>
-        <KeyboardAvoidingView
-          style={{
-            flex: 1,
-          }}
-          behavior={Platform.OS === "android" ? "padding" : "position"}
-          keyboardVerticalOffset={-80}
-          // style={styles.screen}
-        >
-          <View>
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={modalVisible}
-              // onRequestClose={() => {
-              //   Alert.alert("Modal has been closed.");
-              // }}
-            >
-              <TouchableWithoutFeedback
-                onPress={() => {
-                  Keyboard.dismiss();
-                }}
-              >
-                <View style={styles.centeredView}>
-                  <View style={styles.modalView}>
-                    {loadedMode && (
-                      <View>
-                        <Text style={styles.modalTitle}>
-                          Producto escaneado:
-                        </Text>
-                        <Text style={styles.modalHead}>{title}</Text>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Text style={styles.modalText}>Marca: </Text>
-                          <Text style={styles.modalText}>{brand}</Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Text style={styles.modalText}>Precio: </Text>
-                          <Text style={styles.modalText}>${price}bs</Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Text style={styles.modalText}>Tamaño: </Text>
-                          <Text style={styles.modalText}>{size}</Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Text style={styles.modalText}>Categoria: </Text>
-                          <Text style={styles.modalText}>{category}</Text>
-                        </View>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <Text style={styles.modalText}>Cantidad Total: </Text>
-                          <Text style={styles.modalText}>{quantity}</Text>
-                        </View>
-                        {/* <Text style={styles.modalText}>Tamaño: {size}</Text>
-                        <Text style={styles.modalText}>Marca: {brand}</Text>
-                        <Text style={styles.modalText}>
-                          Categoria: {category}
-                        </Text>
-                        <Text style={styles.modalText}>
-                          Cantidad Total: {quantity}
-                        </Text> */}
-                      </View>
-                    )}
-                    {!loadedMode && (
-                      <View>
-                        <Text style={styles.modalTitle}>Nuevo Producto</Text>
-                        <View>
-                          <TextInput
-                            style={styles.textInputStyle}
-                            placeholder="Producto"
-                            value={newProduct}
-                            onChangeText={(name) => {
-                              setNewProduct(name);
-                            }}
-                          />
-                          <TextInput
-                            style={styles.textInputStyle}
-                            placeholder="Marca"
-                            value={newBrand}
-                            onChangeText={(brand) => {
-                              setNewBrand(brand);
-                            }}
-                          />
-                          <TextInput
-                            style={styles.textInputStyle}
-                            keyboardType="numeric"
-                            placeholder="Precio"
-                            value={newPrice}
-                            onChangeText={(price) => {
-                              setNewPrice(price);
-                            }}
-                          />
-                          <TextInput
-                            style={styles.textInputStyle}
-                            placeholder="Tomaño"
-                            value={newSize}
-                            onChangeText={(size) => {
-                              setNewSize(size);
-                            }}
-                          />
-                          <View>
-                            <Text style={styles.modalText}>
-                              Categoria: {newCategory}
-                            </Text>
-                          </View>
+//         <View style={{ flex: 1, marginBottom: 30 }}>
+//           <SectionList
+//             refreshing={isRefreshing}
+//             onRefresh={() => {
+//               loadDetails();
+//             }}
+//             sections={[
+//               {
+//                 title: catOptions[0],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[0]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[1],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[1]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[2],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[2]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[3],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[3]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[4],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[4]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[5],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[5]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[6],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[6]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[7],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[7]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[8],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[8]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[9],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[9]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[10],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[10]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[11],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[11]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[12],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[12]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[13],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[13]
+//                 ),
+//               },
+//               {
+//                 title: catOptions[14],
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[14]
+//                 ),
+//               },
+//               {
+//                 title: "Sin Categoria",
+//                 data: availableProducts.filter(
+//                   (cat) => cat.Category === catOptions[-1]
+//                 ),
+//               },
+//             ]}
+//             keyExtractor={(item, index) => item + index}
+//             stickySectionHeadersEnabled={true}
+//             // keyExtractor={(item) => item.id}
+//             renderItem={({ item }) => (
+//               <CategoryGridTile
+//                 title={item.Product}
+//                 size={item.Size}
+//                 price={item.Price}
+//                 category={item.Category}
+//                 quantity={item.Quantity}
+//                 brand={item.Brand}
+//                 code={item.code}
+//                 reload={() => {
+//                   loadDetails();
+//                 }}
+//               />
+//             )}
+//             renderSectionHeader={({ section }) => (
+//               <TouchableOpacity
+//                 onPress={() => {
+//                   alert("pressed");
+//                 }}
+//               >
+//                 <Text style={styles.sectionHeaderStyle}>{section.title}</Text>
+//               </TouchableOpacity>
+//             )}
+//           />
+//         </View>
+//       </View>
+//     );
+//   }
 
-                          <TouchableOpacity
-                            style={{
-                              ...styles.openButton,
-                              backgroundColor: "#A251F9",
-                            }}
-                            onPress={() => {
-                              setPicker(true);
-                            }}
-                          >
-                            <Text style={styles.textStyle}>Categoria</Text>
-                            {/* this is for scanner true */}
-                          </TouchableOpacity>
-                          <Modal
-                            animationType="slide"
-                            transparent={true}
-                            visible={picker}
-                            onRequestClose={() => {
-                              // setPicker(!picker);
-                            }}
-                          >
-                            <View style={styles.centeredView}>
-                              <View style={styles.modalView}>
-                                <Picker
-                                  selectedValue={picked}
-                                  mode="dropdown"
-                                  style={{
-                                    height: 30,
-                                    marginTop: 20,
-                                    marginBottom: 30,
-                                    width: "100%",
-                                    justifyContent: "center",
-                                  }}
-                                  itemStyle={{ fontSize: 16 }}
-                                  onValueChange={(itemValue) =>
-                                    setPicked(itemValue)
-                                  }
-                                >
-                                  {catOptions.map((item, index) => {
-                                    return (
-                                      <Picker.Item
-                                        label={item}
-                                        value={item}
-                                        key={index}
-                                      />
-                                    );
-                                  })}
-                                </Picker>
-                                <TouchableOpacity
-                                  style={{
-                                    ...styles.openButton,
-                                    backgroundColor: "pink",
-                                  }}
-                                  onPress={() => {
-                                    setNewCategory(picked);
-                                    setPicker(false);
-                                  }}
-                                >
-                                  <Text style={styles.textStyle}>Guardar</Text>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          </Modal>
-                          {/* <TextInput
-                            style={styles.textInputStyle}
-                            onChangeText={(text) => searchFilterFunction(text)}
-                            value={search}
-                            underlineColorAndroid="transparent"
-                            placeholder="Buscar"
-                          /> */}
-                        </View>
-                      </View>
-                    )}
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Text style={styles.modalTextCode}>Codigo: </Text>
-                      <Text style={styles.modalTextCodigo}>{code}</Text>
-                    </View>
-                    {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
-                    {/* </View> */}
+//   ///////////////////////////
+//   /////////////////////////
+//   //////////////////////////
+//   /////////////////////////
+//   if (scanner) {
+//     return (
+//       <View
+//         style={{
+//           flex: 1,
+//         }}
+//         // marginTop: 40,
+//         // flexDirection: "column",
+//         // justifyContent: "flex-end",
+//       >
+//         <TouchableOpacity
+//           onPress={() => {
+//             modeHandler();
+//           }}
+//         >
+//           <View
+//             style={{
+//               alignItems: "center",
+//               justifyContent: "center",
+//               margin: 15,
+//             }}
+//           >
+//             <Text
+//               style={{
+//                 fontSize: 20,
+//                 fontWeight: "bold",
+//                 color: sell ? "green" : "blue",
+//               }}
+//             >
+//               Modo: {sell ? "Vender" : "Contar"}
+//             </Text>
+//           </View>
+//         </TouchableOpacity>
+//         <KeyboardAvoidingView
+//           style={{
+//             flex: 1,
+//           }}
+//           behavior={Platform.OS === "android" ? "padding" : "position"}
+//           keyboardVerticalOffset={-80}
+//           // style={styles.screen}
+//         >
+//           <View>
+//             <Modal
+//               animationType="slide"
+//               transparent={true}
+//               visible={modalVisible}
+//               // onRequestClose={() => {
+//               //   Alert.alert("Modal has been closed.");
+//               // }}
+//             >
+//               <TouchableWithoutFeedback
+//                 onPress={() => {
+//                   Keyboard.dismiss();
+//                 }}
+//               >
+//                 <View style={styles.centeredView}>
+//                   <View style={styles.modalView}>
+//                     {loadedMode && (
+//                       <View>
+//                         <Text style={styles.modalTitle}>
+//                           Producto escaneado:
+//                         </Text>
+//                         <Text style={styles.modalHead}>{title}</Text>
+//                         <View
+//                           style={{
+//                             flexDirection: "row",
+//                             justifyContent: "space-between",
+//                           }}
+//                         >
+//                           <Text style={styles.modalText}>Marca: </Text>
+//                           <Text style={styles.modalText}>{brand}</Text>
+//                         </View>
+//                         <View
+//                           style={{
+//                             flexDirection: "row",
+//                             justifyContent: "space-between",
+//                           }}
+//                         >
+//                           <Text style={styles.modalText}>Precio: </Text>
+//                           <Text style={styles.modalText}>${price}bs</Text>
+//                         </View>
+//                         <View
+//                           style={{
+//                             flexDirection: "row",
+//                             justifyContent: "space-between",
+//                           }}
+//                         >
+//                           <Text style={styles.modalText}>Tamaño: </Text>
+//                           <Text style={styles.modalText}>{size}</Text>
+//                         </View>
+//                         <View
+//                           style={{
+//                             flexDirection: "row",
+//                             justifyContent: "space-between",
+//                           }}
+//                         >
+//                           <Text style={styles.modalText}>Categoria: </Text>
+//                           <Text style={styles.modalText}>{category}</Text>
+//                         </View>
+//                         <View
+//                           style={{
+//                             flexDirection: "row",
+//                             justifyContent: "space-between",
+//                           }}
+//                         >
+//                           <Text style={styles.modalText}>Cantidad Total: </Text>
+//                           <Text style={styles.modalText}>{quantity}</Text>
+//                         </View>
+//                         {/* <Text style={styles.modalText}>Tamaño: {size}</Text>
+//                         <Text style={styles.modalText}>Marca: {brand}</Text>
+//                         <Text style={styles.modalText}>
+//                           Categoria: {category}
+//                         </Text>
+//                         <Text style={styles.modalText}>
+//                           Cantidad Total: {quantity}
+//                         </Text> */}
+//                       </View>
+//                     )}
+//                     {!loadedMode && (
+//                       <View>
+//                         <Text style={styles.modalTitle}>Nuevo Producto</Text>
+//                         <View>
+//                           <TextInput
+//                             style={styles.textInputStyle}
+//                             placeholder="Producto"
+//                             value={newProduct}
+//                             onChangeText={(name) => {
+//                               setNewProduct(name);
+//                             }}
+//                           />
+//                           <TextInput
+//                             style={styles.textInputStyle}
+//                             placeholder="Marca"
+//                             value={newBrand}
+//                             onChangeText={(brand) => {
+//                               setNewBrand(brand);
+//                             }}
+//                           />
+//                           <TextInput
+//                             style={styles.textInputStyle}
+//                             keyboardType="numeric"
+//                             placeholder="Precio"
+//                             value={newPrice}
+//                             onChangeText={(price) => {
+//                               setNewPrice(price);
+//                             }}
+//                           />
+//                           <TextInput
+//                             style={styles.textInputStyle}
+//                             placeholder="Tomaño"
+//                             value={newSize}
+//                             onChangeText={(size) => {
+//                               setNewSize(size);
+//                             }}
+//                           />
+//                           <View>
+//                             <Text style={styles.modalText}>
+//                               Categoria: {newCategory}
+//                             </Text>
+//                           </View>
 
-                    {loadedMode && (
-                      <View
-                        style={{
-                          margin: 10,
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Text style={styles.quantitySelect}>
-                          (Opcional) Entrar cantidad
-                        </Text>
+//                           <TouchableOpacity
+//                             style={{
+//                               ...styles.openButton,
+//                               backgroundColor: "#A251F9",
+//                             }}
+//                             onPress={() => {
+//                               setPicker(true);
+//                             }}
+//                           >
+//                             <Text style={styles.textStyle}>Categoria</Text>
+//                             {/* this is for scanner true */}
+//                           </TouchableOpacity>
+//                           <Modal
+//                             animationType="slide"
+//                             transparent={true}
+//                             visible={picker}
+//                             onRequestClose={() => {
+//                               // setPicker(!picker);
+//                             }}
+//                           >
+//                             <View style={styles.centeredView}>
+//                               <View style={styles.modalView}>
+//                                 <Picker
+//                                   selectedValue={picked}
+//                                   mode="dropdown"
+//                                   style={{
+//                                     height: 30,
+//                                     marginTop: 20,
+//                                     marginBottom: 30,
+//                                     width: "100%",
+//                                     justifyContent: "center",
+//                                   }}
+//                                   itemStyle={{ fontSize: 16 }}
+//                                   onValueChange={(itemValue) =>
+//                                     setPicked(itemValue)
+//                                   }
+//                                 >
+//                                   {catOptions.map((item, index) => {
+//                                     return (
+//                                       <Picker.Item
+//                                         label={item}
+//                                         value={item}
+//                                         key={index}
+//                                       />
+//                                     );
+//                                   })}
+//                                 </Picker>
+//                                 <TouchableOpacity
+//                                   style={{
+//                                     ...styles.openButton,
+//                                     backgroundColor: "pink",
+//                                   }}
+//                                   onPress={() => {
+//                                     setNewCategory(picked);
+//                                     setPicker(false);
+//                                   }}
+//                                 >
+//                                   <Text style={styles.textStyle}>Guardar</Text>
+//                                 </TouchableOpacity>
+//                               </View>
+//                             </View>
+//                           </Modal>
+//                           {/* <TextInput
+//                             style={styles.textInputStyle}
+//                             onChangeText={(text) => searchFilterFunction(text)}
+//                             value={search}
+//                             underlineColorAndroid="transparent"
+//                             placeholder="Buscar"
+//                           /> */}
+//                         </View>
+//                       </View>
+//                     )}
+//                     <View
+//                       style={{
+//                         flexDirection: "row",
+//                         justifyContent: "space-between",
+//                       }}
+//                     >
+//                       <Text style={styles.modalTextCode}>Codigo: </Text>
+//                       <Text style={styles.modalTextCodigo}>{code}</Text>
+//                     </View>
+//                     {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
+//                     {/* </View> */}
 
-                        <InputSpinner
-                          max={10000}
-                          min={0}
-                          step={1}
-                          fontSize={20}
-                          onMax={(max) => {
-                            Alert.alert(
-                              "llego al Maximo",
-                              "El maximo seria 1000"
-                            );
-                          }}
-                          colorMax={"red"}
-                          colorMin={"green"}
-                          colorLeft={"red"}
-                          colorRight={"blue"}
-                          value={quantity}
-                          onChange={(num) => {
-                            if (num === quantity) {
-                              null;
-                            } else {
-                              setNewQ(num);
-                            }
-                          }}
-                        />
-                      </View>
-                    )}
+//                     {loadedMode && (
+//                       <View
+//                         style={{
+//                           margin: 10,
+//                           justifyContent: "center",
+//                           alignItems: "center",
+//                         }}
+//                       >
+//                         <Text style={styles.quantitySelect}>
+//                           (Opcional) Entrar cantidad
+//                         </Text>
 
-                    <View
-                      style={{
-                        width: "100%",
-                        flexDirection: "row",
-                        justifyContent: "space-around",
-                      }}
-                    >
-                      <TouchableOpacity
-                        style={{
-                          ...styles.openButton,
-                          backgroundColor: "green",
-                        }}
-                        onPress={() => {
-                          setModalVisible(!modalVisible);
-                          setLoadedMode(false);
-                          // props.navigation.navigate("Home"),
-                          setScanned(false);
-                        }}
-                      >
-                        <Text style={styles.textStyle}>Volver</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={{
-                          ...styles.openButton,
-                          backgroundColor: "#2196F3",
-                        }}
-                        onPress={() => {
-                          if (newMode) {
-                            setHasCode(true);
-                            newEntry();
-                            console.log("theres a new product", newProduct);
-                            continueScan();
-                          }
-                          if (loadedMode) {
-                            console.log("NEW PRODUCT ADDED now for inventory");
-                            newInvProd();
-                            setModalVisible(!modalVisible);
-                            continueScan();
-                          }
-                          if (title) {
-                            console.log(
-                              "not adding a new product just to the inventory"
-                            );
-                            quantityUpdateHandler();
-                            setModalVisible(!modalVisible);
-                            continueScan();
-                          }
-                        }}
-                      >
-                        <Text style={styles.textStyle}>Guardar</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </Modal>
-          </View>
-        </KeyboardAvoidingView>
+//                         <InputSpinner
+//                           max={10000}
+//                           min={0}
+//                           step={1}
+//                           fontSize={20}
+//                           onMax={(max) => {
+//                             Alert.alert(
+//                               "llego al Maximo",
+//                               "El maximo seria 1000"
+//                             );
+//                           }}
+//                           colorMax={"red"}
+//                           colorMin={"green"}
+//                           colorLeft={"red"}
+//                           colorRight={"blue"}
+//                           value={quantity}
+//                           onChange={(num) => {
+//                             if (num === quantity) {
+//                               null;
+//                             } else {
+//                               setNewQ(num);
+//                             }
+//                           }}
+//                         />
+//                       </View>
+//                     )}
 
-        <View
-          style={{
-            height: "50%",
-            width: "100%",
-            // marginTop: 40,
-            // flexDirection: "column",
-            // justifyContent: "flex-end",
-          }}
-        >
-          <BarCodeScanner
-            barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
-            onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-            style={StyleSheet.absoluteFillObject}
-          />
-        </View>
+//                     <View
+//                       style={{
+//                         width: "100%",
+//                         flexDirection: "row",
+//                         justifyContent: "space-around",
+//                       }}
+//                     >
+//                       <TouchableOpacity
+//                         style={{
+//                           ...styles.openButton,
+//                           backgroundColor: "green",
+//                         }}
+//                         onPress={() => {
+//                           setModalVisible(!modalVisible);
+//                           setLoadedMode(false);
+//                           // props.navigation.navigate("Home"),
+//                           setScanned(false);
+//                         }}
+//                       >
+//                         <Text style={styles.textStyle}>Volver</Text>
+//                       </TouchableOpacity>
+//                       <TouchableOpacity
+//                         style={{
+//                           ...styles.openButton,
+//                           backgroundColor: "#2196F3",
+//                         }}
+//                         onPress={() => {
+//                           if (newMode) {
+//                             setHasCode(true);
+//                             newEntry();
+//                             console.log("theres a new product", newProduct);
+//                             continueScan();
+//                           }
+//                           if (loadedMode) {
+//                             console.log("NEW PRODUCT ADDED now for inventory");
+//                             newInvProd();
+//                             setModalVisible(!modalVisible);
+//                             continueScan();
+//                           }
+//                           if (title) {
+//                             console.log(
+//                               "not adding a new product just to the inventory"
+//                             );
+//                             quantityUpdateHandler();
+//                             setModalVisible(!modalVisible);
+//                             continueScan();
+//                           }
+//                         }}
+//                       >
+//                         <Text style={styles.textStyle}>Guardar</Text>
+//                       </TouchableOpacity>
+//                     </View>
+//                   </View>
+//                 </View>
+//               </TouchableWithoutFeedback>
+//             </Modal>
+//           </View>
+//         </KeyboardAvoidingView>
 
-        <View
-          style={{
-            marginBottom: 20,
-            // marginLeft: 20,
-            marginTop: 20,
-            height: "35%",
-          }}
-        >
-          {/* <Text style={{ fontSize: 15, fontWeight: "bold" }}>
-            Cosas escaneado: {scanCount}
-          </Text> */}
-          <View>
-            <Text style={{ fontSize: 15, color: "grey" }}>
-              Recien escaneado:
-            </Text>
-          </View>
-          <FlatList
-            refreshControl={
-              <RefreshControl
-                colors={["#9Bd35A", "#689F38"]}
-                refreshing={isRefreshing}
-                onRefresh={() => {
-                  loadDetails();
-                }}
-              />
-            }
-            data={userProducts}
-            keyExtractor={(item) => item.productId}
-            renderItem={(itemData) => (
-              <ProductItem
-                title={itemData.item.productTitle}
-                onSelect={() => {
-                  alert("pressed");
-                }}
-                size={itemData.item.productSize}
-                price={itemData.item.productPrice}
-                category={itemData.item.productCategory}
-                quantity={itemData.item.productQuantity}
-                brand={itemData.item.productBrand}
-                code={itemData.item.productcode}
-                reload={() => {
-                  loadDetails();
-                }}
-              />
-            )}
-          />
-        </View>
-      </View>
-    );
-  }
-};
+//         <View
+//           style={{
+//             height: "50%",
+//             width: "100%",
+//             // marginTop: 40,
+//             // flexDirection: "column",
+//             // justifyContent: "flex-end",
+//           }}
+//         >
+//           <BarCodeScanner
+//             barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
+//             onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+//             style={StyleSheet.absoluteFillObject}
+//           />
+//         </View>
+
+//         <View
+//           style={{
+//             marginBottom: 20,
+//             // marginLeft: 20,
+//             marginTop: 20,
+//             height: "35%",
+//           }}
+//         >
+//           {/* <Text style={{ fontSize: 15, fontWeight: "bold" }}>
+//             Cosas escaneado: {scanCount}
+//           </Text> */}
+//           <View>
+//             <Text style={{ fontSize: 15, color: "grey" }}>
+//               Recien escaneado:
+//             </Text>
+//           </View>
+//           <FlatList
+//             refreshControl={
+//               <RefreshControl
+//                 colors={["#9Bd35A", "#689F38"]}
+//                 refreshing={isRefreshing}
+//                 onRefresh={() => {
+//                   loadDetails();
+//                 }}
+//               />
+//             }
+//             data={userProducts}
+//             keyExtractor={(item) => item.productId}
+//             renderItem={(itemData) => (
+//               <ProductItem
+//                 title={itemData.item.productTitle}
+//                 onSelect={() => {
+//                   alert("pressed");
+//                 }}
+//                 size={itemData.item.productSize}
+//                 price={itemData.item.productPrice}
+//                 category={itemData.item.productCategory}
+//                 quantity={itemData.item.productQuantity}
+//                 brand={itemData.item.productBrand}
+//                 code={itemData.item.productcode}
+//                 reload={() => {
+//                   loadDetails();
+//                 }}
+//               />
+//             )}
+//           />
+//         </View>
+//       </View>
+//     );
+//   }
+// };
 
 SelectScreen.navigationOptions = (navData) => {
   return {

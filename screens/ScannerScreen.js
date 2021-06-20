@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -33,11 +33,17 @@ import Card from "../components/Card";
 import CartItem from "../components/CartItem";
 import Colors from "../constants/Colors";
 import { Audio } from "expo-av";
+import { AuthContext } from "../navigation/AuthProvider";
+import firebase from "../components/firebase";
 
 const ScannerScreen = (props) => {
+  const { user } = useContext(AuthContext);
+
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [userProducts, setUserProducts] = useState();
+  const [availableProducts, setAvailableProducts] = useState([])
   const [scanner, setScanner] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState();
@@ -67,25 +73,106 @@ const ScannerScreen = (props) => {
 
   const dispatch = useDispatch();
 
-  const userProducts = useSelector((state) => {
-    const transformedProducts = [];
-    for (const key in state.products.products) {
-      transformedProducts.push({
-        productId: key,
-        productTitle: state.products.products[key].Title,
-        productPrice: state.products.products[key].Price,
-        productCategory: state.products.products[key].Category,
-        productOwner: state.products.products[key].ownerId,
-        productQuantity: state.products.products[key].Quantity,
-        productSize: state.products.products[key].Size,
-        productBrand: state.products.products[key].Brand,
-        productTime: state.products.products[key].time,
-        productcode: state.products.products[key].Code,
-        docTitle: state.products.products[key].docTitle,
-      });
+  const fetchProducts = async () => {
+    // setError(null);
+    // console.log("refreshing");
+    try {
+      const list = [];
+      await firebase
+        .firestore()
+        .collection("Members")
+        .doc(user.uid)
+        .collection("Member Products")
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const {
+              Title,
+              Quantity,
+              Category,
+              Price,
+              ownerId,
+              Brand,
+              Code,
+              ExpDate,
+              Size,
+              docTitle,
+            } = doc.data();
+            list.push({
+              productId: doc.id,
+              productTitle: Title,
+              productPrice: Price,
+              productCategory: Category,
+              productOwner: ownerId,
+              productQuantity: Quantity,
+              productSize: Size,
+              productBrand: Brand,
+              productcode: Code,
+              productExp: ExpDate,
+              docTitle: docTitle,
+            });
+          });
+        });
+      setUserProducts(list);
+    } catch (e) {
+      console.log(e);
     }
-    return transformedProducts;
-  });
+  };
+  const fetchAvailableProducts = async () => {
+    try {
+      const list = [];
+      await firebase
+        .firestore()
+        .collection("Products")
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const {
+              Product,
+              Quantity,
+              Category,
+              Price,
+              Brand,
+              code,
+              Size,
+            } = doc.data();
+            list.push({
+              productId: doc.id,
+               Product,
+               Price,
+               Category,
+               Quantity,
+               Size,
+              Brand,
+               code,
+            });
+          });
+        });
+      setUserProducts(list);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  // const userProducts = useSelector((state) => {
+  //   const transformedProducts = [];
+  //   for (const key in state.products.products) {
+  //     transformedProducts.push({
+  //       productId: key,
+  //       productTitle: state.products.products[key].Title,
+  //       productPrice: state.products.products[key].Price,
+  //       productCategory: state.products.products[key].Category,
+  //       productOwner: state.products.products[key].ownerId,
+  //       productQuantity: state.products.products[key].Quantity,
+  //       productSize: state.products.products[key].Size,
+  //       productBrand: state.products.products[key].Brand,
+  //       productTime: state.products.products[key].time,
+  //       productcode: state.products.products[key].Code,
+  //       docTitle: state.products.products[key].docTitle,
+  //     });
+  //   }
+  //   return transformedProducts;
+  // });
 
   const cartTotalAmount = useSelector((state) => state.cart.totalAmount);
   const cartItems = useSelector((state) => {
@@ -123,9 +210,9 @@ const ScannerScreen = (props) => {
   ];
   let catOptions = catArray.sort();
 
-  const availableProducts = useSelector(
-    (state) => state.availableProducts.availableProducts
-  );
+  // const availableProducts = useSelector(
+  //   (state) => state.availableProducts.availableProducts
+  // );
   const loadDetails = useCallback(async () => {
     setIsRefreshing(true);
     try {
@@ -152,7 +239,8 @@ const ScannerScreen = (props) => {
   }, [code]);
 
   useEffect(() => {
-    dispatch(ProdActions.fetchAvailableProducts());
+    fetchProducts();
+    fetchAvailableProducts
     continueScan();
     LogBox.ignoreLogs(["VirtualizedLists should never be nested"]);
   }, []);
@@ -258,7 +346,7 @@ const ScannerScreen = (props) => {
       sendProduct.quantityUpdate(title, price, category, newQ, size, code)
     );
     setTimeout(() => {
-      loadDetails();
+      fetchProducts();
     }, 1000);
   };
 
@@ -318,18 +406,18 @@ const ScannerScreen = (props) => {
   //   loadDetails();
   // };
 
-  const minusProduct = (Title, Price, Category, Quantity, Size, Code) => {
-    try {
-      console.log("subtracting product quantity");
-      dispatch(
-        sendProduct.subProducts(Title, Price, Category, Quantity, Size, Code)
-      );
-    } catch (err) {
-      setError(err.message);
-      console.log(error);
-    }
-    loadDetails();
-  };
+  // const minusProduct = (Title, Price, Category, Quantity, Size, Code) => {
+  //   try {
+  //     console.log("subtracting product quantity");
+  //     dispatch(
+  //       sendProduct.subProducts(Title, Price, Category, Quantity, Size, Code)
+  //     );
+  //   } catch (err) {
+  //     setError(err.message);
+  //     console.log(error);
+  //   }
+  //   loadDetails();
+  // };
 
   const continueScan = () => {
     setScanned(false);
@@ -420,35 +508,19 @@ const ScannerScreen = (props) => {
             setScanned(false);
           },
         },
-        // {
-        //   text: "Cobrar",
-        //   onPress: () => {
-        //     console.log("cobrandose");
-        //     sendOrderHandler();
-        //     setScanned(false);
-        //   },
-        // },
+        
       ]);
       await dispatch(cartActions.addToCart(userProduct));
-      // console.log("these are scanned products", cartItems);
+      console.log("these are scanned products", cartItems);
     }
 
     // console.log("these are scanned products", cartItems);
-    const scannedUserProduct = cartItems.find(
-      (code) => code.productcode === data
-    );
-    setScannedResults(cartItems);
+    // const scannedUserProduct = cartItems.find(
+    //   (code) => code.productcode === data
+    // );
+    // setScannedResults(cartItems);
 
-    // const subProudct = () => {
-    //   try {
-    //     const subNum = scannedUserProduct.quantity;
-    //     console.log("subtracting product quantity", subNum);
-    //     dispatch(sendProduct.subProducts(scannedUserProduct, subNum));
-    //   } catch (err) {
-    //     setError(err.message);
-    //     console.log(error);
-    //   }
-    // };
+  
 
     // console.log(
     //   "THIS SHOULD BE scanneduserproduct",
@@ -547,9 +619,9 @@ const ScannerScreen = (props) => {
     // if (!sell && loadedProduct) {
     //   uploadProduct(Title, Price, Category, Quantity, Size, Brand, Code);
     // }
-    if (sell) {
-      minusProduct(Title, Price, Category, Quantity, Size, Brand, Code);
-    }
+    // if (sell) {
+    //   minusProduct(Title, Price, Category, Quantity, Size, Brand, Code);
+    // }
 
     // setTimeout(() => {
     //   loadDetails();
@@ -603,8 +675,9 @@ const ScannerScreen = (props) => {
                 color: sell ? "green" : "blue",
               }}
             >
-              Modo: {sell ? "Vender" : "Contar"}
+              Modo: {sell ? "Vender" : "Inventario"}
             </Text>
+            <Text style={{color:'silver'}}>cambiar a {!sell ? "Vender" : "Inventario"}</Text>
           </View>
         </TouchableOpacity>
 
@@ -758,6 +831,7 @@ const ScannerScreen = (props) => {
       <View
         style={{
           flex: 1,
+          marginBottom: 100
         }}
         // marginTop: 40,
         // flexDirection: "column",
@@ -784,6 +858,8 @@ const ScannerScreen = (props) => {
             >
               Modo: {sell ? "Vender" : "Contar"}
             </Text>
+            <Text style={{color:'silver'}}>cambiar a {!sell ? "Vender" : "Inventario"}</Text>
+
           </View>
         </TouchableOpacity>
 
@@ -1105,7 +1181,7 @@ const ScannerScreen = (props) => {
 
         <View
           style={{
-            height: "80%",
+            height: "90%",
             width: "100%",
             marginBottom: 40,
           }}

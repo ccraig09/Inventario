@@ -1,9 +1,10 @@
 import React from "react";
 import { View, TouchableOpacity, Text } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import Icon from "react-native-vector-icons/Ionicons";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 
 import SettingsScreen from "../screens/SettingsScreen";
@@ -11,93 +12,246 @@ import HomeScreen from "../screens/HomeScreen";
 // import ChatScreen from '../screens/ChatScreen';
 // import ProfileScreen from '../screens/ProfileScreen';
 import SelectScreen from "../screens/SelectScreen";
+import ScannerScreen from "../screens/ScannerScreen";
+import MenuScreen from "../screens/MenuScreen";
+import OrdersScreen from "../screens/OrdersScreen";
+import { DrawerContent } from '../screens/DrawerContent'
+import ExportScreen from '../screens/ExportScreen'
+
 // import MessagesScreen from '../screens/MessagesScreen';
 // import EditProfileScreen from '../screens/EditProfileScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+const Drawer = createDrawerNavigator();
+
 
 const FeedStack = ({ navigation }) => (
   <Stack.Navigator>
     <Stack.Screen
+      
       name="Home"
       component={HomeScreen}
       options={({ navigation }) => ({
-        headerTitleAlign: "center",
-        headerTitleStyle: {
-          color: "#2e64e5",
-          fontFamily: "Kufam-SemiBoldItalic",
-          fontSize: 18,
-        },
-        headerStyle: {
-          shadowColor: "#fff",
-          elevation: 0,
-        },
-        headerRight: () => (
-          <View style={{ marginRight: 10 }}>
-            <FontAwesome5.Button
-              name="plus"
-              size={22}
-              backgroundColor="#fff"
-              color="#FF4949"
-              onPress={() => navigation.navigate("Scan")}
-            />
-          </View>
-        ),
+        title: "",
+        headerShown: false,
+       
+        
 
         headerLeft: () => (
           <View style={{ marginLeft: 10 }}>
-            <FontAwesome5.Button
-              name="cog"
+            <Icon.Button
+              name="ios-menu"
               size={25}
               backgroundColor="#fff"
               color="#FF4949"
-              onPress={() => navigation.navigate("Settings")}
+              onPress={() => {navigation.openDrawer();
+              }}
             />
           </View>
         ),
       })}
     />
     <Stack.Screen
-      name="Scan"
-      component={SelectScreen}
+      name="Scanner"
+      component={ScannerScreen}
       options={{
         title: "",
-        headerTitleAlign: "center",
-        headerStyle: {
-          backgroundColor: "#2e64e515",
-          shadowColor: "#2e64e515",
-          elevation: 0,
-        },
-        headerBackTitleVisible: false,
-        headerBackImage: () => (
-          <View style={{ marginLeft: 15 }}>
-            <Ionicons name="arrow-back" size={25} color="#2e64e5" />
-          </View>
-        ),
+        headerBackTitle: "Volver"
       }}
     />
-    <Stack.Screen
-      name="Settings"
-      component={SettingsScreen}
-      options={{
-        title: "",
-        headerTitleAlign: "center",
-        headerStyle: {
-          backgroundColor: "#2e64e515",
-          shadowColor: "#2e64e515",
-          elevation: 0,
-        },
-        headerBackTitleVisible: false,
-        headerBackImage: () => (
-          <View style={{ marginLeft: 15 }}>
-            <Ionicons name="arrow-back" size={25} color="#2e64e5" />
-          </View>
-        ),
-      }}
-    />
-  </Stack.Navigator>
+    
+     </Stack.Navigator>
 );
+
+const SettingsStack = ({ navigation }) => (
+  <Stack.Navigator>
+    <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: "Configuraciones",
+          headerTitleAlign: "center",
+          headerStyle: {
+            backgroundColor: "white",
+            shadowColor: "white",
+            elevation: 0,
+          },
+          headerBackTitleVisible: false,
+          headerLeft: () => (
+            <View style={{ marginLeft: 10 }}>
+              <Icon.Button
+                name="ios-menu"
+                size={25}
+                backgroundColor="#fff"
+                color="#FF4949"
+                onPress={() => {navigation.openDrawer();
+                }}
+              />
+            </View>
+          ),
+        }}
+      />
+  </Stack.Navigator>
+)
+
+const SelectStack = ({ navigation }) => (
+  <Stack.Navigator>
+    <Stack.Screen
+     name="Select"
+     component={SelectScreen}
+     options={{
+       title: "",
+       headerTitleAlign: "center",
+       headerStyle: {
+         backgroundColor: "#2e64e515",
+         shadowColor: "#2e64e515",
+         elevation: 0,
+       },
+       headerBackTitleVisible: false,
+       headerLeft: () => (
+        <View style={{ marginLeft: 10 }}>
+          <Icon.Button
+            name="ios-menu"
+            size={25}
+            backgroundColor="#fff"
+            color="#FF4949"
+            onPress={() => {navigation.openDrawer();
+            }}
+          />
+        </View>
+      ),
+     }}
+   /> 
+  </Stack.Navigator>
+    )
+
+
+
+const MenuStack = ({ navigation }) => (
+  <Stack.Navigator>
+     <Stack.Screen
+      name="Menu"
+      component={MenuScreen}
+      options={({ navigation }) => ({
+        title: "Catálogo",
+        headerLeft: () => (
+          <View style={{ marginLeft: 10 }}>
+            <Icon.Button
+              name="ios-menu"
+              size={25}
+              backgroundColor="#fff"
+              color="#FF4949"
+              onPress={() => {navigation.openDrawer();
+              }}
+            />
+          </View>
+        ),
+      })}
+    /> 
+      </Stack.Navigator>
+    )
+const OrderStack = ({ navigation }) => (
+  <Stack.Navigator>
+     <Stack.Screen
+      name="Order"
+      component={OrdersScreen}
+      options={({ navigation }) => ({
+        title: "Pedidos",
+        headerLeft: () => (
+          <View style={{ marginLeft: 10 }}>
+            <Icon.Button
+              name="ios-menu"
+              size={25}
+              backgroundColor="#fff"
+              color="#FF4949"
+              onPress={() => {navigation.openDrawer();
+              }}
+            />
+          </View>
+        ),
+      })}
+    /> 
+      </Stack.Navigator>
+    )
+const ExportStack = ({ navigation }) => (
+  <Stack.Navigator>
+     <Stack.Screen
+      name="Exportar"
+      component={ExportScreen}
+      options={({ navigation }) => ({
+        title: "Exportar",
+        headerLeft: () => (
+          <View style={{ marginLeft: 10 }}>
+            <Icon.Button
+              name="ios-menu"
+              size={25}
+              backgroundColor="#fff"
+              color="#FF4949"
+              onPress={() => {navigation.openDrawer();
+              }}
+            />
+          </View>
+        ),
+      })}
+    /> 
+      </Stack.Navigator>
+    )
+
+ 
+
+const AppStack = () => {
+  return (
+  <Drawer.Navigator initialRouteName="Home" drawerContent={props => <DrawerContent {...props}/>}>
+      <Drawer.Screen name="Inicio" component={FeedStack} options={{
+        drawerIcon: props => (
+          <Icon
+              name="home-sharp"
+              size={25}
+              backgroundColor="#fff"
+              color="#FF4949"
+            />
+        )}} />
+        <Drawer.Screen name="Catálogo" component={MenuStack} options={{
+        drawerIcon: props => (
+          <Icon
+              name="book"
+              size={25}
+              backgroundColor="#fff"
+              color="#FF4949"
+            />
+        )}} />
+        {/* <Drawer.Screen name="Menu" component={SelectStack} /> */}
+        <Drawer.Screen name="Configuracions" component={SettingsStack} options={{
+        drawerIcon: props => (
+          <Icon
+              name="settings"
+              size={25}
+              backgroundColor="#fff"
+              color="#FF4949"
+            />
+        )}} />
+        <Drawer.Screen name="Pedidos" component={OrderStack} options={{
+        drawerIcon: props => (
+          <Icon
+              name="receipt"
+              size={25}
+              backgroundColor="#fff"
+              color="#FF4949"
+            />
+        )}} />
+        <Drawer.Screen name="Exportar" component={ExportStack} options={{
+        drawerIcon: props => (
+          <Icon
+              name="receipt"
+              size={25}
+              backgroundColor="#fff"
+              color="#FF4949"
+            />
+        )}} />
+      </Drawer.Navigator>
+  )
+}
 
 //     <Stack.Screen
 //       name="HomeProfile"
@@ -223,4 +377,4 @@ const FeedStack = ({ navigation }) => (
 //   );
 // };
 
-export default FeedStack;
+export default AppStack;

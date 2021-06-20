@@ -16,7 +16,7 @@ import { Avatar, Divider, Input, Button } from "react-native-elements";
 import * as authActions from "../store/authAction";
 import { AuthContext } from "../navigation/AuthProvider";
 
-const SettingsScreen = () => {
+const SettingsScreen = (props) => {
   const { user, logout } = useContext(AuthContext);
   const [storeName, setStoreName] = useState();
   const dispatch = useDispatch();
@@ -30,6 +30,7 @@ const SettingsScreen = () => {
   const titleHandler = () => {
     let Title;
     dispatch(sendProduct.storeTitleUpdate(storeName));
+props.navigation.navigate.goBack()
   };
 
   return (

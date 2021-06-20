@@ -5,10 +5,13 @@ import {
   View,
   Platform,
   FlatList,
+  SafeAreaView,
   RefreshControl,
+  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
+  
   SectionList,
 } from "react-native";
 
@@ -19,19 +22,22 @@ import { Entypo, AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import { useSelector, useDispatch } from "react-redux";
 import * as authActions from "../store/authAction";
+import ActionButton from "react-native-action-button";
+import Icon from 'react-native-vector-icons/Ionicons'
 import * as ProdActions from "../store/productActions";
 import firebase from "../components/firebase";
+import SkeletonPlaceholder from "react-native-skeleton-placeholder";
 
 import { BarCodeScanner } from "expo-barcode-scanner";
 import ProductItem from "../components/ProductItem";
 import { AuthContext } from "../navigation/AuthProvider";
 
-const HomeScreen = (props) => {
+const HomeScreen = ({navigation}) => {
   const { user } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState();
   const [focused, setFocused] = useState(false);
-  const [inventory, setInventory] = useState(null);
+  const [inventory, setInventory] = useState([]);
   const [userId, setUserId] = useState();
 
   const [hasPermission, setHasPermission] = useState(null);
@@ -49,31 +55,31 @@ const HomeScreen = (props) => {
   const [storeName, setStoreName] = useState("");
   // const [sell, setSell] = useState(false);
 
-  const userProducts = useSelector((state) => {
-    const transformedProducts = [];
-    for (const key in state.products.products) {
-      transformedProducts.push({
-        productId: key,
-        productTitle: state.products.products[key].Title,
-        productPrice: state.products.products[key].Price,
-        productCategory: state.products.products[key].Category,
-        productOwner: state.products.products[key].ownerId,
-        productQuantity: state.products.products[key].Quantity,
-        productSize: state.products.products[key].Size,
-        productBrand: state.products.products[key].Brand,
-        productcode: state.products.products[key].Code,
-        productExp: state.products.products[key].ExpDate,
-        docTitle: state.products.products[key].docTitle,
-      });
-    }
-    return transformedProducts.sort((a, b) =>
-      a.productTitle > b.productTitle ? 1 : -1
-    );
-  });
+  // const userProducts = useSelector((state) => {
+  //   const transformedProducts = [];
+  //   for (const key in state.products.products) {
+  //     transformedProducts.push({
+  //       productId: key,
+  //       productTitle: state.products.products[key].Title,
+  //       productPrice: state.products.products[key].Price,
+  //       productCategory: state.products.products[key].Category,
+  //       productOwner: state.products.products[key].ownerId,
+  //       productQuantity: state.products.products[key].Quantity,
+  //       productSize: state.products.products[key].Size,
+  //       productBrand: state.products.products[key].Brand,
+  //       productcode: state.products.products[key].Code,
+  //       productExp: state.products.products[key].ExpDate,
+  //       docTitle: state.products.products[key].docTitle,
+  //     });
+  //   }
+  //   return transformedProducts.sort((a, b) =>
+  //     a.productTitle > b.productTitle ? 1 : -1
+  //   );
+  // });
 
-  const createdStoreName = useSelector((state) => state.storeName.storeName);
+  // const createdStoreName = useSelector((state) => state.storeName.storeName);
 
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   const loadDetails = async () => {
     // setError(null);
@@ -213,7 +219,6 @@ const HomeScreen = (props) => {
             }
           });
         if (isLoading) {
-          setIsLoading(false);
         }
       } catch (e) {
         console.log(e);
@@ -291,17 +296,65 @@ const HomeScreen = (props) => {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <View>
-          <ActivityIndicator size="large" color="#FF4949" />
-          <Text>Cargando su inventario </Text>
-        </View>
-      </View>
+      <ScrollView style={{flex: 1}} contentContainerStyle={{alignItems: "center"}}>
+
+      <SkeletonPlaceholder>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+              <View style={{ marginLeft: 20 }}>
+                <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+                <View
+                  style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
+                />
+              </View>
+              </View>
+              <View style={{marginTop:10, marginBottom: 30}}>
+                <View style={{width: 300, height: 20, borderRadius:4}} />
+                <View style={{marginTop: 6, width: 350, height: 200, borderRadius:4}} />
+              </View>
+          </SkeletonPlaceholder>
+      <SkeletonPlaceholder>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+              <View style={{ marginLeft: 20 }}>
+                <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+                <View
+                  style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
+                />
+              </View>
+              </View>
+              <View style={{marginTop:10, marginBottom: 30}}>
+                <View style={{width: 300, height: 20, borderRadius:4}} />
+                <View style={{marginTop: 6, width: 350, height: 200, borderRadius:4}} />
+              </View>
+          </SkeletonPlaceholder>
+      <SkeletonPlaceholder>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+              <View style={{ marginLeft: 20 }}>
+                <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+                <View
+                  style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
+                />
+              </View>
+              </View>
+              <View style={{marginTop:10, marginBottom: 30}}>
+                <View style={{width: 300, height: 20, borderRadius:4}} />
+                <View style={{marginTop: 6, width: 350, height: 200, borderRadius:4}} />
+              </View>
+          </SkeletonPlaceholder>
+          </ScrollView>
+      // <View style={styles.centered}>
+      //   <View>
+      //     <ActivityIndicator size="large" color="#FF4949" />
+      //     <Text>Cargando su inventario </Text>
+      //   </View>
+      // </View>
     );
   }
 
   // if (isLoading) {
-  // if (!isLoading && posts.length === 0) {
+  // if (!isLoading && inventory.length === 0) {
   //   return (
   //     <View style={styles.centered}>
   //       <Text>No Productos registrado. Agregar products </Text>
@@ -326,10 +379,23 @@ const HomeScreen = (props) => {
   }
 
   return (
-    <Container>
+    <SafeAreaView style={{flex:1}}>
+      
+
       <View style={styles.topContainer}>
         <View style={styles.topHeader}>
           <View style={styles.searchText}>
+            <View style={{ left: 10, position: "absolute" }}>
+
+          <Icon.Button
+              name="ios-menu"
+              size={25}
+              backgroundColor="#FF4949"
+              color="white"
+              onPress={() => {navigation.openDrawer();
+              }}
+            />
+            </View>
             <Text style={styles.storeText}>{storeName} </Text>
             <View style={{ right: 10, position: "absolute" }}>
               <TouchableOpacity
@@ -421,8 +487,13 @@ const HomeScreen = (props) => {
               style={{ flex: 1 }}
               onFocus={() => {
                 setFocused(true);
-                setFilteredDataSource(userProducts);
-                setMasterDataSource(userProducts);
+                setFilteredDataSource(inventory);
+                setMasterDataSource(inventory);
+              }}
+              onBlur={() => {
+                setFocused(false);
+                // setFilteredDataSource(inventory);
+                // setMasterDataSource(inventory);
               }}
               clearButtonMode={"always"}
               // onBlur={() => {
@@ -468,8 +539,19 @@ const HomeScreen = (props) => {
           />
         )}
       />
-      {/* </View> */}
-    </Container>
+      <ActionButton buttonColor="#FF4949">
+        <ActionButton.Item buttonColor='#FF4949' title="Escáner" onPress={() => navigation.navigate('Scanner')}>
+          <Icon name="qr-code" style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        {/* <ActionButton.Item buttonColor='#FF4949' title="Vender" onPress={() => { navigation.navigate('Scanner') }}>
+          <Icon name="cash-outline" style={styles.actionButtonIcon} />
+        </ActionButton.Item> */}
+        {/* <ActionButton.Item buttonColor='#1abc9c' title="All Tasks" onPress={() => {}}>
+          <Icon name="md-done-all" style={styles.actionButtonIcon} />
+        </ActionButton.Item> */}
+      </ActionButton>
+      
+    </SafeAreaView>
   );
 };
 
@@ -655,6 +737,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     // overflow: "hidden",
     // borderTopEndRadius: 30,
+  },
+  actionButtonIcon: {
+    fontSize: 20,
+    height: 22,
+    color: 'white',
   },
 });
 

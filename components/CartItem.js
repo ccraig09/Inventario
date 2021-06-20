@@ -60,6 +60,7 @@ const CartItem = (props) => {
 
 const styles = StyleSheet.create({
   cartItem: {
+    flex:1,
     padding: 10,
     backgroundColor: "white",
     flexDirection: "row",
