@@ -4,14 +4,17 @@ import {
   Text,
   View,
   Platform,
+  Alert,
   FlatList,
   SafeAreaView,
   RefreshControl,
   ScrollView,
+  Animated,
+  TouchableHighlight,
   TouchableOpacity,
+  StatusBar,
   ActivityIndicator,
   TextInput,
-  
   SectionList,
 } from "react-native";
 
@@ -23,17 +26,21 @@ import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import { useSelector, useDispatch } from "react-redux";
 import * as authActions from "../store/authAction";
 import ActionButton from "react-native-action-button";
-import Icon from 'react-native-vector-icons/Ionicons'
+import Icon from "react-native-vector-icons/Ionicons";
+import IconMat from "react-native-vector-icons/MaterialCommunityIcons";
 import * as ProdActions from "../store/productActions";
 import firebase from "../components/firebase";
 import SkeletonPlaceholder from "react-native-skeleton-placeholder";
+import { SwipeListView } from "react-native-swipe-list-view";
 
 import { BarCodeScanner } from "expo-barcode-scanner";
 import ProductItem from "../components/ProductItem";
 import { AuthContext } from "../navigation/AuthProvider";
 
-const HomeScreen = ({navigation}) => {
-  const { user } = useContext(AuthContext);
+const HomeScreen = ({ navigation }) => {
+  const { user, deleteProduct } = useContext(AuthContext);
+  const db = firebase.firestore().collection("Members");
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState();
   const [focused, setFocused] = useState(false);
@@ -108,7 +115,7 @@ const HomeScreen = ({navigation}) => {
               docTitle,
             } = doc.data();
             list.push({
-              id: doc.id,
+              key: doc.id,
               productTitle: Title,
               productPrice: Price,
               productCategory: Category,
@@ -183,7 +190,7 @@ const HomeScreen = ({navigation}) => {
                 docTitle,
               } = doc.data();
               list.push({
-                id: doc.id,
+                key: doc.id,
                 productTitle: Title,
                 productPrice: Price,
                 productCategory: Category,
@@ -235,22 +242,125 @@ const HomeScreen = ({navigation}) => {
     })();
   }, []);
 
-  //     const list = [];
+  const renderItem = (itemData, rowMap) => {
+    return (
+      <ProductItem
+        title={itemData.item.productTitle}
+        onSelect={() => {
+          setModalVisible(true);
+          // alert(itemData.item.productTitle);
+        }}
+        size={itemData.item.productSize}
+        price={itemData.item.productPrice}
+        category={itemData.item.productCategory}
+        quantity={itemData.item.productQuantity}
+        brand={itemData.item.productBrand}
+        code={itemData.item.productcode}
+        exp={itemData.item.productExp}
+        reload={() => {
+          loadDetails();
+        }}
+      />
+    );
+  };
 
-  //           const {
+  const closeRow = (rowMap, rowKey) => {
+    if (rowMap[rowKey]) {
+      rowMap[rowKey].closeRow();
+    }
+  };
 
-  //         });
-  //       });
-  //     setPosts(list);
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-  // };
-  //   fetchPost();
-  //   // loadDetails();
+  const deleteRow = async (rowMap, rowKey, Title) => {
+    console.log("this is previndex", rowKey);
+    const newData = [...inventory];
+    const prevIndex = inventory.findIndex((item) => item.key === rowKey);
 
-  //   setIsLoading(false);
-  // },
+    // loadDetails()
+
+    // loadDetails()
+    Alert.alert(
+      "Borrar producto?",
+      `El producto "${Title}" será borrado de tu inventario?`,
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Si",
+          onPress: async () => (
+            console.log("deletiiiing"),
+            deleteProduct(rowKey),
+            console.log("DELETED"),
+            closeRow(rowMap, rowKey),
+            newData.splice(prevIndex, 1),
+            // setInventory(newData),
+            loadDetails()
+          ),
+        },
+      ]
+    );
+  };
+  const onRowDidOpen = (rowKey) => {
+    console.log("This row opened", rowKey);
+  };
+
+  const HiddenItemWithActions = (props) => {
+    const { swipeAnimatedValue, onClose, onDelete } = props;
+
+    return (
+      <View style={styles.rowBack}>
+        {/* <Text>Left</Text> */}
+        <TouchableOpacity
+          style={[styles.backRightBtn, styles.backRightBtnLeft]}
+          onPress={onClose}
+        >
+          <IconMat
+            name="close-circle-outline"
+            size={25}
+            style={styles.trash}
+            color="#fff"
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.backRightBtn, styles.backRightBtnRight]}
+          onPress={onDelete}
+        >
+          <Animated.View
+            style={[
+              styles.trash,
+              {
+                transform: [
+                  {
+                    scale: swipeAnimatedValue.interpolate({
+                      inputRange: [-90, -45],
+                      outputRange: [1, 0],
+                      extrapolate: "clamp",
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <IconMat name="trash-can-outline" size={25} color="#fff" />
+          </Animated.View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const renderHiddenItem = (itemData, rowMap) => {
+    return (
+      <HiddenItemWithActions
+        data={inventory}
+        rowMap={rowMap}
+        onClose={() => closeRow(rowMap, itemData.item.key)}
+        onDelete={() =>
+          deleteRow(rowMap, itemData.item.key, itemData.item.productTitle)
+        }
+      />
+    );
+  };
 
   const searchFilterFunction = (text) => {
     // Check if searched text is not blank
@@ -296,54 +406,62 @@ const HomeScreen = ({navigation}) => {
 
   if (isLoading) {
     return (
-      <ScrollView style={{flex: 1}} contentContainerStyle={{alignItems: "center"}}>
-
-      <SkeletonPlaceholder>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <View style={{ width: 60, height: 60, borderRadius: 50 }} />
-              <View style={{ marginLeft: 20 }}>
-                <View style={{ width: 120, height: 20, borderRadius: 4 }} />
-                <View
-                  style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
-                />
-              </View>
-              </View>
-              <View style={{marginTop:10, marginBottom: 30}}>
-                <View style={{width: 300, height: 20, borderRadius:4}} />
-                <View style={{marginTop: 6, width: 350, height: 200, borderRadius:4}} />
-              </View>
-          </SkeletonPlaceholder>
-      <SkeletonPlaceholder>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <View style={{ width: 60, height: 60, borderRadius: 50 }} />
-              <View style={{ marginLeft: 20 }}>
-                <View style={{ width: 120, height: 20, borderRadius: 4 }} />
-                <View
-                  style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
-                />
-              </View>
-              </View>
-              <View style={{marginTop:10, marginBottom: 30}}>
-                <View style={{width: 300, height: 20, borderRadius:4}} />
-                <View style={{marginTop: 6, width: 350, height: 200, borderRadius:4}} />
-              </View>
-          </SkeletonPlaceholder>
-      <SkeletonPlaceholder>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <View style={{ width: 60, height: 60, borderRadius: 50 }} />
-              <View style={{ marginLeft: 20 }}>
-                <View style={{ width: 120, height: 20, borderRadius: 4 }} />
-                <View
-                  style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
-                />
-              </View>
-              </View>
-              <View style={{marginTop:10, marginBottom: 30}}>
-                <View style={{width: 300, height: 20, borderRadius:4}} />
-                <View style={{marginTop: 6, width: 350, height: 200, borderRadius:4}} />
-              </View>
-          </SkeletonPlaceholder>
-          </ScrollView>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ alignItems: "center" }}
+      >
+        <SkeletonPlaceholder>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+            <View style={{ marginLeft: 20 }}>
+              <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+              <View
+                style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
+              />
+            </View>
+          </View>
+          <View style={{ marginTop: 10, marginBottom: 30 }}>
+            <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+            <View
+              style={{ marginTop: 6, width: 350, height: 200, borderRadius: 4 }}
+            />
+          </View>
+        </SkeletonPlaceholder>
+        <SkeletonPlaceholder>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+            <View style={{ marginLeft: 20 }}>
+              <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+              <View
+                style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
+              />
+            </View>
+          </View>
+          <View style={{ marginTop: 10, marginBottom: 30 }}>
+            <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+            <View
+              style={{ marginTop: 6, width: 350, height: 200, borderRadius: 4 }}
+            />
+          </View>
+        </SkeletonPlaceholder>
+        <SkeletonPlaceholder>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+            <View style={{ marginLeft: 20 }}>
+              <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+              <View
+                style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
+              />
+            </View>
+          </View>
+          <View style={{ marginTop: 10, marginBottom: 30 }}>
+            <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+            <View
+              style={{ marginTop: 6, width: 350, height: 200, borderRadius: 4 }}
+            />
+          </View>
+        </SkeletonPlaceholder>
+      </ScrollView>
       // <View style={styles.centered}>
       //   <View>
       //     <ActivityIndicator size="large" color="#FF4949" />
@@ -354,22 +472,6 @@ const HomeScreen = ({navigation}) => {
   }
 
   // if (isLoading) {
-  // if (!isLoading && inventory.length === 0) {
-  //   return (
-  //     <View style={styles.centered}>
-  //       <Text>No Productos registrado. Agregar products </Text>
-  //       <TouchableOpacity
-  //         onPress={() => {
-  //           props.navigation.navigate("Scan");
-  //         }}
-  //       >
-  //         <View>
-  //           <Text style={{ color: "blue" }}>Aqui</Text>
-  //         </View>
-  //       </TouchableOpacity>
-  //     </View>
-  //   );
-  // }
 
   if (hasPermission === null) {
     return <Text>Requesting for camera permission</Text>;
@@ -379,22 +481,20 @@ const HomeScreen = ({navigation}) => {
   }
 
   return (
-    <SafeAreaView style={{flex:1}}>
-      
-
+    <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.topContainer}>
         <View style={styles.topHeader}>
           <View style={styles.searchText}>
             <View style={{ left: 10, position: "absolute" }}>
-
-          <Icon.Button
-              name="ios-menu"
-              size={25}
-              backgroundColor="#FF4949"
-              color="white"
-              onPress={() => {navigation.openDrawer();
-              }}
-            />
+              <Icon.Button
+                name="ios-menu"
+                size={25}
+                backgroundColor="#FF4949"
+                color="white"
+                onPress={() => {
+                  navigation.openDrawer();
+                }}
+              />
             </View>
             <Text style={styles.storeText}>{storeName} </Text>
             <View style={{ right: 10, position: "absolute" }}>
@@ -509,7 +609,48 @@ const HomeScreen = ({navigation}) => {
         </View>
       </View>
 
-      <FlatList
+      {!isLoading && inventory.length === 0 ? (
+        <View style={styles.centered}>
+          <Text>No Productos registrado. Agregar products abajo 👇🏽 </Text>
+          {/* <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("Scan");
+            }}
+          >
+            <View>
+              <Text style={{ color: "blue" }}>Aqui</Text>
+            </View>
+          </TouchableOpacity> */}
+        </View>
+      ) : (
+        <SwipeListView
+          refreshControl={
+            <RefreshControl
+              colors={["#FF4949", "#FF4949"]}
+              refreshing={isRefreshing}
+              onRefresh={loadDetails}
+            />
+          }
+          useFlatList={true}
+          data={inventory}
+          keyExtractor={(item) => item.key}
+          renderItem={renderItem}
+          renderHiddenItem={renderHiddenItem}
+          leftOpenValue={75}
+          rightOpenValue={-150}
+          disableRightSwipe
+          onRowOpen={(rowKey, rowMap) => {
+            setTimeout(() => {
+              rowMap[rowKey] && rowMap[rowKey].closeRow();
+            }, 2000);
+          }}
+          // previewRowKey={inventory[0].key}
+
+          onRowDidOpen={onRowDidOpen}
+        />
+      )}
+
+      {/* <FlatList
         refreshControl={
           <RefreshControl
             colors={["#FF4949", "#FF4949"]}
@@ -538,62 +679,31 @@ const HomeScreen = ({navigation}) => {
             }}
           />
         )}
-      />
+      /> */}
       <ActionButton buttonColor="#FF4949">
-        <ActionButton.Item buttonColor='#FF4949' title="Escáner" onPress={() => navigation.navigate('Scanner')}>
+        <ActionButton.Item
+          buttonColor="#FF4949"
+          title="Escáner"
+          onPress={() => navigation.navigate("Scanner")}
+        >
           <Icon name="qr-code" style={styles.actionButtonIcon} />
         </ActionButton.Item>
-        {/* <ActionButton.Item buttonColor='#FF4949' title="Vender" onPress={() => { navigation.navigate('Scanner') }}>
-          <Icon name="cash-outline" style={styles.actionButtonIcon} />
-        </ActionButton.Item> */}
+        <ActionButton.Item
+          buttonColor="#FF4949"
+          title="Catálogo"
+          onPress={() => {
+            navigation.navigate("Catálogo");
+          }}
+        >
+          <Icon name="book" style={styles.actionButtonIcon} />
+        </ActionButton.Item>
         {/* <ActionButton.Item buttonColor='#1abc9c' title="All Tasks" onPress={() => {}}>
           <Icon name="md-done-all" style={styles.actionButtonIcon} />
         </ActionButton.Item> */}
       </ActionButton>
-      
     </SafeAreaView>
   );
 };
-
-// HomeScreen.navigationOptions = (navData) => {
-//   const Tienda = navData.navigation.getParam("storeTitle");
-//   return {
-//     headerLeftShown: false,
-//     headerBackTitleVisible: false,
-//     headerTitle: "Inventario",
-//     headerRight: () => (
-//       <View style={{ flexDirection: "row" }}>
-//         <HeaderButtons HeaderButtonComponent={HeaderButton}>
-//           <Item
-//             title="Producto"
-//             iconName={Platform.OS === "android" ? "plus-circle" : "plus-circle"}
-//             onPress={() => {
-//               navData.navigation.navigate("Scan");
-//             }}
-//           />
-//         </HeaderButtons>
-//       </View>
-//     ),
-//     headerLeft: () => (
-//       <View style={{ flexDirection: "row" }}>
-//         <HeaderButtons HeaderButtonComponent={HeaderButton2}>
-//           <Item
-//             title="Producto"
-//             // iconColor={"black"}
-//             iconName={
-//               Platform.OS === "android" ? "settings-sharp" : "settings-sharp"
-//             }
-//             onPress={() => {
-//               navData.navigation.navigate("Settings", {
-//                 StoreTitle: Tienda,
-//               });
-//             }}
-//           />
-//         </HeaderButtons>
-//       </View>
-//     ),
-//   };
-// };
 
 export default HomeScreen;
 
@@ -741,7 +851,72 @@ const styles = StyleSheet.create({
   actionButtonIcon: {
     fontSize: 20,
     height: 22,
-    color: 'white',
+    color: "white",
+  },
+  rowFront: {
+    backgroundColor: "#FFF",
+    borderRadius: 5,
+    height: 60,
+    margin: 5,
+    marginBottom: 15,
+    shadowColor: "#999",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
+  },
+  rowFrontVisible: {
+    backgroundColor: "#FFF",
+    borderRadius: 5,
+    height: 60,
+    padding: 10,
+    marginBottom: 15,
+  },
+  rowBack: {
+    alignItems: "center",
+    backgroundColor: "#DDD",
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingLeft: 15,
+    margin: 5,
+    marginBottom: 15,
+    marginTop: 15,
+    borderRadius: 15,
+  },
+  backRightBtn: {
+    alignItems: "flex-end",
+    bottom: 0,
+    justifyContent: "center",
+    position: "absolute",
+    top: 0,
+    width: 75,
+    paddingRight: 17,
+  },
+  backRightBtnLeft: {
+    backgroundColor: "#1f65ff",
+    right: 75,
+  },
+  backRightBtnRight: {
+    backgroundColor: "red",
+    right: 0,
+    borderTopRightRadius: 5,
+    borderBottomRightRadius: 5,
+  },
+  trash: {
+    height: 25,
+    width: 25,
+    marginRight: 7,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 5,
+    color: "#666",
+  },
+  details: {
+    fontSize: 12,
+    color: "#999",
   },
 });
 

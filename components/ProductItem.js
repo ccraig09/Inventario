@@ -5,6 +5,7 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
+  TouchableHighlight,
   Modal,
   KeyboardAvoidingView,
   Alert,
@@ -128,7 +129,7 @@ const ProductItem = (props) => {
   const itemDeleteHandler = () => {
     Alert.alert(
       "Borrar producto?",
-      `El producto ___ será borrado de tu inventario?`,
+      `El producto "${props.title}" será borrado de tu inventario?`,
       [
         {
           text: "No",
@@ -151,13 +152,15 @@ const ProductItem = (props) => {
   };
 
   return (
-    <TouchableOpacity
+    <TouchableHighlight
       onPress={() => {
         setModalVisible(true);
       }}
       style={styles.placeItem}
+      underlayColor={'#aaa'}
     >
       <View style={styles.itemSpacing}>
+      <View >
         <View style={styles.infoContainer}>
           <Text style={styles.title}>{props.title}</Text>
         </View>
@@ -231,8 +234,6 @@ const ProductItem = (props) => {
         </View>
       </View>
 
-      {/* </View> */}
-      {/* </View> */}
       <KeyboardAvoidingView
         style={{
           flex: 1,
@@ -556,7 +557,8 @@ const ProductItem = (props) => {
           </Modal>
         </View>
       </KeyboardAvoidingView>
-    </TouchableOpacity>
+        </View>
+    </TouchableHighlight>
   );
 };
 

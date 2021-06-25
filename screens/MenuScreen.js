@@ -8,7 +8,6 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
-  Picker,
   ActivityIndicator,
   Modal,
   SectionList,
@@ -16,9 +15,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
 } from "react-native";
-import { useSelector, useDispatch } from "react-redux";
-import * as sendProduct from "../store/productActions";
-import * as ProdActions from "../store/productActions";
+import { Picker } from "@react-native-picker/picker";
 import ProductItem from "../components/ProductItem";
 import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
 import { Avatar, Divider, Input, Button } from "react-native-elements";
@@ -28,14 +25,13 @@ import CategoryGridTile from "../components/CategoryGridTile";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
 
-
 import { TouchableWithoutFeedback } from "react-native";
 
 const MenuScreen = (props) => {
-  const { user } = useContext(AuthContext);
+  const { user, createProduct, addMemProd, qUpdate } = useContext(AuthContext);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [availableProducts, setAvailableProducts] = useState([])
+  const [availableProducts, setAvailableProducts] = useState([]);
   const [scanned, setScanned] = useState(false);
   const [scanner, setScanner] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -75,8 +71,6 @@ const MenuScreen = (props) => {
   const [hasCode, setHasCode] = useState(false);
   const [searchScreen, setSearchScreen] = useState(false);
 
-  const dispatch = useDispatch();
-
   // const userProducts = useSelector((state) => {
   //   const transformedProducts = [];
   //   for (const key in state.products.products) {
@@ -103,7 +97,7 @@ const MenuScreen = (props) => {
   // );
 
   const fetchAvailableProducts = async () => {
-setIsRefreshing(true)
+    setIsRefreshing(true);
     try {
       const list = [];
       await firebase
@@ -112,69 +106,55 @@ setIsRefreshing(true)
         .get()
         .then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
-            const {
-              Product,
-              Quantity,
-              Category,
-              Price,
-              Brand,
-              code,
-              Size,
-            } = doc.data();
+            const { Product, Quantity, Category, Price, Brand, code, Size } =
+              doc.data();
             list.push({
               productId: doc.id,
-               Product,
-               Price,
-               Category,
-               Quantity,
-               Size,
-               Brand,
-               code,
+              Product,
+              Price,
+              Category,
+              Quantity,
+              Size,
+              Brand,
+              code,
             });
           });
         });
       setAvailableProducts(list);
-      setIsRefreshing(false)
+      setIsRefreshing(false);
     } catch (e) {
       console.log(e);
     }
   };
 
   const startAvailableProducts = async () => {
-        try {
-          const list = [];
-          await firebase
-            .firestore()
-            .collection("Products")
-            .get()
-            .then((querySnapshot) => {
-              querySnapshot.forEach((doc) => {
-                const {
-                  Product,
-                  Quantity,
-                  Category,
-                  Price,
-                  Brand,
-                  code,
-                  Size,
-                } = doc.data();
-                list.push({
-                  productId: doc.id,
-                   Product,
-                   Price,
-                   Category,
-                   Quantity,
-                   Size,
-                   Brand,
-                   code,
-                });
-              });
+    try {
+      const list = [];
+      await firebase
+        .firestore()
+        .collection("Products")
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const { Product, Quantity, Category, Price, Brand, code, Size } =
+              doc.data();
+            list.push({
+              productId: doc.id,
+              Product,
+              Price,
+              Category,
+              Quantity,
+              Size,
+              Brand,
+              code,
             });
-          setAvailableProducts(list);
-        } catch (e) {
-          console.log(e);
-        }
-      };
+          });
+        });
+      setAvailableProducts(list);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   let catArray = [
     "Embutidos",
@@ -194,11 +174,9 @@ setIsRefreshing(true)
   ];
   let catOptions = catArray.sort();
 
-
-
   useEffect(() => {
     setIsLoading(true);
-    startAvailableProducts()
+    startAvailableProducts();
     setIsLoading(false);
   });
 
@@ -256,28 +234,18 @@ setIsRefreshing(true)
     if (!hasCode) {
       var randCode = Math.random().toString();
     }
+
     if (hasCode) {
-      dispatch(
-        sendProduct.addedProduct(
-          newProduct,
-          newSize,
-          newPrice,
-          newCategory,
-          newBrand,
-          code
-        )
-      );
+      createProduct(newProduct, newSize, newPrice, newCategory, newBrand, code);
     }
     if (!hasCode) {
-      dispatch(
-        sendProduct.addedRandProduct(
-          newProduct,
-          newSize,
-          newPrice,
-          newCategory,
-          newBrand,
-          randCode
-        )
+      createProduct(
+        newProduct,
+        newSize,
+        newPrice,
+        newCategory,
+        newBrand,
+        randCode
       );
     }
     console.log("going to test math random code", randCode);
@@ -300,15 +268,8 @@ setIsRefreshing(true)
             setManualAdd(!manualAdd);
             setModalVisible(!modalVisible);
             setLoadedModal(true);
-            console.log("ADDING TO BOOK and mode is", newMode);
-            setTitle(newProduct);
-            setPrice(newPrice);
-            setCategory(newCategory);
-            setSize(newSize);
-            setCode(randCode);
-            setBrand(newBrand);
+            setCode(!hasCode ? randCode : code);
             setNewMode(false);
-            setLoadedMode(true);
           },
         },
       ]
@@ -317,9 +278,7 @@ setIsRefreshing(true)
     // setModalVisible(false);
     // setTitle(true);
 
-    setTimeout(() => {
-      fetchAvailableProducts();
-    }, 1000);
+    fetchAvailableProducts();
   };
 
   const codePrompt = () => {
@@ -344,106 +303,82 @@ setIsRefreshing(true)
   };
 
   const newInvProd = () => {
-    let Title = title;
-    let Price = price;
-    let Category = category;
-    let Quantity = newQ;
-    let Size = size;
-    let Brand = brand;
+    let Title = newProduct;
+    let Price = newPrice;
+    let Category = newCategory;
+    let Size = newSize;
+    let Brand = newBrand;
     let Code = code;
     console.log(
-      "new product added now going to add product to the inventory list"
+      "new product added now going to add product to the available inventory list"
     );
-    dispatch(
-      sendProduct.createProduct(
-        Title,
-        Price,
-        Category,
-        Quantity,
-        Size,
-        Brand,
-        Code
-      )
-    );
+    addMemProd(Title, Price, Category, Size, Brand, Code);
     setLoadedMode(false);
     setLoadedModal(false);
   };
 
   const quantityUpdateHandler = () => {
-    console.log(
-      "FROM NEW PRODUCT TO NEW Q",
-      title,
-      price,
-      category,
-      newQ,
-      size,
-      code
-    );
-    dispatch(
-      sendProduct.quantityUpdate(title, price, category, newQ, size, code)
-    );
-    setTimeout(() => {
-      fetchAvailableProducts();
-    }, 1000);
-  };
+    console.log("FROM NEW PRODUCT TO NEW Q", newQ, code);
+    qUpdate(newQ, code);
 
-  const uploadProduct = (
-    Title,
-    Price,
-    Category,
-    Quantity,
-    Size,
-    Brand,
-    Code
-  ) => {
-    console.log("data listed", Quantity);
-    try {
-      if (Quantity > 1) {
-        console.log(
-          "item already exist, updating",
-          Title,
-          Price,
-          Category,
-          Quantity,
-          Size,
-          Brand,
-          Code
-        );
-
-        dispatch(
-          sendProduct.updateProducts(
-            Title,
-            Price,
-            Category,
-            Quantity,
-            Size,
-            Brand,
-            Code
-          )
-        );
-      } else {
-        console.log("first upload");
-        console.log(Title, Price, Category, Quantity, Size, Code);
-        dispatch(
-          sendProduct.createProduct(
-            Title,
-            Price,
-            Category,
-            Quantity,
-            Size,
-            Brand,
-            Code
-          )
-        );
-      }
-    } catch (err) {
-      setError(err.message);
-      console.log(error);
-    }
     fetchAvailableProducts();
   };
 
+  // const uploadProduct = (
+  //   Title,
+  //   Price,
+  //   Category,
+  //   Quantity,
+  //   Size,
+  //   Brand,
+  //   Code
+  // ) => {
+  //   console.log("data listed", Quantity);
+  //   try {
+  //     if (Quantity > 1) {
+  //       console.log(
+  //         "item already exist, updating",
+  //         Title,
+  //         Price,
+  //         Category,
+  //         Quantity,
+  //         Size,
+  //         Brand,
+  //         Code
+  //       );
 
+  //       dispatch(
+  //         sendProduct.updateProducts(
+  //           Title,
+  //           Price,
+  //           Category,
+  //           Quantity,
+  //           Size,
+  //           Brand,
+  //           Code
+  //         )
+  //       );
+  //     } else {
+  //       console.log("first upload");
+  //       console.log(Title, Price, Category, Quantity, Size, Code);
+  //       dispatch(
+  //         sendProduct.createProduct(
+  //           Title,
+  //           Price,
+  //           Category,
+  //           Quantity,
+  //           Size,
+  //           Brand,
+  //           Code
+  //         )
+  //       );
+  //     }
+  //   } catch (err) {
+  //     setError(err.message);
+  //     console.log(error);
+  //   }
+  //   fetchAvailableProducts();
+  // };
 
   const continueScan = () => {
     setScanned(false);
@@ -761,23 +696,28 @@ setIsRefreshing(true)
                       onPress={() => {
                         if (newMode) {
                           newEntry();
-                          console.log("theres a new product", newProduct);
-                          continueScan();
-                        }
-                        if (loadedMode) {
-                          console.log("NEW PRODUCT ADDED now for inventory");
-                          newInvProd();
-                          setModalVisible(!modalVisible);
-                          continueScan();
-                        }
-                        if (title) {
                           console.log(
-                            "not adding a new product just to the inventory"
+                            "theres a new available product",
+                            newProduct
                           );
-                          quantityUpdateHandler();
-                          setModalVisible(!modalVisible);
                           continueScan();
                         }
+                        // if (loadedMode) {
+                        //   console.log(
+                        //     "NEW PRODUCT ADDED now for member inventory"
+                        //   );
+                        //   newInvProd();
+                        //   setModalVisible(!modalVisible);
+                        //   continueScan();
+                        // }
+                        // if (title) {
+                        //   console.log(
+                        //     "not adding a new product just to the member inventory"
+                        //   );
+                        //   quantityUpdateHandler();
+                        //   setModalVisible(!modalVisible);
+                        //   continueScan();
+                        // }
                       }}
                     >
                       <Text style={styles.textStyle}>Guardar</Text>
@@ -818,7 +758,7 @@ setIsRefreshing(true)
                 <View style={styles.modalView}>
                   <View>
                     <Text style={styles.modalTitle}>Editar Producto:</Text>
-                    <Text style={styles.modalHead}>{title}</Text>
+                    <Text style={styles.modalHead}>{newProduct}</Text>
                     <View
                       style={{
                         flexDirection: "row",
@@ -826,7 +766,7 @@ setIsRefreshing(true)
                       }}
                     >
                       <Text style={styles.modalText}>Marca: </Text>
-                      <Text style={styles.modalText}>{brand}</Text>
+                      <Text style={styles.modalText}>{newBrand}</Text>
                     </View>
                     <View
                       style={{
@@ -835,7 +775,7 @@ setIsRefreshing(true)
                       }}
                     >
                       <Text style={styles.modalText}>Precio: </Text>
-                      <Text style={styles.modalText}>${price}bs</Text>
+                      <Text style={styles.modalText}>${newPrice}bs</Text>
                     </View>
                     <View
                       style={{
@@ -844,7 +784,7 @@ setIsRefreshing(true)
                       }}
                     >
                       <Text style={styles.modalText}>Tamaño: </Text>
-                      <Text style={styles.modalText}>{size}</Text>
+                      <Text style={styles.modalText}>{newSize}</Text>
                     </View>
                     <View
                       style={{
@@ -853,7 +793,7 @@ setIsRefreshing(true)
                       }}
                     >
                       <Text style={styles.modalText}>Categoria: </Text>
-                      <Text style={styles.modalText}>{category}</Text>
+                      <Text style={styles.modalText}>{newCategory}</Text>
                     </View>
                     <View
                       style={{
@@ -893,20 +833,22 @@ setIsRefreshing(true)
                       step={1}
                       fontSize={20}
                       onMax={(max) => {
-                        Alert.alert("llego al Maximo", "El maximo seria 1000");
+                        Alert.alert("llego al Maximo", "El maximo seria 10000");
                       }}
+                      skin={"clean"}
+                      background={"#F5F3F3"}
                       colorMax={"red"}
                       colorMin={"green"}
                       colorLeft={"red"}
                       colorRight={"blue"}
                       value={quantity}
-                      onChange={(num) => {
-                        if (num === quantity) {
-                          null;
-                        } else {
-                          setNewQ(num);
-                        }
-                      }}
+                      onChange={(num) => setNewQ(num)}
+                      //   {if (num === quantity) {
+                      //     null;
+                      //   } else {
+                      //     setNewQ(num);
+                      //   }
+                      // }}
                     />
                   </View>
 
@@ -924,7 +866,6 @@ setIsRefreshing(true)
                       }}
                       onPress={() => {
                         setLoadedModal(false);
-                        // props.navigation.navigate("Home"),
                         setScanned(false);
                       }}
                     >
@@ -936,25 +877,26 @@ setIsRefreshing(true)
                         backgroundColor: "#2196F3",
                       }}
                       onPress={() => {
-                        if (newMode) {
-                          newEntry();
-                          console.log("theres a new product", newProduct);
-                          continueScan();
-                        }
-                        if (loadedMode) {
-                          console.log("NEW PRODUCT ADDED now for inventory");
-                          newInvProd();
-                          setModalVisible(!modalVisible);
-                          continueScan();
-                        }
-                        if (title) {
-                          console.log(
-                            "not adding a new product just to the inventory"
-                          );
-                          quantityUpdateHandler();
-                          setModalVisible(!modalVisible);
-                          continueScan();
-                        }
+                        // if (newMode) {
+                        //   newEntry();
+                        //   console.log("theres a new product", newProduct);
+                        //   continueScan();
+                        // }
+                        // if (loadedMode) {
+                        console.log("NEW PRODUCT ADDED now for inventory");
+                        newInvProd();
+                        quantityUpdateHandler();
+                        setModalVisible(!modalVisible);
+                        continueScan();
+                        // }
+                        // if (title) {
+                        //   console.log(
+                        //     "not adding a new product just to the inventory"
+                        //   );
+                        //   quantityUpdateHandler();
+                        //   setModalVisible(!modalVisible);
+                        //   continueScan();
+                        // }
                       }}
                     >
                       <Text style={styles.textStyle}>Guardar</Text>
@@ -1089,11 +1031,7 @@ setIsRefreshing(true)
             />
           )}
           renderSectionHeader={({ section }) => (
-            <TouchableOpacity
-              onPress={() => {
-                
-              }}
-            >
+            <TouchableOpacity onPress={() => {}}>
               <Text style={styles.sectionHeaderStyle}>{section.title}</Text>
             </TouchableOpacity>
           )}

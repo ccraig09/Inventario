@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   TouchableOpacity,
   View,
@@ -22,12 +22,17 @@ import { useSelector, useDispatch } from "react-redux";
 import { Octicons } from "@expo/vector-icons";
 import DateTimePicker from "react-native-modal-datetime-picker";
 import { extendMoment } from "moment-range";
+import { AuthContext } from "../navigation/AuthProvider";
+import firebase from "../components/firebase";
 
 const { height, width } = Dimensions.get("window");
 const itemWidth = (width - (15 * 2 + 5 * (2 - 1))) / 2;
 const CategoryGridTile = (props) => {
   let TouchableCmp = TouchableOpacity;
+  const { user, addMemProd } = useContext(AuthContext);
+  const db = firebase.firestore().collection("Members");
   const [quantityColor, setQuantity] = useState("#666");
+  const [userProducts, setUserProducts] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [newQ, setNewQ] = useState();
   const [editVisible, setEditVisible] = useState(false);
@@ -37,25 +42,25 @@ const CategoryGridTile = (props) => {
   const [extendedDate, setExtendedDate] = useState(false);
   const [expDate, setExpDate] = useState();
 
-  const userProducts = useSelector((state) => {
-    const transformedProducts = [];
-    for (const key in state.products.products) {
-      transformedProducts.push({
-        productId: key,
-        productTitle: state.products.products[key].Title,
-        productPrice: state.products.products[key].Price,
-        productCategory: state.products.products[key].Category,
-        productOwner: state.products.products[key].ownerId,
-        productQuantity: state.products.products[key].Quantity,
-        productSize: state.products.products[key].Size,
-        productBrand: state.products.products[key].Brand,
-        productTime: state.products.products[key].time,
-        productcode: state.products.products[key].Code,
-        docTitle: state.products.products[key].docTitle,
-      });
-    }
-    return transformedProducts;
-  });
+  // const userProducts = useSelector((state) => {
+  //   const transformedProducts = [];
+  //   for (const key in state.products.products) {
+  //     transformedProducts.push({
+  //       productId: key,
+  //       productTitle: state.products.products[key].Title,
+  //       productPrice: state.products.products[key].Price,
+  //       productCategory: state.products.products[key].Category,
+  //       productOwner: state.products.products[key].ownerId,
+  //       productQuantity: state.products.products[key].Quantity,
+  //       productSize: state.products.products[key].Size,
+  //       productBrand: state.products.products[key].Brand,
+  //       productTime: state.products.products[key].time,
+  //       productcode: state.products.products[key].Code,
+  //       docTitle: state.products.products[key].docTitle,
+  //     });
+  //   }
+  //   return transformedProducts;
+  // });
 
   if (Platform.OS === "android" && Platform.Version >= 21) {
     TouchableCmp = TouchableNativeFeedback;
@@ -78,6 +83,51 @@ const CategoryGridTile = (props) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const list = [];
+        await firebase
+          .firestore()
+          .collection("Members")
+          .doc(user.uid)
+          .collection("Member Products")
+          .orderBy("Title", "asc")
+          .get()
+          .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              const {
+                Title,
+                Quantity,
+                Category,
+                Price,
+                ownerId,
+                Brand,
+                Code,
+                ExpDate,
+                Size,
+                docTitle,
+              } = doc.data();
+              list.push({
+                key: doc.id,
+                productTitle: Title,
+                productPrice: Price,
+                productCategory: Category,
+                productOwner: ownerId,
+                productQuantity: Quantity,
+                productSize: Size,
+                productBrand: Brand,
+                productcode: Code,
+                productExp: ExpDate,
+                docTitle: docTitle,
+              });
+            });
+          });
+        setUserProducts(list);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    fetchPost();
     if (props.quantity > 5) {
       setQuantity("red");
     }
@@ -209,17 +259,7 @@ const CategoryGridTile = (props) => {
       Size = props.size;
       Brand = props.brand;
       Code = props.code;
-      dispatch(
-        sendProduct.createProduct(
-          Title,
-          Price,
-          Category,
-          Quantity,
-          Size,
-          Brand,
-          Code
-        )
-      );
+      addMemProd(Title, Price, Category, Quantity, Size, Brand, Code);
       Alert.alert(
         `El producto ${props.title} ha sido agregado!`,
         `Usted quisiera editar el producto?`,
