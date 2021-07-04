@@ -37,13 +37,14 @@ import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
 
 const ScannerScreen = (props) => {
-  const { user } = useContext(AuthContext);
+  const { user, createProduct } = useContext(AuthContext);
 
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [userProducts, setUserProducts] = useState();
-  const [availableProducts, setAvailableProducts] = useState([])
+  const [availableProducts, setAvailableProducts] = useState([]);
+  const [itemExist, setItemExist] = useState(false);
   const [scanner, setScanner] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState();
@@ -119,6 +120,7 @@ const ScannerScreen = (props) => {
     }
   };
   const fetchAvailableProducts = async () => {
+    setIsRefreshing(true);
     try {
       const list = [];
       await firebase
@@ -127,28 +129,22 @@ const ScannerScreen = (props) => {
         .get()
         .then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
-            const {
-              Product,
-              Quantity,
-              Category,
-              Price,
-              Brand,
-              code,
-              Size,
-            } = doc.data();
+            const { Product, Quantity, Category, Price, Brand, code, Size } =
+              doc.data();
             list.push({
               productId: doc.id,
-               Product,
-               Price,
-               Category,
-               Quantity,
-               Size,
+              Product,
+              Price,
+              Category,
+              Quantity,
+              Size,
               Brand,
-               code,
+              code,
             });
           });
         });
-      setUserProducts(list);
+      setAvailableProducts(list);
+      setIsRefreshing(false);
     } catch (e) {
       console.log(e);
     }
@@ -236,11 +232,11 @@ const ScannerScreen = (props) => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
     })();
-  }, [code]);
+  }, []);
 
   useEffect(() => {
     fetchProducts();
-    fetchAvailableProducts
+    fetchAvailableProducts();
     continueScan();
     LogBox.ignoreLogs(["VirtualizedLists should never be nested"]);
   }, []);
@@ -252,16 +248,7 @@ const ScannerScreen = (props) => {
   };
 
   const newEntry = () => {
-    dispatch(
-      sendProduct.addedProduct(
-        newProduct,
-        newSize,
-        newPrice,
-        newCategory,
-        newBrand,
-        code
-      )
-    );
+    createProduct(newProduct, newSize, newPrice, newCategory, newBrand, code);
 
     Alert.alert(
       "Agregar a tu inventario?",
@@ -296,6 +283,8 @@ const ScannerScreen = (props) => {
         },
       ]
     );
+    fetchAvailableProducts();
+    fetchProducts();
 
     // setModalVisible(false);
     // setTitle(true);
@@ -508,7 +497,6 @@ const ScannerScreen = (props) => {
             setScanned(false);
           },
         },
-        
       ]);
       await dispatch(cartActions.addToCart(userProduct));
       console.log("these are scanned products", cartItems);
@@ -520,8 +508,6 @@ const ScannerScreen = (props) => {
     // );
     // setScannedResults(cartItems);
 
-  
-
     // console.log(
     //   "THIS SHOULD BE scanneduserproduct",
     //   scannedUserProduct.quantity
@@ -530,9 +516,8 @@ const ScannerScreen = (props) => {
 
   const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-    // console.log(availableProducts);
     const userQuantity = userProducts.find((prod) => prod.productcode === data);
-    const loadedProduct = availableProducts.find((code) => code.code === data);
+    const loadedProduct = availableProducts.find((cod) => cod.code === data);
     const userProduct = userProducts.find((code) => code.productcode === data);
 
     if (data) {
@@ -543,10 +528,33 @@ const ScannerScreen = (props) => {
     if (typeof loadedProduct === "undefined") {
       setNewMode(true);
       setLoadedMode(false);
+      setItemExist(false);
+    }
+
+    if (loadedProduct && !userProduct) {
+      console.log("item exist but is not in user inventory");
+      setItemExist(true);
+      setNewMode(false);
+      setNewMode(false);
+
+      try {
+        Title = loadedProduct.Product;
+        Price = loadedProduct.Price;
+        Category = loadedProduct.Category;
+        Size = loadedProduct.Size;
+        Brand = loadedProduct.Brand;
+        Code = loadedProduct.code.toString();
+        console.log("THIS IS FIRST CODE TEST", Code);
+
+        setCode(Code);
+      } catch (err) {
+        setError(err.message);
+      }
     }
 
     if (userProduct) {
       setLoadedMode(true);
+      setItemExist(false);
       setNewMode(false);
       console.log("THIS IS USERLOADED PRODUCT", userProduct);
       try {
@@ -677,7 +685,9 @@ const ScannerScreen = (props) => {
             >
               Modo: {sell ? "Vender" : "Inventario"}
             </Text>
-            <Text style={{color:'silver'}}>cambiar a {!sell ? "Vender" : "Inventario"}</Text>
+            <Text style={{ color: "silver" }}>
+              cambiar a {!sell ? "Vender" : "Inventario"}
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -831,7 +841,7 @@ const ScannerScreen = (props) => {
       <View
         style={{
           flex: 1,
-          marginBottom: 100
+          marginBottom: 100,
         }}
         // marginTop: 40,
         // flexDirection: "column",
@@ -858,8 +868,9 @@ const ScannerScreen = (props) => {
             >
               Modo: {sell ? "Vender" : "Contar"}
             </Text>
-            <Text style={{color:'silver'}}>cambiar a {!sell ? "Vender" : "Inventario"}</Text>
-
+            <Text style={{ color: "silver" }}>
+              cambiar a {!sell ? "Vender" : "Inventario"}
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -887,12 +898,17 @@ const ScannerScreen = (props) => {
               >
                 <View style={styles.centeredView}>
                   <View style={styles.modalView}>
-                    {loadedMode && (
+                    {itemExist && (
                       <View>
                         <Text style={styles.modalTitle}>
                           Producto escaneado:
                         </Text>
                         <Text style={styles.modalHead}>{title}</Text>
+
+                        <View style={styles.modalItemBorderCategoria}>
+                          <Text style={styles.modalTextTitle}>Tamaño: </Text>
+                          <Text style={styles.modalText}>{size}</Text>
+                        </View>
                         <View
                           style={{
                             flexDirection: "row",
@@ -910,28 +926,50 @@ const ScannerScreen = (props) => {
                           </View>
                         </View>
 
+                        <View style={styles.modalItemBorderCategoria}>
+                          <Text style={styles.modalTextTitle}>Categoria: </Text>
+                          <Text style={styles.modalText}>{category}</Text>
+                        </View>
+                      </View>
+                    )}
+                    {loadedMode && (
+                      <View>
+                        <TouchableOpacity>
+                          <Text style={styles.modalTitle}>
+                            Producto para editar:
+                          </Text>
+                          <Text style={styles.modalHead}>{title}</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={styles.modalItemBorderCategoria}
+                        >
+                          <Text style={styles.modalTextTitle}>Tamaño: </Text>
+                          <Text style={styles.modalText}>{size}</Text>
+                        </TouchableOpacity>
                         <View
                           style={{
                             flexDirection: "row",
                             justifyContent: "space-between",
                           }}
                         >
-                          <View style={styles.modalItemBorder}>
-                            <Text style={styles.modalTextTitle}>Tamaño: </Text>
-                            <Text style={styles.modalText}>{size}</Text>
-                          </View>
+                          <TouchableOpacity style={styles.modalItemBorder}>
+                            <Text style={styles.modalTextTitle}>Marca: </Text>
+                            <Text style={styles.modalText}>{brand}</Text>
+                          </TouchableOpacity>
 
-                          <View style={styles.modalItemBorder}>
-                            <Text style={styles.modalTextTitle}>
-                              Cantidad:{" "}
-                            </Text>
-                            <Text style={styles.modalText}>{quantity}</Text>
-                          </View>
+                          <TouchableOpacity style={styles.modalItemBorder}>
+                            <Text style={styles.modalTextTitle}>Precio: </Text>
+                            <Text style={styles.modalText}>${price}bs</Text>
+                          </TouchableOpacity>
                         </View>
-                        <View style={styles.modalItemBorderCategoria}>
+
+                        <TouchableOpacity
+                          style={styles.modalItemBorderCategoria}
+                        >
                           <Text style={styles.modalTextTitle}>Categoria: </Text>
                           <Text style={styles.modalText}>{category}</Text>
-                        </View>
+                        </TouchableOpacity>
                       </View>
                     )}
                     {newMode && (
@@ -1078,6 +1116,15 @@ const ScannerScreen = (props) => {
                     {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
                     {/* </View> */}
 
+                    {itemExist && (
+                      <View style={{ marginBottom: 10 }}>
+                        <Text style={{ color: "silver", fontSize: 13 }}>
+                          Puedes editar los detalles del producto (ej. precio)
+                          despues de agregarlo a tu inventario.
+                        </Text>
+                      </View>
+                    )}
+
                     {loadedMode && (
                       <View
                         style={{
@@ -1140,7 +1187,7 @@ const ScannerScreen = (props) => {
                           setScanned(false);
                         }}
                       >
-                        <Text style={styles.textStyle}>Volver</Text>
+                        <Text style={styles.textStyle}>Cerrar</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={{
@@ -1159,17 +1206,29 @@ const ScannerScreen = (props) => {
                             // setModalVisible(!modalVisible);
                             // continueScan();
                           }
-                          if (title) {
+                          // if (title) {
+                          //   console.log(
+                          //     "not adding a new product just to the inventory"
+                          //   );
+                          //   quantityUpdateHandler();
+                          //   setModalVisible(!modalVisible);
+                          //   continueScan();
+                          // }
+                          if (itemExist) {
                             console.log(
-                              "not adding a new product just to the inventory"
+                              "going to open the already existing item to inventory"
                             );
-                            quantityUpdateHandler();
-                            setModalVisible(!modalVisible);
+                            setLoadedMode(true);
+                            setItemExist(false);
                             continueScan();
                           }
                         }}
                       >
-                        <Text style={styles.textStyle}>Guardar</Text>
+                        {itemExist ? (
+                          <Text style={styles.textStyle}>Agregar y Editar</Text>
+                        ) : (
+                          <Text style={styles.textStyle}>Guardar</Text>
+                        )}
                       </TouchableOpacity>
                     </View>
                   </View>

@@ -13,4 +13,69 @@ return (
         </ActionButton.Item>
       </ActionButton>
     </View>
-  );
+);
+  
+<TouchableOpacity
+                        style={{
+                          ...styles.openButton,
+                          backgroundColor: "#A251F9",
+                          marginBottom: 7,
+                        }}
+                        onPress={() => {
+                          setPicker(true);
+                        }}
+                      >
+                        <Text style={styles.textStyle}>Categoria</Text>
+                        {/* this is for manual add */}
+                      </TouchableOpacity>
+                      <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={picker}
+                        // onRequestClose={() => {
+                        //   Alert.alert("Modal has been closed.");
+                        // }}
+                      >
+                        <View style={styles.centeredView}>
+                          <View style={styles.modalView}>
+                            <Picker
+                              selectedValue={picked}
+                              mode="dropdown"
+                              style={{
+                                height: 30,
+                                marginTop: 20,
+                                marginBottom: 30,
+                                width: "100%",
+                                justifyContent: "center",
+                              }}
+                              itemStyle={{ fontSize: 16 }}
+                              onValueChange={(itemValue) =>
+                                setPicked(itemValue)
+                              }
+                            >
+                              {catOptions.map((item, index) => {
+                                return (
+                                  <Picker.Item
+                                    label={item}
+                                    value={item}
+                                    key={index}
+                                  />
+                                );
+                              })}
+                            </Picker>
+                            <TouchableOpacity
+                              style={{
+                                ...styles.openButton,
+                                backgroundColor: "pink",
+                                marginTop: 45,
+                              }}
+                              onPress={() => {
+                                setNewCategory(picked);
+                                setPicker(false);
+                              }}
+                            >
+                              <Text style={styles.textStyle}>Guardar</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </Modal>

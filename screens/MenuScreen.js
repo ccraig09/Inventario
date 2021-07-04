@@ -20,12 +20,14 @@ import ProductItem from "../components/ProductItem";
 import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
 import { Avatar, Divider, Input, Button } from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
+import Ionicon from "react-native-vector-icons/Ionicons";
 import InputSpinner from "react-native-input-spinner";
 import CategoryGridTile from "../components/CategoryGridTile";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
 
 import { TouchableWithoutFeedback } from "react-native";
+import Colors from "../constants/Colors";
 
 const MenuScreen = (props) => {
   const { user, createProduct, addMemProd, qUpdate } = useContext(AuthContext);
@@ -174,6 +176,73 @@ const MenuScreen = (props) => {
   ];
   let catOptions = catArray.sort();
 
+  const catSections = [
+    {
+      title: catOptions[0],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[0]),
+    },
+    {
+      title: catOptions[1],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[1]),
+    },
+    {
+      title: catOptions[2],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[2]),
+    },
+    {
+      title: catOptions[3],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[3]),
+    },
+    {
+      title: catOptions[4],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[4]),
+    },
+    {
+      title: catOptions[5],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[5]),
+    },
+    {
+      title: catOptions[6],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[6]),
+    },
+    {
+      title: catOptions[7],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[7]),
+    },
+    {
+      title: catOptions[8],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[8]),
+    },
+    {
+      title: catOptions[9],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[9]),
+    },
+    {
+      title: catOptions[10],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[10]),
+    },
+    {
+      title: catOptions[11],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[11]),
+    },
+    {
+      title: catOptions[12],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[12]),
+    },
+    {
+      title: catOptions[13],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[13]),
+    },
+    {
+      title: catOptions[14],
+      data: availableProducts.filter((cat) => cat.Category === catOptions[14]),
+    },
+    {
+      title: "Sin Categoria",
+      data: availableProducts.filter((cat) => cat.Category === catOptions[-1]),
+    },
+  ];
+
   useEffect(() => {
     setIsLoading(true);
     startAvailableProducts();
@@ -278,7 +347,7 @@ const MenuScreen = (props) => {
     // setModalVisible(false);
     // setTitle(true);
 
-    fetchAvailableProducts();
+    // fetchAvailableProducts();
   };
 
   const codePrompt = () => {
@@ -321,7 +390,7 @@ const MenuScreen = (props) => {
     console.log("FROM NEW PRODUCT TO NEW Q", newQ, code);
     qUpdate(newQ, code);
 
-    fetchAvailableProducts();
+    // fetchAvailableProducts();
   };
 
   // const uploadProduct = (
@@ -493,12 +562,43 @@ const MenuScreen = (props) => {
             >
               <View style={styles.centeredView}>
                 <View style={styles.modalView}>
+                  <View
+                    style={{
+                      width: "100%",
+                      alignItems: "center",
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => {
+                        setManualAdd(!manualAdd);
+                        setScanned(false);
+                      }}
+                      style={{ marginRight: 25 }}
+                    >
+                      <Ionicon name="ios-close" size={44} color="black" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        newEntry();
+                        console.log(
+                          "theres a new available product",
+                          newProduct
+                        );
+                        continueScan();
+                      }}
+                    >
+                      <Text style={{ color: "blue" }}>Guardar</Text>
+                    </TouchableOpacity>
+                  </View>
                   <View>
                     <Text style={styles.modalTitle}>Nuevo Producto</Text>
                     <View>
                       <TextInput
                         style={styles.textInputStyle}
                         placeholder="Producto"
+                        placeholderTextColor="grey"
                         value={newProduct}
                         onChangeText={(name) => {
                           setNewProduct(name);
@@ -507,6 +607,7 @@ const MenuScreen = (props) => {
                       <TextInput
                         style={styles.textInputStyle}
                         placeholder="Marca"
+                        placeholderTextColor="grey"
                         value={newBrand}
                         onChangeText={(brand) => {
                           setNewBrand(brand);
@@ -516,6 +617,7 @@ const MenuScreen = (props) => {
                         style={styles.textInputStyle}
                         keyboardType="numeric"
                         placeholder="Precio"
+                        placeholderTextColor="grey"
                         value={newPrice}
                         onChangeText={(price) => {
                           setNewPrice(price);
@@ -524,81 +626,57 @@ const MenuScreen = (props) => {
                       <TextInput
                         style={styles.textInputStyle}
                         placeholder="Tomaño"
+                        placeholderTextColor="grey"
                         value={newSize}
                         onChangeText={(size) => {
                           setNewSize(size);
                         }}
                       />
                       <View>
-                        <Text style={styles.modalText}>
+                        <Text style={[styles.modalText, { marginBottom: 15 }]}>
                           Categoria: {newCategory}
                         </Text>
                       </View>
 
-                      <TouchableOpacity
+                      {/* <View style={styles.modalView}> */}
+                      <Picker
+                        selectedValue={picked}
+                        mode="dropdown"
+                        style={{
+                          alignSelf: "center",
+                          height: 25,
+                          marginTop: 60,
+                          marginBottom: 30,
+                          width: 250,
+                          justifyContent: "center",
+                        }}
+                        itemStyle={{ fontSize: 16 }}
+                        onValueChange={(itemValue) => setNewCategory(itemValue)}
+                      >
+                        {catOptions.map((item, index) => {
+                          return (
+                            <Picker.Item
+                              label={item}
+                              value={item}
+                              key={index}
+                            />
+                          );
+                        })}
+                      </Picker>
+                      {/* <TouchableOpacity
                         style={{
                           ...styles.openButton,
-                          backgroundColor: "#A251F9",
-                          marginBottom: 7,
+                          backgroundColor: Colors.primary,
+                          marginTop: 45,
                         }}
                         onPress={() => {
-                          setPicker(true);
+                          setNewCategory(picked);
+                          setPicker(false);
                         }}
                       >
-                        <Text style={styles.textStyle}>Categoria</Text>
-                        {/* this is for manual add */}
-                      </TouchableOpacity>
-                      <Modal
-                        animationType="slide"
-                        transparent={true}
-                        visible={picker}
-                        // onRequestClose={() => {
-                        //   Alert.alert("Modal has been closed.");
-                        // }}
-                      >
-                        <View style={styles.centeredView}>
-                          <View style={styles.modalView}>
-                            <Picker
-                              selectedValue={picked}
-                              mode="dropdown"
-                              style={{
-                                height: 30,
-                                marginTop: 20,
-                                marginBottom: 30,
-                                width: "100%",
-                                justifyContent: "center",
-                              }}
-                              itemStyle={{ fontSize: 16 }}
-                              onValueChange={(itemValue) =>
-                                setPicked(itemValue)
-                              }
-                            >
-                              {catOptions.map((item, index) => {
-                                return (
-                                  <Picker.Item
-                                    label={item}
-                                    value={item}
-                                    key={index}
-                                  />
-                                );
-                              })}
-                            </Picker>
-                            <TouchableOpacity
-                              style={{
-                                ...styles.openButton,
-                                backgroundColor: "pink",
-                                marginTop: 45,
-                              }}
-                              onPress={() => {
-                                setNewCategory(picked);
-                                setPicker(false);
-                              }}
-                            >
-                              <Text style={styles.textStyle}>Guardar</Text>
-                            </TouchableOpacity>
-                          </View>
-                        </View>
-                      </Modal>
+                        <Text style={styles.textStyle}>Guardar</Text>
+                      </TouchableOpacity> */}
+                      {/* </View> */}
 
                       {hasCode && (
                         <TextInput
@@ -668,7 +746,7 @@ const MenuScreen = (props) => {
                     </View>
                   )} */}
 
-                  <View
+                  {/* <View
                     style={{
                       width: "100%",
                       flexDirection: "row",
@@ -722,7 +800,7 @@ const MenuScreen = (props) => {
                     >
                       <Text style={styles.textStyle}>Guardar</Text>
                     </TouchableOpacity>
-                  </View>
+                  </View> */}
                 </View>
               </View>
             </TouchableWithoutFeedback>
@@ -915,104 +993,8 @@ const MenuScreen = (props) => {
           onRefresh={() => {
             fetchAvailableProducts();
           }}
-          sections={[
-            {
-              title: catOptions[0],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[0]
-              ),
-            },
-            {
-              title: catOptions[1],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[1]
-              ),
-            },
-            {
-              title: catOptions[2],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[2]
-              ),
-            },
-            {
-              title: catOptions[3],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[3]
-              ),
-            },
-            {
-              title: catOptions[4],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[4]
-              ),
-            },
-            {
-              title: catOptions[5],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[5]
-              ),
-            },
-            {
-              title: catOptions[6],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[6]
-              ),
-            },
-            {
-              title: catOptions[7],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[7]
-              ),
-            },
-            {
-              title: catOptions[8],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[8]
-              ),
-            },
-            {
-              title: catOptions[9],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[9]
-              ),
-            },
-            {
-              title: catOptions[10],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[10]
-              ),
-            },
-            {
-              title: catOptions[11],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[11]
-              ),
-            },
-            {
-              title: catOptions[12],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[12]
-              ),
-            },
-            {
-              title: catOptions[13],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[13]
-              ),
-            },
-            {
-              title: catOptions[14],
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[14]
-              ),
-            },
-            {
-              title: "Sin Categoria",
-              data: availableProducts.filter(
-                (cat) => cat.Category === catOptions[-1]
-              ),
-            },
-          ]}
+          initialNumToRender={5}
+          sections={catSections}
           keyExtractor={(item, index) => item + index}
           stickySectionHeadersEnabled={true}
           // keyExtractor={(item) => item.id}
@@ -1166,5 +1148,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     padding: 5,
     color: "#fff",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 5,
+    left: 15,
   },
 });
