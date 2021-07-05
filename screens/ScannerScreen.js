@@ -85,6 +85,7 @@ const ScannerScreen = ({ navigation }) => {
   const [sound, setSound] = React.useState();
   const [scannedResults, setScannedResults] = useState();
   const [checkoutModal, setCheckoutModal] = useState(false);
+  const [scannedData, setScannedData] = useState();
 
   const dispatch = useDispatch();
   const moment = extendMoment(Moment);
@@ -119,6 +120,7 @@ const ScannerScreen = ({ navigation }) => {
               ExpDate,
               Size,
               docTitle,
+              isChecked,
             } = doc.data();
             list.push({
               productId: doc.id,
@@ -132,6 +134,7 @@ const ScannerScreen = ({ navigation }) => {
               productcode: Code,
               productExp: ExpDate,
               docTitle: docTitle,
+              isChecked: isChecked,
             });
           });
         });
@@ -201,6 +204,7 @@ const ScannerScreen = ({ navigation }) => {
         productPrice: state.cart.items[key].productPrice,
         quantity: state.cart.items[key].quantity,
         sum: state.cart.items[key].sum,
+        isChecked: state.cart.items[key].isChecked,
         productcode: state.cart.items[key].productcode,
       });
     }
@@ -334,6 +338,11 @@ const ScannerScreen = ({ navigation }) => {
             setLoadedMode(false);
             setModalVisible(!modalVisible);
             setScanned(false);
+            setNewProduct();
+            setNewPrice();
+            setNewCategory();
+            setNewSize();
+            setNewBrand();
           },
         },
         {
@@ -351,6 +360,11 @@ const ScannerScreen = ({ navigation }) => {
             setBrand(newBrand);
             setNewMode(false);
             setLoadedMode(true);
+            setNewProduct();
+            setNewPrice();
+            setNewCategory();
+            setNewSize();
+            setNewBrand();
           },
         },
       ]
@@ -481,7 +495,7 @@ const ScannerScreen = ({ navigation }) => {
   let result;
 
   const sendOrderHandler = async () => {
-    console.log("Ready to get it started");
+    console.log("Ready to get it started", cartItems);
 
     setIsLoading(true);
     await dispatch(sendProduct.createOrder(cartItems, cartTotalAmount));
@@ -503,7 +517,7 @@ const ScannerScreen = ({ navigation }) => {
           text: "Actualizar",
           onPress: () => {
             setScanned(false);
-            navigation.navigate("Order");
+            navigation.navigate("Pedidos");
             setCheckoutModal(false);
           },
         },
@@ -529,11 +543,15 @@ const ScannerScreen = ({ navigation }) => {
   //   console.log("order up");
   // };
 
+  const addUp = (id) => {
+    const userProduct = userProducts.find((code) => code.productcode === id);
+    dispatch(cartActions.addToCart(userProduct));
+  };
+
   const handleBarCodeScannedSell = async ({ type, data }) => {
     setScanned(true);
-
+    setScannedData(data);
     const userProduct = userProducts.find((code) => code.productcode === data);
-
     if (userProduct) {
       console.log("scanned something to sell");
       async function playSound() {
@@ -557,7 +575,7 @@ const ScannerScreen = ({ navigation }) => {
         },
       ]);
       await dispatch(cartActions.addToCart(userProduct));
-      console.log("these are scanned products", cartItems);
+      // console.log("these are scanned products", cartItems);
     }
 
     // console.log("these are scanned products", cartItems);
@@ -882,8 +900,14 @@ const ScannerScreen = ({ navigation }) => {
             <CartItem
               quantity={itemData.item.quantity}
               title={itemData.item.productTitle}
+              prodId={itemData.item.productId}
               amount={itemData.item.sum}
               deletable
+              userProd={userProducts}
+              addable
+              onAdd={() => {
+                addUp(itemData.item.productId);
+              }}
               onRemove={() => {
                 dispatch(cartActions.removeFromCart(itemData.item.productId));
               }}
@@ -1580,11 +1604,6 @@ const ScannerScreen = ({ navigation }) => {
   }
 };
 
-ScannerScreen.navigationOptions = (navData) => {
-  return {
-    headerTitle: "Escanear",
-  };
-};
 export default ScannerScreen;
 
 const styles = StyleSheet.create({

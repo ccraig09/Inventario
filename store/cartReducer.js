@@ -16,6 +16,7 @@ export default (state = initialState, action) => {
       const addedProduct = action.product;
       const prodPrice = addedProduct.productPrice;
       const prodTitle = addedProduct.productTitle;
+      const prodChecked = addedProduct.isChecked;
       const prodCode = addedProduct.productcode;
 
       let updatedOrNewCartItem;
@@ -27,6 +28,7 @@ export default (state = initialState, action) => {
           prodPrice,
           prodTitle,
           state.items[addedProduct.productId].sum + prodPrice,
+          prodChecked,
           prodCode
         );
       } else {
@@ -35,6 +37,7 @@ export default (state = initialState, action) => {
           prodPrice,
           prodTitle,
           prodPrice,
+          prodChecked,
           prodCode
         );
       }
@@ -59,6 +62,7 @@ export default (state = initialState, action) => {
           selectedCartItem.productPrice,
           selectedCartItem.productTitle,
           selectedCartItem.sum - selectedCartItem.productPrice,
+          selectedCartItem.isChecked,
           selectedCartItem.productcode
         );
         updatedCartItems = { ...state.items, [action.pid]: updatedCartItem };

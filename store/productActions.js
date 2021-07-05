@@ -577,9 +577,28 @@ export const orderQuantityUpdate = (cartItem) => {
   };
 };
 
-export const updateChecked = (id) => {
+export const updateChecked = (newCart, id) => {
   return async () => {
-    console.log("updated checked status", id);
+    console.log("updated checked status", id, newCart);
+
+    const userId = firebase.auth().currentUser.uid;
+
+    try {
+      await db.doc(userId).collection("Orders").doc(id).update(
+        {
+          cartItems: newCart,
+
+          timestampUpdate1: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+};
+export const iconCheck = (id) => {
+  return async () => {
     const userId = firebase.auth().currentUser.uid;
 
     try {
@@ -587,9 +606,9 @@ export const updateChecked = (id) => {
         {
           checked: true,
 
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        }
-        // { merge: true }
+          timestampUpdated2: firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
       );
     } catch (err) {
       console.log(err.message);

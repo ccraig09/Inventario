@@ -78,6 +78,7 @@ export const AuthProvider = ({ children }) => {
                   Size,
                   Brand,
                   Code,
+                  isChecked: false,
                   ownerId: user.uid,
                   timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 },
@@ -134,6 +135,7 @@ export const AuthProvider = ({ children }) => {
                 Quantity: quantity,
                 Size: size,
                 Title: title,
+                isChecked: false,
                 ExpDate: expDate,
 
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -163,6 +165,61 @@ export const AuthProvider = ({ children }) => {
               );
           } catch (e) {
             console.log(e);
+          }
+        },
+        orderQuantityUpdate: async (cartItem) => {
+          console.log("check cartitem", cartItem.quantity);
+          const subNum = cartItem.quantity;
+          const Code = cartItem.productcode;
+          const increment = firebase.firestore.FieldValue.increment(-subNum);
+
+          try {
+            await db
+              .doc(user.uid)
+              .collection("Member Products")
+              .doc(Code)
+              .update(
+                {
+                  Quantity: increment,
+
+                  timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                }
+                // { merge: true }
+              );
+          } catch (err) {
+            console.log(err.message);
+          }
+        },
+
+        updateChecked: async (newCart, id) => {
+          try {
+            await db.doc(user.uid).collection("Orders").doc(id).update(
+              {
+                cartItems: newCart,
+
+                timestampUpdate1:
+                  firebase.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          } catch (err) {
+            console.log(err.message);
+          }
+        },
+
+        iconCheck: async (id) => {
+          try {
+            await db.doc(user.uid).collection("Orders").doc(id).update(
+              {
+                checked: true,
+
+                timestampUpdated2:
+                  firebase.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          } catch (err) {
+            console.log(err.message);
           }
         },
       }}

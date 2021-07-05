@@ -49,19 +49,17 @@ const FeedStack = ({ navigation }) => (
         ),
       })}
     />
+  </Stack.Navigator>
+);
+
+const ScanStack = ({ navigation }) => (
+  <Stack.Navigator>
     <Stack.Screen
       name="Scanner"
       component={ScannerScreen}
       options={{
         title: "",
-        headerBackTitle: "Volver",
-      }}
-    />
-    <Stack.Screen
-      name="Order"
-      component={OrdersScreen}
-      options={({ navigation }) => ({
-        title: "Pedidos",
+        // headerBackTitle: "Volver",
         headerLeft: () => (
           <View style={{ marginLeft: 10 }}>
             <Icon.Button
@@ -75,11 +73,10 @@ const FeedStack = ({ navigation }) => (
             />
           </View>
         ),
-      })}
+      }}
     />
   </Stack.Navigator>
 );
-
 const SettingsStack = ({ navigation }) => (
   <Stack.Navigator>
     <Stack.Screen
@@ -259,6 +256,20 @@ const AppStack = () => {
           drawerIcon: (props) => (
             <Icon
               name="settings"
+              size={25}
+              backgroundColor="#fff"
+              color="#FF4949"
+            />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Escanner"
+        component={ScanStack}
+        options={{
+          drawerIcon: (props) => (
+            <Icon
+              name="ios-barcode"
               size={25}
               backgroundColor="#fff"
               color="#FF4949"

@@ -20,6 +20,7 @@ import Colors from "../constants/Colors";
 const OrdersScreen = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [allSet, setAllSet] = useState(false);
 
   const orders = useSelector((state) => state.orders.orders);
   let sortedOrders = orders.sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -37,6 +38,11 @@ const OrdersScreen = (props) => {
     console.log("reloading");
     setIsRefreshing(true);
     await dispatch(ProdActions.fetchOrders());
+    // if (sortedOrders.find((boo) => boo.isChecked === true)) {
+    // if (sortedOrders[0].items.find((boo) => boo.isChecked === true)) {
+    //   setAllSet(true);
+    // }
+    // }
     setIsRefreshing(false);
   };
 
@@ -72,6 +78,7 @@ const OrdersScreen = (props) => {
           amount={itemData.item.totalAmount}
           date={itemData.item.readableDate}
           checkable
+          allSet={allSet}
           id={itemData.item.doc}
           // time={itemData.item.readableTime}
           items={itemData.item.items}

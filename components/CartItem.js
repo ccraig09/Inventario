@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  Alert,
   TouchableOpacity,
   Platform,
 } from "react-native";
@@ -10,10 +11,18 @@ import { Ionicons } from "@expo/vector-icons";
 import Colors from "../constants/Colors";
 
 const CartItem = (props) => {
+  let Container = props.addable ? TouchableOpacity : View;
+  let totalQuantity = props.userProd.find(
+    (code) => code.productId === props.prodId
+  );
+  if (totalQuantity.productQuantity === props.quantity) {
+    Alert.alert("llegaste a tu maximo de este producto");
+  }
   return (
-    <View style={styles.cartItem}>
+    <Container onPress={props.onAdd} style={styles.cartItem}>
       <View style={styles.itemData}>
-        <Text style={styles.quantity}>{props.quantity}x </Text>
+        <Text style={styles.quantity}>{props.quantity} </Text>
+        <Text style={styles.quantity}>/{totalQuantity.productQuantity} </Text>
         <Text style={styles.mainText}>{props.title}</Text>
       </View>
       <View style={styles.itemData}>
@@ -54,13 +63,13 @@ const CartItem = (props) => {
           </View>
         )}
       </View>
-    </View>
+    </Container>
   );
 };
 
 const styles = StyleSheet.create({
   cartItem: {
-    flex:1,
+    flex: 1,
     padding: 10,
     backgroundColor: "white",
     flexDirection: "row",

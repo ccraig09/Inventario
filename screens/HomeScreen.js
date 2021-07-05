@@ -36,6 +36,7 @@ import { SwipeListView } from "react-native-swipe-list-view";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import ProductItem from "../components/ProductItem";
 import { AuthContext } from "../navigation/AuthProvider";
+import { useFocusEffect } from "@react-navigation/native";
 
 const HomeScreen = ({ navigation }) => {
   const { user, deleteProduct } = useContext(AuthContext);
@@ -164,83 +165,85 @@ const HomeScreen = ({ navigation }) => {
   //   };
   // }, [loadDetails]);
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const list = [];
-        await firebase
-          .firestore()
-          .collection("Members")
-          .doc(user.uid)
-          .collection("Member Products")
-          .orderBy("Title", "asc")
-          .get()
-          .then((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-              const {
-                Title,
-                Quantity,
-                Category,
-                Price,
-                ownerId,
-                Brand,
-                Code,
-                ExpDate,
-                Size,
-                docTitle,
-              } = doc.data();
-              list.push({
-                key: doc.id,
-                productTitle: Title,
-                productPrice: Price,
-                productCategory: Category,
-                productOwner: ownerId,
-                productQuantity: Quantity,
-                productSize: Size,
-                productBrand: Brand,
-                productcode: Code,
-                productExp: ExpDate,
-                docTitle: docTitle,
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchPost = async () => {
+        try {
+          const list = [];
+          await firebase
+            .firestore()
+            .collection("Members")
+            .doc(user.uid)
+            .collection("Member Products")
+            .orderBy("Title", "asc")
+            .get()
+            .then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                const {
+                  Title,
+                  Quantity,
+                  Category,
+                  Price,
+                  ownerId,
+                  Brand,
+                  Code,
+                  ExpDate,
+                  Size,
+                  docTitle,
+                } = doc.data();
+                list.push({
+                  key: doc.id,
+                  productTitle: Title,
+                  productPrice: Price,
+                  productCategory: Category,
+                  productOwner: ownerId,
+                  productQuantity: Quantity,
+                  productSize: Size,
+                  productBrand: Brand,
+                  productcode: Code,
+                  productExp: ExpDate,
+                  docTitle: docTitle,
+                });
               });
             });
-          });
-        setInventory(list);
-      } catch (e) {
-        console.log(e);
-      }
-    };
-    const fetchStoreName = async () => {
-      try {
-        await firebase
-          .firestore()
-          .collection("Members")
-          .doc(user.uid)
-          .get()
-          .then((doc) => {
-            if (doc.exists) {
-              // console.log("Document data:", doc.data().StoreName);
-              setStoreName(doc.data().StoreName);
-            } else {
-              // doc.data() will be undefined in this case
-              console.log("No such document!");
-            }
-          });
-        if (isLoading) {
+          setInventory(list);
+        } catch (e) {
+          console.log(e);
         }
-      } catch (e) {
-        console.log(e);
-      }
-    };
-    fetchPost();
-    fetchStoreName();
-    (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setHasPermission(status === "granted");
-      console.log("loading homePage");
-      setScanner(false);
-      setIsLoading(false);
-    })();
-  }, []);
+      };
+      const fetchStoreName = async () => {
+        try {
+          await firebase
+            .firestore()
+            .collection("Members")
+            .doc(user.uid)
+            .get()
+            .then((doc) => {
+              if (doc.exists) {
+                // console.log("Document data:", doc.data().StoreName);
+                setStoreName(doc.data().StoreName);
+              } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+              }
+            });
+          if (isLoading) {
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      };
+      fetchPost();
+      fetchStoreName();
+      (async () => {
+        const { status } = await BarCodeScanner.requestPermissionsAsync();
+        setHasPermission(status === "granted");
+        console.log("loading homePage");
+        setScanner(false);
+        setIsLoading(false);
+      })();
+    }, [])
+  );
 
   const renderItem = (itemData, rowMap) => {
     return (
@@ -684,7 +687,7 @@ const HomeScreen = ({ navigation }) => {
         <ActionButton.Item
           buttonColor="#FF4949"
           title="Escáner"
-          onPress={() => navigation.navigate("Scanner")}
+          onPress={() => navigation.navigate("Escanner")}
         >
           <Icon name="qr-code" style={styles.actionButtonIcon} />
         </ActionButton.Item>

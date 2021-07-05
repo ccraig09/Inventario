@@ -1,19 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, Text, Button, StyleSheet, Alert } from "react-native";
 
 import CartItem from "./CartItem";
 import Colors from "../constants/Colors";
 import Card from "../components/Card";
 import { Ionicons } from "@expo/vector-icons";
+import { AuthContext } from "../navigation/AuthProvider";
 
 import * as orderActions from "../store/productActions";
 import { useSelector, useDispatch } from "react-redux";
 
 const OrderItem = (props) => {
+  const { orderQuantityUpdate, updateChecked, iconCheck } =
+    useContext(AuthContext);
+
   const [showDetails, setShowDetails] = useState(false);
   const dispatch = useDispatch();
   const id = props.id;
   const refresh = props.reload;
+  const newCart = props.items;
+  const [allSet, setAllSet] = useState(false);
+
+  const checkyCheck = async (cartitem) => {
+    cartitem.isChecked = true;
+    if (newCart.find((boo) => boo.isChecked === false)) {
+      // console.log("ahhh we got sumn false");
+      newCart.checked = false;
+
+      setAllSet(true);
+    } else {
+      // console.log("we just might be gucci");
+      newCart.checked = true;
+      iconCheck(id).then(() => {
+        refresh();
+      });
+    }
+    // console.log("all chcek", cartitem);
+    // console.log("final chcek", newCart);
+    updateChecked(newCart, id).then(() => {
+      refresh();
+    });
+  };
 
   return (
     <Card style={styles.orderItem}>
@@ -54,12 +81,13 @@ const OrderItem = (props) => {
               quantity={cartItem.quantity}
               amount={cartItem.sum}
               checkable={props.checkable}
-              checked={props.checked}
+              checked={cartItem.isChecked}
               title={cartItem.productTitle}
+              dId={props.id}
               onCheck={() => {
                 Alert.alert(
                   "Actualizar?",
-                  `${cartItem.productTitle}se actualizará menos ${cartItem.quantity} de su inventario.`,
+                  `${cartItem.productTitle} se actualizará menos ${cartItem.quantity} de su inventario.`,
                   [
                     {
                       text: "No",
@@ -69,14 +97,16 @@ const OrderItem = (props) => {
                       text: "Si",
                       onPress: async () => {
                         console.log("updating quantity test");
-                        await dispatch(
-                          orderActions.orderQuantityUpdate(cartItem)
-                        );
-                        await dispatch(orderActions.updateChecked(id)).then(
-                          () => {
-                            refresh();
-                          }
-                        );
+                        orderQuantityUpdate(cartItem);
+
+                        checkyCheck(cartItem);
+                        // console.log("checky check", cartItem.isChecked);
+
+                        // await dispatch(
+                        //   orderActions.updateChecked(cartItem, id)
+                        // ).then(() => {
+                        //   refresh();
+                        // });
                       },
                     },
                   ]
@@ -84,6 +114,9 @@ const OrderItem = (props) => {
               }}
             />
           ))}
+          <View style={{ alignItems: "center" }}>
+            <Text style={{ color: "silver" }}>Pedido id: {id}</Text>
+          </View>
         </View>
       )}
     </Card>
