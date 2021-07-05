@@ -191,22 +191,22 @@ export const createProduct = (
   Brand,
   Code
 ) => {
-  console.log(
-    "forwarded updated data111",
-    Title,
-    Price,
-    Category,
-    Quantity,
-    Size,
-    Brand,
-    Code
-  );
+  // console.log(
+  //   "forwarded updated data111",
+  //   Title,
+  //   Price,
+  //   Category,
+  //   Quantity,
+  //   Size,
+  //   Brand,
+  //   Code
+  // );
 
   return async (dispatch, getState) => {
     const userId = firebase.auth().currentUser.uid;
     const increment = firebase.firestore.FieldValue.increment(1);
 
-    console.log("creating product to upload");
+    // console.log("creating product to upload");
     try {
       await db
         .doc(userId)
@@ -235,7 +235,7 @@ export const createProduct = (
             return { id: doc.id, ...doc.data() };
           });
 
-          console.log("on Create Collection Everything", collection);
+          // console.log("on Create Collection Everything", collection);
           dispatch({
             type: CREATE_PRODUCT,
             productData: {

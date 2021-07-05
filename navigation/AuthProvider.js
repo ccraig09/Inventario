@@ -113,6 +113,38 @@ export const AuthProvider = ({ children }) => {
             console.log(e);
           }
         },
+        editedProduct: async (
+          brand,
+          title,
+          price,
+          size,
+          category,
+          quantity,
+          expDate,
+          code
+        ) => {
+          try {
+            console.log("creating an available product");
+            await db.doc(user.uid).collection("Member Products").doc(code).set(
+              {
+                Brand: brand,
+                Category: category,
+                Code: code,
+                Price: price,
+                Quantity: quantity,
+                Size: size,
+                Title: title,
+                ExpDate: expDate,
+
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              },
+              { merge: true }
+            );
+          } catch (e) {
+            console.log(e);
+          }
+        },
+
         qUpdate: async (newQ, code) => {
           try {
             console.log("updating quantity amount to Firebase");

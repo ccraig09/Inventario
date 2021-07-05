@@ -8,7 +8,6 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
-  Picker,
   Modal,
   SectionList,
   ActivityIndicator,
@@ -18,6 +17,7 @@ import {
   KeyboardAvoidingView,
   Button,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { useSelector, useDispatch } from "react-redux";
 import * as sendProduct from "../store/productActions";
 import * as ProdActions from "../store/productActions";
@@ -28,6 +28,12 @@ import InputSpinner from "react-native-input-spinner";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { TouchableWithoutFeedback } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
+import DateTimePicker from "react-native-modal-datetime-picker";
+// import moment from "moment";
+import Moment from "moment";
+import localization from "moment/locale/es-us";
+import "moment/locale/es";
+import { extendMoment } from "moment-range";
 import * as cartActions from "../store/cartAction";
 import Card from "../components/Card";
 import CartItem from "../components/CartItem";
@@ -36,8 +42,8 @@ import { Audio } from "expo-av";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
 
-const ScannerScreen = (props) => {
-  const { user, createProduct } = useContext(AuthContext);
+const ScannerScreen = ({ navigation }) => {
+  const { user, createProduct, editedProduct } = useContext(AuthContext);
 
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
@@ -45,6 +51,14 @@ const ScannerScreen = (props) => {
   const [userProducts, setUserProducts] = useState();
   const [availableProducts, setAvailableProducts] = useState([]);
   const [itemExist, setItemExist] = useState(false);
+  const [editVisible, setEditVisible] = useState(false);
+  const [prompt, setPrompt] = useState();
+  const [type, setType] = useState();
+  const [newText, setNewText] = useState();
+  const [placeholder, setPlaceholder] = useState();
+  const [extendedDate, setExtendedDate] = useState(false);
+  const [expDate, setExpDate] = useState();
+
   const [scanner, setScanner] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState();
@@ -73,6 +87,13 @@ const ScannerScreen = (props) => {
   const [checkoutModal, setCheckoutModal] = useState(false);
 
   const dispatch = useDispatch();
+  const moment = extendMoment(Moment);
+
+  const dateHandler = useCallback(async (date) => {
+    setExtendedDate(false);
+    var dateChanged = moment(date).format("YYYYMMDD");
+    setExpDate(dateChanged);
+  });
 
   const fetchProducts = async () => {
     // setError(null);
@@ -209,17 +230,17 @@ const ScannerScreen = (props) => {
   // const availableProducts = useSelector(
   //   (state) => state.availableProducts.availableProducts
   // );
-  const loadDetails = useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      dispatch(ProdActions.fetchProducts());
-      dispatch(ProdActions.fetchAvailableProducts());
-    } catch (err) {
-      setError(err.message);
-    }
+  // const loadDetails = useCallback(async () => {
+  //   setIsRefreshing(true);
+  //   try {
+  //     dispatch(ProdActions.fetchProducts());
+  //     dispatch(ProdActions.fetchAvailableProducts());
+  //   } catch (err) {
+  //     setError(err.message);
+  //   }
 
-    setIsRefreshing(false);
-  });
+  //   setIsRefreshing(false);
+  // });
   // useEffect(() => {
   //   const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
   //   return () => {
@@ -245,6 +266,57 @@ const ScannerScreen = (props) => {
     setSell((prevState) => !prevState);
     console.log(sell);
     // props.navigation.setParams({ mode: sell });
+  };
+
+  const itemUpdateHandler = () => {
+    console.log(
+      "need to see these deets for editing product",
+      brand,
+      title,
+      price,
+      size,
+      category,
+      quantity,
+      expDate,
+      code
+    );
+
+    if (type === "Title") {
+      console.log("type is Title");
+      setTitle(newText);
+    }
+    if (type === "Brand") {
+      console.log("type is Brand");
+      setBrand(newText);
+    }
+    if (type === "Price") {
+      console.log("type is Price");
+      setPrice(newText);
+    }
+    if (type === "Size") {
+      console.log("type is Size");
+      setSize(newText);
+    }
+    // if (type === "Marca") {
+    //   console.log("type is Marca");
+    //   dispatch(sendProduct.brandUpdate(newText, code));
+    // }
+    // if (type === "Precio") {
+    //   console.log("type is Precio");
+    //   dispatch(sendProduct.priceUpdate(newText, code));
+    // }
+    // if (type === "Tomaño") {
+    //   console.log("type is Tomaño");
+    //   dispatch(sendProduct.sizeUpdate(newText, code));
+    // }
+    // if (type === "Categoria") {
+    //   console.log("type is Categoria");
+    //   dispatch(sendProduct.categoryUpdate(newText, code));
+    // }
+    // setNewText();
+    // setTimeout(() => {
+    //   props.reload();
+    // }, 1000);
   };
 
   const newEntry = () => {
@@ -295,49 +367,35 @@ const ScannerScreen = (props) => {
   };
 
   const newInvProd = () => {
-    let Title = title;
-    let Price = price;
-    let Category = category;
-    let Quantity = newQ;
-    let Size = size;
-    let Brand = brand;
-    let Code = code;
-    console.log(
-      "new product added now going to add product to the inventory list"
-    );
-    dispatch(
-      sendProduct.createProduct(
-        Title,
-        Price,
-        Category,
-        Quantity,
-        Size,
-        Brand,
-        Code
-      )
-    );
+    editedProduct(brand, title, price, size, category, quantity, expDate, code);
+    fetchAvailableProducts();
+    fetchProducts();
     setLoadedMode(false);
+    setPrompt("");
+    setType();
+    setPlaceholder("");
+    setNewText();
     continueScan();
     setModalVisible(false);
   };
 
-  const quantityUpdateHandler = () => {
-    console.log(
-      "FROM NEW PRODUCT TO NEW Q",
-      title,
-      price,
-      category,
-      newQ,
-      size,
-      code
-    );
-    dispatch(
-      sendProduct.quantityUpdate(title, price, category, newQ, size, code)
-    );
-    setTimeout(() => {
-      fetchProducts();
-    }, 1000);
-  };
+  // const quantityUpdateHandler = () => {
+  //   console.log(
+  //     "FROM NEW PRODUCT TO NEW Q",
+  //     title,
+  //     price,
+  //     category,
+  //     newQ,
+  //     size,
+  //     code
+  //   );
+  //   dispatch(
+  //     sendProduct.quantityUpdate(title, price, category, newQ, size, code)
+  //   );
+  //   setTimeout(() => {
+  //     fetchProducts();
+  //   }, 1000);
+  // };
 
   // const uploadProduct = (
   //   Title,
@@ -445,7 +503,7 @@ const ScannerScreen = (props) => {
           text: "Actualizar",
           onPress: () => {
             setScanned(false);
-            props.navigation.navigate("Order");
+            navigation.navigate("Order");
             setCheckoutModal(false);
           },
         },
@@ -661,7 +719,7 @@ const ScannerScreen = (props) => {
           flex: 1,
         }}
         behavior={Platform.OS === "android" ? "padding" : "position"}
-        keyboardVerticalOffset={-80}
+        keyboardVerticalOffset={80}
         // style={styles.screen}
       >
         <TouchableOpacity
@@ -841,11 +899,8 @@ const ScannerScreen = (props) => {
       <View
         style={{
           flex: 1,
-          marginBottom: 100,
+          marginBottom: 50,
         }}
-        // marginTop: 40,
-        // flexDirection: "column",
-        // justifyContent: "flex-end",
       >
         <TouchableOpacity
           onPress={() => {
@@ -874,12 +929,12 @@ const ScannerScreen = (props) => {
           </View>
         </TouchableOpacity>
 
-        <KeyboardAvoidingView
+        <View
           style={{
             flex: 1,
           }}
-          behavior={Platform.OS === "android" ? "padding" : "position"}
-          keyboardVerticalOffset={-80}
+          // behavior={Platform.OS === "android" ? "padding" : "position"}
+          // keyboardVerticalOffset={-80}
           // style={styles.screen}
         >
           <View>
@@ -891,206 +946,102 @@ const ScannerScreen = (props) => {
               //   Alert.alert("Modal has been closed.");
               // }}
             >
-              <TouchableWithoutFeedback
-                onPress={() => {
-                  Keyboard.dismiss();
+              <KeyboardAvoidingView
+                style={{
+                  flex: 1,
+                  marginBottom: 100,
                 }}
+                behavior={"padding"}
+                keyboardVerticalOffset={30}
+                // style={styles.screen}
+
+                // marginTop: 40,
+                // flexDirection: "column",
+                // justifyContent: "flex-end",
               >
-                <View style={styles.centeredView}>
-                  <View style={styles.modalView}>
-                    {itemExist && (
-                      <View>
-                        <Text style={styles.modalTitle}>
-                          Producto escaneado:
-                        </Text>
-                        <Text style={styles.modalHead}>{title}</Text>
-
-                        <View style={styles.modalItemBorderCategoria}>
-                          <Text style={styles.modalTextTitle}>Tamaño: </Text>
-                          <Text style={styles.modalText}>{size}</Text>
-                        </View>
-                        <View
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    Keyboard.dismiss();
+                  }}
+                >
+                  <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                      <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={editVisible}
+                        onRequestClose={() => {
+                          setPrompt();
+                          setEditVisible(!editVisible);
+                        }}
+                      >
+                        <KeyboardAvoidingView
                           style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
+                            flex: 1,
+                            marginBottom: 100,
                           }}
+                          behavior={"padding"}
+                          keyboardVerticalOffset={30}
+                          // style={styles.screen}
+
+                          // marginTop: 40,
+                          // flexDirection: "column",
+                          // justifyContent: "flex-end",
                         >
-                          <View style={styles.modalItemBorder}>
-                            <Text style={styles.modalTextTitle}>Marca: </Text>
-                            <Text style={styles.modalText}>{brand}</Text>
-                          </View>
-
-                          <View style={styles.modalItemBorder}>
-                            <Text style={styles.modalTextTitle}>Precio: </Text>
-                            <Text style={styles.modalText}>${price}bs</Text>
-                          </View>
-                        </View>
-
-                        <View style={styles.modalItemBorderCategoria}>
-                          <Text style={styles.modalTextTitle}>Categoria: </Text>
-                          <Text style={styles.modalText}>{category}</Text>
-                        </View>
-                      </View>
-                    )}
-                    {loadedMode && (
-                      <View>
-                        <TouchableOpacity>
-                          <Text style={styles.modalTitle}>
-                            Producto para editar:
-                          </Text>
-                          <Text style={styles.modalHead}>{title}</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          style={styles.modalItemBorderCategoria}
-                        >
-                          <Text style={styles.modalTextTitle}>Tamaño: </Text>
-                          <Text style={styles.modalText}>{size}</Text>
-                        </TouchableOpacity>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <TouchableOpacity style={styles.modalItemBorder}>
-                            <Text style={styles.modalTextTitle}>Marca: </Text>
-                            <Text style={styles.modalText}>{brand}</Text>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity style={styles.modalItemBorder}>
-                            <Text style={styles.modalTextTitle}>Precio: </Text>
-                            <Text style={styles.modalText}>${price}bs</Text>
-                          </TouchableOpacity>
-                        </View>
-
-                        <TouchableOpacity
-                          style={styles.modalItemBorderCategoria}
-                        >
-                          <Text style={styles.modalTextTitle}>Categoria: </Text>
-                          <Text style={styles.modalText}>{category}</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                    {newMode && (
-                      <View>
-                        <Text style={styles.modalTitle}>Nuevo Producto</Text>
-                        <View>
-                          <TextInput
-                            style={styles.textInputStyle}
-                            placeholder="Producto"
-                            placeholderTextColor="silver"
-                            value={newProduct}
-                            onChangeText={(name) => {
-                              setNewProduct(name);
-                            }}
-                          />
-                          <TextInput
-                            style={styles.textInputStyle}
-                            placeholder="Marca"
-                            placeholderTextColor="silver"
-                            value={newBrand}
-                            onChangeText={(brand) => {
-                              setNewBrand(brand);
-                            }}
-                          />
-                          <TextInput
-                            style={styles.textInputStyle}
-                            keyboardType="numeric"
-                            placeholderTextColor="silver"
-                            placeholder="Precio"
-                            value={newPrice}
-                            onChangeText={(price) => {
-                              setNewPrice(price);
-                            }}
-                          />
-                          <TextInput
-                            style={styles.textInputStyle}
-                            placeholder="Tomaño"
-                            placeholderTextColor="silver"
-                            value={newSize}
-                            onChangeText={(size) => {
-                              setNewSize(size);
-                            }}
-                          />
-                          <View>
-                            <Text style={styles.modalText}>
-                              Categoria: {newCategory}
-                            </Text>
-                          </View>
-
-                          <TouchableOpacity
-                            style={{
-                              ...styles.openButton,
-                              backgroundColor: "#A251F9",
-                            }}
+                          <TouchableWithoutFeedback
                             onPress={() => {
-                              setPicker(true);
-                            }}
-                          >
-                            <Text style={styles.textStyle}>Categoria</Text>
-                            {/* this is for scanner true */}
-                          </TouchableOpacity>
-                          <Modal
-                            animationType="slide"
-                            transparent={true}
-                            visible={picker}
-                            onRequestClose={() => {
-                              // setPicker(!picker);
+                              Keyboard.dismiss();
                             }}
                           >
                             <View style={styles.centeredView}>
-                              <View style={styles.modalViewPicker}>
-                                <Picker
-                                  selectedValue={picked}
-                                  mode="dropdown"
-                                  style={{
-                                    height: 30,
-                                    marginTop: 20,
-                                    // marginBottom: 30,
-                                    width: "100%",
-                                    justifyContent: "center",
-                                  }}
-                                  itemStyle={{ fontSize: 16 }}
-                                  onValueChange={(itemValue) =>
-                                    setPicked(itemValue)
+                              <View style={styles.modalView}>
+                                <Text style={styles.modalEdit2}>Editar:</Text>
+                                <Text style={styles.modalEdit}>{prompt}</Text>
+                                <TextInput
+                                  style={styles.textInputStyleEdit}
+                                  keyboardType={
+                                    type === "Price" ? "numeric" : "default"
                                   }
-                                >
-                                  {catOptions.map((item, index) => {
-                                    return (
-                                      <Picker.Item
-                                        label={item}
-                                        value={item}
-                                        key={index}
-                                      />
-                                    );
-                                  })}
-                                </Picker>
+                                  clearButtonMode={"always"}
+                                  underlineColorAndroid="transparent"
+                                  placeholder={placeholder}
+                                  onChangeText={(text) => setNewText(text)}
+                                  value={newText}
+                                />
                                 <View
                                   style={{
                                     width: "100%",
                                     flexDirection: "row",
                                     justifyContent: "space-around",
-                                    marginTop: 90,
                                   }}
                                 >
                                   <TouchableOpacity
                                     style={{
                                       ...styles.openButton,
+                                      backgroundColor: "green",
                                     }}
                                     onPress={() => {
-                                      setPicker(!picker);
+                                      setPrompt("");
+                                      setType();
+                                      setPlaceholder("");
+                                      setNewText();
+                                      setEditVisible(!editVisible);
                                     }}
                                   >
-                                    <Text style={styles.textStyle}>Volver</Text>
+                                    <Text style={styles.textStyle}>Cerrar</Text>
                                   </TouchableOpacity>
                                   <TouchableOpacity
                                     style={{
                                       ...styles.openButton,
+                                      backgroundColor: "#2196F3",
                                     }}
                                     onPress={() => {
-                                      setNewCategory(picked);
-                                      setPicker(false);
+                                      itemUpdateHandler();
+                                      setPrompt("");
+                                      setType();
+                                      setPlaceholder("");
+                                      setNewText();
+                                      setEditVisible(!editVisible);
                                     }}
                                   >
                                     <Text style={styles.textStyle}>
@@ -1100,143 +1051,516 @@ const ScannerScreen = (props) => {
                                 </View>
                               </View>
                             </View>
-                          </Modal>
+                          </TouchableWithoutFeedback>
+                        </KeyboardAvoidingView>
+                      </Modal>
+                      {itemExist && (
+                        <View>
+                          <Text style={styles.modalTitle}>
+                            Producto escaneado:
+                          </Text>
+                          <Text style={styles.modalHead}>{title}</Text>
+
+                          <View style={styles.modalItemBorderCategoria}>
+                            <Text style={styles.modalTextTitle}>Tamaño: </Text>
+                            <Text style={styles.modalText}>{size}</Text>
+                          </View>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <View style={styles.modalItemBorder}>
+                              <Text style={styles.modalTextTitle}>Marca: </Text>
+                              <Text style={styles.modalText}>{brand}</Text>
+                            </View>
+
+                            <View style={styles.modalItemBorder}>
+                              <Text style={styles.modalTextTitle}>
+                                Precio:{" "}
+                              </Text>
+                              <Text style={styles.modalText}>${price}bs</Text>
+                            </View>
+                          </View>
+
+                          <View style={styles.modalItemBorderCategoria}>
+                            <Text style={styles.modalTextTitle}>
+                              Categoria:{" "}
+                            </Text>
+                            <Text style={styles.modalText}>{category}</Text>
+                          </View>
                         </View>
-                      </View>
-                    )}
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Text style={styles.modalTextCode}>Codigo: </Text>
-                      <Text style={styles.modalTextCodigo}>{code}</Text>
-                    </View>
-                    {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
-                    {/* </View> */}
+                      )}
+                      {loadedMode && (
+                        <KeyboardAvoidingView
+                          behavior={
+                            Platform.OS === "android" ? "padding" : "position"
+                          }
+                          keyboardVerticalOffset={80}
+                        >
+                          <TouchableOpacity
+                            onPress={() => {
+                              setPrompt("Titulo");
+                              setType("Title");
+                              setPlaceholder(title);
+                              setEditVisible(true);
+                            }}
+                          >
+                            <Text style={styles.modalTitle}>
+                              Producto para editar:
+                            </Text>
+                            <Text style={styles.modalHead}>{title}</Text>
+                          </TouchableOpacity>
 
-                    {itemExist && (
-                      <View style={{ marginBottom: 10 }}>
-                        <Text style={{ color: "silver", fontSize: 13 }}>
-                          Puedes editar los detalles del producto (ej. precio)
-                          despues de agregarlo a tu inventario.
-                        </Text>
-                      </View>
-                    )}
+                          <TouchableOpacity
+                            style={styles.modalItemBorderCategoria}
+                            onPress={() => {
+                              setPrompt("Tamaño");
+                              setType("Size");
+                              setPlaceholder(size);
+                              setEditVisible(true);
+                            }}
+                          >
+                            <Text style={styles.modalTextTitle}>Tamaño: </Text>
+                            <Text style={styles.modalText}>{size}</Text>
+                          </TouchableOpacity>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <TouchableOpacity
+                              style={styles.modalItemBorder}
+                              onPress={() => {
+                                setPrompt("Marca");
+                                setType("Brand");
+                                setPlaceholder(brand);
+                                setEditVisible(true);
+                              }}
+                            >
+                              <Text style={styles.modalTextTitle}>Marca: </Text>
+                              <Text style={styles.modalText}>{brand}</Text>
+                            </TouchableOpacity>
 
-                    {loadedMode && (
+                            <TouchableOpacity
+                              style={styles.modalItemBorder}
+                              onPress={() => {
+                                setPrompt("Precio");
+                                setType("Price");
+                                setPlaceholder(price.toString());
+                                setEditVisible(true);
+                              }}
+                            >
+                              <Text style={styles.modalTextTitle}>
+                                Precio:{" "}
+                              </Text>
+                              <Text style={styles.modalText}>${price}bs</Text>
+                            </TouchableOpacity>
+                          </View>
+
+                          <TouchableOpacity
+                            style={styles.modalItemBorderCategoria}
+                            onPress={() => {
+                              setPrompt("Categoria");
+                              setType("Category");
+                              setPicker(true);
+                            }}
+                          >
+                            <Text style={styles.modalTextTitle}>
+                              Categoria:{" "}
+                            </Text>
+                            <Text style={styles.modalText}>{category}</Text>
+                          </TouchableOpacity>
+                          <View style={styles.modalItemBorderCategoria}>
+                            <TouchableOpacity
+                              onPress={() => {
+                                setExtendedDate(true);
+                              }}
+                            >
+                              <Text style={styles.modalTextTitle}>
+                                Fecha de Exp:
+                              </Text>
+                              <Text style={styles.modalText}>
+                                {moment(expDate)
+                                  .locale("es", localization)
+                                  .format("LL")}
+                              </Text>
+                            </TouchableOpacity>
+                            <Modal
+                              animationType="slide"
+                              transparent={true}
+                              visible={picker}
+                              onRequestClose={() => {
+                                // setPicker(!picker);
+                              }}
+                            >
+                              <View style={styles.centeredView}>
+                                <View style={styles.modalViewPicker}>
+                                  <Picker
+                                    selectedValue={picked}
+                                    mode="dropdown"
+                                    style={{
+                                      height: 30,
+                                      marginTop: 20,
+                                      // marginBottom: 30,
+                                      width: "100%",
+                                      justifyContent: "center",
+                                    }}
+                                    itemStyle={{ fontSize: 16 }}
+                                    onValueChange={(itemValue) =>
+                                      setPicked(itemValue)
+                                    }
+                                  >
+                                    {catOptions.map((item, index) => {
+                                      return (
+                                        <Picker.Item
+                                          label={item}
+                                          value={item}
+                                          key={index}
+                                        />
+                                      );
+                                    })}
+                                  </Picker>
+                                  <View
+                                    style={{
+                                      width: "100%",
+                                      flexDirection: "row",
+                                      justifyContent: "space-around",
+                                      marginTop: 90,
+                                    }}
+                                  >
+                                    <TouchableOpacity
+                                      style={{
+                                        ...styles.openButton,
+                                      }}
+                                      onPress={() => {
+                                        setPicker(!picker);
+                                      }}
+                                    >
+                                      <Text style={styles.textStyle}>
+                                        Volver
+                                      </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      style={{
+                                        ...styles.openButton,
+                                      }}
+                                      onPress={() => {
+                                        setCategory(picked);
+                                        setPicker(false);
+                                      }}
+                                    >
+                                      <Text style={styles.textStyle}>
+                                        Guardar
+                                      </Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                              </View>
+                            </Modal>
+
+                            {extendedDate && (
+                              <View>
+                                <DateTimePicker
+                                  mode="date"
+                                  isVisible={extendedDate}
+                                  locale="es-ES"
+                                  onConfirm={
+                                    (date) => {
+                                      dateHandler(date);
+                                    }
+                                    // this.handleDatePicked(date, "start", "showStart")
+                                  }
+                                  onCancel={() => {
+                                    setExtendedDate(false);
+                                  }}
+                                  cancelTextIOS={"Cancelar"}
+                                  confirmTextIOS={"Confirmar"}
+                                  headerTextIOS={"Elige una fecha"}
+                                />
+                              </View>
+                            )}
+                          </View>
+                        </KeyboardAvoidingView>
+                      )}
+                      {newMode && (
+                        <View>
+                          <Text style={styles.modalTitle}>Nuevo Producto</Text>
+                          <View>
+                            <TextInput
+                              style={styles.textInputStyle}
+                              placeholder="Producto"
+                              placeholderTextColor="silver"
+                              value={newProduct}
+                              onChangeText={(name) => {
+                                setNewProduct(name);
+                              }}
+                            />
+                            <TextInput
+                              style={styles.textInputStyle}
+                              placeholder="Marca"
+                              placeholderTextColor="silver"
+                              value={newBrand}
+                              onChangeText={(brand) => {
+                                setNewBrand(brand);
+                              }}
+                            />
+                            <TextInput
+                              style={styles.textInputStyle}
+                              keyboardType="numeric"
+                              placeholderTextColor="silver"
+                              placeholder="Precio"
+                              value={newPrice}
+                              onChangeText={(price) => {
+                                setNewPrice(price);
+                              }}
+                            />
+                            <TextInput
+                              style={styles.textInputStyle}
+                              placeholder="Tomaño"
+                              placeholderTextColor="silver"
+                              value={newSize}
+                              onChangeText={(size) => {
+                                setNewSize(size);
+                              }}
+                            />
+                            <View>
+                              <Text style={styles.modalText}>
+                                Categoria: {newCategory}
+                              </Text>
+                            </View>
+
+                            <TouchableOpacity
+                              style={{
+                                ...styles.openButton,
+                                backgroundColor: "#A251F9",
+                              }}
+                              onPress={() => {
+                                setPicker(true);
+                              }}
+                            >
+                              <Text style={styles.textStyle}>Categoria</Text>
+                              {/* this is for scanner true */}
+                            </TouchableOpacity>
+                            <Modal
+                              animationType="slide"
+                              transparent={true}
+                              visible={picker}
+                              onRequestClose={() => {
+                                // setPicker(!picker);
+                              }}
+                            >
+                              <View style={styles.centeredView}>
+                                <View style={styles.modalViewPicker}>
+                                  <Picker
+                                    selectedValue={picked}
+                                    mode="dropdown"
+                                    style={{
+                                      height: 30,
+                                      marginTop: 20,
+                                      // marginBottom: 30,
+                                      width: "100%",
+                                      justifyContent: "center",
+                                    }}
+                                    itemStyle={{ fontSize: 16 }}
+                                    onValueChange={(itemValue) =>
+                                      setPicked(itemValue)
+                                    }
+                                  >
+                                    {catOptions.map((item, index) => {
+                                      return (
+                                        <Picker.Item
+                                          label={item}
+                                          value={item}
+                                          key={index}
+                                        />
+                                      );
+                                    })}
+                                  </Picker>
+                                  <View
+                                    style={{
+                                      width: "100%",
+                                      flexDirection: "row",
+                                      justifyContent: "space-around",
+                                      marginTop: 90,
+                                    }}
+                                  >
+                                    <TouchableOpacity
+                                      style={{
+                                        ...styles.openButton,
+                                      }}
+                                      onPress={() => {
+                                        setPicker(!picker);
+                                      }}
+                                    >
+                                      <Text style={styles.textStyle}>
+                                        Volver
+                                      </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      style={{
+                                        ...styles.openButton,
+                                      }}
+                                      onPress={() => {
+                                        setNewCategory(picked);
+                                        setPicker(false);
+                                      }}
+                                    >
+                                      <Text style={styles.textStyle}>
+                                        Guardar
+                                      </Text>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                              </View>
+                            </Modal>
+                          </View>
+                        </View>
+                      )}
                       <View
                         style={{
-                          margin: 10,
-                          justifyContent: "center",
-                          alignItems: "center",
+                          flexDirection: "row",
+                          justifyContent: "space-between",
                         }}
                       >
-                        <Text style={styles.quantitySelect}>
-                          (Opcional) Entrar cantidad
-                        </Text>
+                        <Text style={styles.modalTextCode}>Codigo: </Text>
+                        <Text style={styles.modalTextCodigo}>{code}</Text>
+                      </View>
+                      {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
+                      {/* </View> */}
 
-                        <InputSpinner
-                          max={10000}
-                          min={0}
-                          step={1}
-                          fontSize={20}
-                          onMax={(max) => {
-                            Alert.alert(
-                              "llego al Maximo",
-                              "El maximo seria 1000"
-                            );
+                      {itemExist && (
+                        <View style={{ marginBottom: 10 }}>
+                          <Text style={{ color: "silver", fontSize: 13 }}>
+                            Puedes editar los detalles del producto (ej. precio)
+                            despues de agregarlo a tu inventario.
+                          </Text>
+                        </View>
+                      )}
+
+                      {loadedMode && (
+                        <KeyboardAvoidingView
+                          keyboardVerticalOffset={80}
+                          behavior={
+                            Platform.OS === "android" ? "padding" : "position"
+                          }
+                          style={{
+                            margin: 10,
+                            justifyContent: "center",
+                            alignItems: "center",
                           }}
-                          skin={"clean"}
-                          background={"#F5F3F3"}
-                          // colorAsBackground={true}
-                          colorMax={"red"}
-                          width={"50%"}
-                          colorMin={"green"}
-                          colorLeft={"#FF4949"}
-                          colorRight={"#FF4949"}
-                          value={quantity}
-                          onChange={(num) => {
-                            if (num === quantity) {
-                              null;
-                            } else {
-                              setNewQ(num);
+                        >
+                          <Text style={styles.quantitySelect}>
+                            (Opcional) Entrar cantidad
+                          </Text>
+
+                          <InputSpinner
+                            max={10000}
+                            min={0}
+                            step={1}
+                            fontSize={20}
+                            onMax={(max) => {
+                              Alert.alert(
+                                "llego al Maximo",
+                                "El maximo seria 1000"
+                              );
+                            }}
+                            skin={"clean"}
+                            background={"#F5F3F3"}
+                            // colorAsBackground={true}
+                            colorMax={"red"}
+                            width={"50%"}
+                            colorMin={"green"}
+                            colorLeft={"#FF4949"}
+                            colorRight={"#FF4949"}
+                            value={quantity}
+                            onChange={(num) => {
+                              if (num === quantity) {
+                                null;
+                              } else {
+                                setQuantity(num);
+                              }
+                            }}
+                          />
+                        </KeyboardAvoidingView>
+                      )}
+
+                      <View
+                        style={{
+                          width: "100%",
+                          flexDirection: "row",
+                          justifyContent: "space-around",
+                        }}
+                      >
+                        <TouchableOpacity
+                          style={{
+                            ...styles.openButton,
+                            backgroundColor: "#FF4949",
+                          }}
+                          onPress={() => {
+                            setModalVisible(!modalVisible);
+                            setLoadedMode(false);
+                            setNewMode(false);
+                            setScanned(false);
+                          }}
+                        >
+                          <Text style={styles.textStyle}>Cerrar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={{
+                            ...styles.openButton,
+                            backgroundColor: "#FF4949",
+                          }}
+                          onPress={() => {
+                            if (newMode) {
+                              newEntry();
+                              console.log("theres a new product", newProduct);
+                              continueScan();
+                            }
+                            if (loadedMode) {
+                              console.log(
+                                "NEW PRODUCT ADDED now for inventory"
+                              );
+                              newInvProd();
+                              // setModalVisible(!modalVisible);
+                              // continueScan();
+                            }
+                            // if (title) {
+                            //   console.log(
+                            //     "not adding a new product just to the inventory"
+                            //   );
+                            //   quantityUpdateHandler();
+                            //   setModalVisible(!modalVisible);
+                            //   continueScan();
+                            // }
+                            if (itemExist) {
+                              console.log(
+                                "going to open the already existing item to inventory"
+                              );
+                              setLoadedMode(true);
+                              setItemExist(false);
+                              continueScan();
                             }
                           }}
-                        />
+                        >
+                          {itemExist ? (
+                            <Text style={styles.textStyle}>
+                              Agregar y Editar
+                            </Text>
+                          ) : (
+                            <Text style={styles.textStyle}>Guardar</Text>
+                          )}
+                        </TouchableOpacity>
                       </View>
-                    )}
-
-                    <View
-                      style={{
-                        width: "100%",
-                        flexDirection: "row",
-                        justifyContent: "space-around",
-                      }}
-                    >
-                      <TouchableOpacity
-                        style={{
-                          ...styles.openButton,
-                          backgroundColor: "#FF4949",
-                        }}
-                        onPress={() => {
-                          setModalVisible(!modalVisible);
-                          setLoadedMode(false);
-                          setNewMode(false);
-                          setScanned(false);
-                        }}
-                      >
-                        <Text style={styles.textStyle}>Cerrar</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={{
-                          ...styles.openButton,
-                          backgroundColor: "#FF4949",
-                        }}
-                        onPress={() => {
-                          if (newMode) {
-                            newEntry();
-                            console.log("theres a new product", newProduct);
-                            continueScan();
-                          }
-                          if (loadedMode) {
-                            console.log("NEW PRODUCT ADDED now for inventory");
-                            newInvProd();
-                            // setModalVisible(!modalVisible);
-                            // continueScan();
-                          }
-                          // if (title) {
-                          //   console.log(
-                          //     "not adding a new product just to the inventory"
-                          //   );
-                          //   quantityUpdateHandler();
-                          //   setModalVisible(!modalVisible);
-                          //   continueScan();
-                          // }
-                          if (itemExist) {
-                            console.log(
-                              "going to open the already existing item to inventory"
-                            );
-                            setLoadedMode(true);
-                            setItemExist(false);
-                            continueScan();
-                          }
-                        }}
-                      >
-                        {itemExist ? (
-                          <Text style={styles.textStyle}>Agregar y Editar</Text>
-                        ) : (
-                          <Text style={styles.textStyle}>Guardar</Text>
-                        )}
-                      </TouchableOpacity>
                     </View>
                   </View>
-                </View>
-              </TouchableWithoutFeedback>
+                </TouchableWithoutFeedback>
+              </KeyboardAvoidingView>
             </Modal>
           </View>
-        </KeyboardAvoidingView>
+        </View>
 
         <View
           style={{
@@ -1430,6 +1754,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingLeft: 20,
     margin: 5,
+    borderColor: "black",
+    backgroundColor: "#FFFFFF",
+  },
+  textInputStyleEdit: {
+    height: 40,
+    width: "70%",
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    margin: 10,
     borderColor: "black",
     backgroundColor: "#FFFFFF",
   },
