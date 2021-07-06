@@ -1,6 +1,7 @@
 export const DELETE_PRODUCT = "DELETE_PRODUCT";
 export const CREATE_PRODUCT = "CREATE_PRODUCT";
 export const ADD_ORDER = "ADD_ORDER";
+export const REMOVE_ORDER = "REMOVE_ORDER";
 export const SET_ORDERS = "SET_ORDERS";
 export const ADDED_PRODUCT = "ADDED_PRODUCT";
 export const SET_PRODUCT = "SET_PRODUCT";
@@ -307,6 +308,15 @@ export const createOrder = (cartItems, totalAmount) => {
     } catch (err) {
       console.log(err.message);
     }
+  };
+};
+
+export const removeAll = () => {
+  return (dispatch) => {
+    console.log("removing all items");
+    dispatch({
+      type: REMOVE_ORDER,
+    });
   };
 };
 

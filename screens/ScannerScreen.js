@@ -6,6 +6,7 @@ import {
   RefreshControl,
   Platform,
   FlatList,
+  Dimensions,
   TouchableOpacity,
   Alert,
   Modal,
@@ -41,8 +42,11 @@ import Colors from "../constants/Colors";
 import { Audio } from "expo-av";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
+import { useFocusEffect } from "@react-navigation/native";
 
 const ScannerScreen = ({ navigation }) => {
+  const height = Dimensions.get("window").height * 0.3;
+
   const { user, createProduct, editedProduct } = useContext(AuthContext);
 
   const [hasPermission, setHasPermission] = useState(null);
@@ -256,15 +260,17 @@ const ScannerScreen = ({ navigation }) => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === "granted");
+      LogBox.ignoreLogs(["VirtualizedLists should never be nested"]);
     })();
   }, []);
 
-  useEffect(() => {
-    fetchProducts();
-    fetchAvailableProducts();
-    continueScan();
-    LogBox.ignoreLogs(["VirtualizedLists should never be nested"]);
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchProducts();
+      fetchAvailableProducts();
+      continueScan();
+    }, [])
+  );
 
   const modeHandler = () => {
     setSell((prevState) => !prevState);
@@ -497,6 +503,7 @@ const ScannerScreen = ({ navigation }) => {
   const sendOrderHandler = async () => {
     console.log("Ready to get it started", cartItems);
 
+    // DISPATCH(REMOVE ALL)
     setIsLoading(true);
     await dispatch(sendProduct.createOrder(cartItems, cartTotalAmount));
     setIsLoading(false);
@@ -801,13 +808,13 @@ const ScannerScreen = ({ navigation }) => {
                                 title={itemData.item.productTitle}
                                 amount={itemData.item.sum}
                                 // deletable
-                                onRemove={() => {
-                                  dispatch(
-                                    cartActions.removeFromCart(
-                                      itemData.item.productId
-                                    )
-                                  );
-                                }}
+                                // onRemove={() => {
+                                //   dispatch(
+                                //     cartActions.removeFromCart(
+                                //       itemData.item.productId
+                                //     )
+                                //   );
+                                // }}
                               />
                             )}
                           />
@@ -862,7 +869,7 @@ const ScannerScreen = ({ navigation }) => {
         </View>
         <View
           style={{
-            height: "50%",
+            height: height,
             width: "100%",
             marginBottom: 5,
           }}
@@ -893,27 +900,65 @@ const ScannerScreen = ({ navigation }) => {
             }}
           />
         </Card>
-        <FlatList
-          data={cartItems}
-          keyExtractor={(item) => item.productId}
-          renderItem={(itemData) => (
-            <CartItem
-              quantity={itemData.item.quantity}
-              title={itemData.item.productTitle}
-              prodId={itemData.item.productId}
-              amount={itemData.item.sum}
-              deletable
-              userProd={userProducts}
-              addable
-              onAdd={() => {
-                addUp(itemData.item.productId);
-              }}
-              onRemove={() => {
-                dispatch(cartActions.removeFromCart(itemData.item.productId));
+        <View>
+          <FlatList
+            data={cartItems}
+            keyExtractor={(item) => item.productId}
+            renderItem={(itemData) => (
+              <CartItem
+                quantity={itemData.item.quantity}
+                title={itemData.item.productTitle}
+                prodId={itemData.item.productId}
+                amount={itemData.item.sum}
+                deletable
+                userProd={userProducts}
+                addable
+                onAdd={() => {
+                  addUp(itemData.item.productId);
+                }}
+                onRemove={() => {
+                  dispatch(cartActions.removeFromCart(itemData.item.productId));
+                }}
+                onLongRemove={() => {
+                  Alert.alert(`Borrar ${itemData.item.productTitle}?`, "", [
+                    {
+                      text: "No",
+                      style: "cancel",
+                    },
+                    {
+                      text: "Sí",
+                      onPress: () =>
+                        dispatch(
+                          cartActions.completeRemoveFromCart(
+                            itemData.item.productId
+                          )
+                        ),
+                    },
+                  ]);
+                }}
+              />
+            )}
+          />
+          {cartItems.length > 0 && (
+            <Button
+              color={Colors.primary}
+              title="Borrar Todo"
+              // onPress={sendOrderHandler}
+              onPress={() => {
+                Alert.alert(`Borrar todo?`, "", [
+                  {
+                    text: "No",
+                    style: "cancel",
+                  },
+                  {
+                    text: "Sí",
+                    onPress: () => dispatch(sendProduct.removeAll()),
+                  },
+                ]);
               }}
             />
           )}
-        />
+        </View>
       </KeyboardAvoidingView>
     );
   }

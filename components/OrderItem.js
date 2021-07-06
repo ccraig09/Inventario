@@ -9,6 +9,7 @@ import { AuthContext } from "../navigation/AuthProvider";
 
 import * as orderActions from "../store/productActions";
 import { useSelector, useDispatch } from "react-redux";
+import { TouchableOpacity } from "react-native";
 
 const OrderItem = (props) => {
   const { orderQuantityUpdate, updateChecked, iconCheck } =
@@ -53,7 +54,13 @@ const OrderItem = (props) => {
         }}
       >
         {!props.checked ? (
-          <Ionicons name="alert-circle" size={29} color={Colors.primary} />
+          <TouchableOpacity
+            onPress={() => {
+              setShowDetails((prevState) => !prevState);
+            }}
+          >
+            <Ionicons name="alert-circle" size={29} color={Colors.primary} />
+          </TouchableOpacity>
         ) : (
           <Text></Text>
         )}

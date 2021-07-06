@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,24 +12,37 @@ import Colors from "../constants/Colors";
 
 const CartItem = (props) => {
   let Container = props.addable ? TouchableOpacity : View;
-  let totalQuantity = props.userProd.find(
-    (code) => code.productId === props.prodId
-  );
-  if (totalQuantity.productQuantity === props.quantity) {
-    Alert.alert("llegaste a tu maximo de este producto");
+  let totalQuantity = props.addable
+    ? props.userProd.find((code) => code.productId === props.prodId)
+    : "";
+  const [maxReached, setMaxReached] = useState(false);
+  const [oneTime, setOneTime] = useState(false);
+  if (totalQuantity.productQuantity === props.quantity && !oneTime) {
+    setMaxReached(true);
+  }
+  if (maxReached) {
+    Alert.alert(
+      "Maxixmo Cantidad!",
+      "llegaste a tu maximo de este producto, proceda con precaución."
+    );
+    setMaxReached(false);
+    setOneTime(true);
   }
   return (
     <Container onPress={props.onAdd} style={styles.cartItem}>
       <View style={styles.itemData}>
         <Text style={styles.quantity}>{props.quantity} </Text>
-        <Text style={styles.quantity}>/{totalQuantity.productQuantity} </Text>
+        {props.addable && (
+          <Text style={styles.quantity}>/{totalQuantity.productQuantity} </Text>
+        )}
         <Text style={styles.mainText}>{props.title}</Text>
       </View>
       <View style={styles.itemData}>
-        <Text style={styles.amount}>${props.amount}</Text>
+        <Text style={styles.amount}>{props.amount}bs</Text>
         {/* <Text style={styles.amount}>${props.amount.toFixed(2)}</Text> */}
         {props.deletable && (
           <TouchableOpacity
+            onLongPress={props.onLongRemove}
             onPress={props.onRemove}
             style={styles.deleteButton}
           >
