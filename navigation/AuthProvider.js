@@ -126,22 +126,26 @@ export const AuthProvider = ({ children }) => {
         ) => {
           try {
             console.log("creating an available product");
-            await db.doc(user.uid).collection("Member Products").doc(code).set(
-              {
-                Brand: brand,
-                Category: category,
-                Code: code,
-                Price: price,
-                Quantity: quantity,
-                Size: size,
-                Title: title,
-                isChecked: false,
-                ExpDate: expDate,
+            await db
+              .doc(user.uid)
+              .collection("Member Products")
+              .doc(code)
+              .set(
+                {
+                  Brand: brand,
+                  Category: category,
+                  Code: code,
+                  Price: parseInt(price),
+                  Quantity: quantity,
+                  Size: size,
+                  Title: title,
+                  isChecked: false,
+                  ExpDate: expDate,
 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-              },
-              { merge: true }
-            );
+                  timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                },
+                { merge: true }
+              );
           } catch (e) {
             console.log(e);
           }
@@ -187,7 +191,23 @@ export const AuthProvider = ({ children }) => {
                 // { merge: true }
               );
           } catch (err) {
-            console.log(err.message);
+            if (err.message === "Requested entity was not found.") {
+              console.log("so far we noting something");
+              // Alert.alert(
+              //   "Product no esta registrado",
+              //   "Este producto era vendido sin estar registrado, agregarlo ahora?",
+              //   [
+              //     {
+              //       text: "Todavia",
+              //       onPress: () => console.log("Cancel Pressed"),
+              //       style: "cancel",
+              //     },
+              //     { text: "Sí", onPress: () => addMemProd() },
+              //   ]
+              // );
+            } else {
+              console.log(err.message);
+            }
           }
         },
 

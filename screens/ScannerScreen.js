@@ -46,6 +46,7 @@ import { useFocusEffect } from "@react-navigation/native";
 
 const ScannerScreen = ({ navigation }) => {
   const height = Dimensions.get("window").height * 0.3;
+  const width = Dimensions.get("window").width;
 
   const { user, createProduct, editedProduct } = useContext(AuthContext);
 
@@ -161,13 +162,15 @@ const ScannerScreen = ({ navigation }) => {
               doc.data();
             list.push({
               productId: doc.id,
-              Product,
-              Price,
-              Category,
-              Quantity,
-              Size,
-              Brand,
-              code,
+              productTitle: Product,
+              productPrice: Price,
+              productCategory: Category,
+              productQuantity: Quantity,
+              productSize: Size,
+              productBrand: Brand,
+              productcode: code,
+              docTitle: doc.id,
+              isChecked: false,
             });
           });
         });
@@ -358,6 +361,7 @@ const ScannerScreen = ({ navigation }) => {
             // setModalVisible(!modalVisible);
             // setLoadedModal(true);
             console.log("ADDING TO BOOK and mode is", newMode);
+
             setTitle(newProduct);
             setPrice(newPrice);
             setCategory(newCategory);
@@ -552,12 +556,26 @@ const ScannerScreen = ({ navigation }) => {
 
   const addUp = (id) => {
     const userProduct = userProducts.find((code) => code.productcode === id);
-    dispatch(cartActions.addToCart(userProduct));
+    // dispatch(cartActions.addToCart(userProduct));
+    const nonUserProduct = availableProducts.find(
+      (code) => code.productcode === id
+    );
+    // dispatch(cartActions.addToCart(nonUserProduct));
+
+    if (userProduct) {
+      dispatch(cartActions.addToCart(userProduct));
+    }
+    if (nonUserProduct && !userProduct) {
+      dispatch(cartActions.addToCart(nonUserProduct));
+    }
   };
 
   const handleBarCodeScannedSell = async ({ type, data }) => {
     setScanned(true);
-    setScannedData(data);
+    // setScannedData(data);
+    const nonUserProduct = availableProducts.find(
+      (cod) => cod.productcode === data
+    );
     const userProduct = userProducts.find((code) => code.productcode === data);
     if (userProduct) {
       console.log("scanned something to sell");
@@ -582,7 +600,62 @@ const ScannerScreen = ({ navigation }) => {
         },
       ]);
       await dispatch(cartActions.addToCart(userProduct));
-      // console.log("these are scanned products", cartItems);
+    }
+    if (nonUserProduct && !userProduct) {
+      console.log("Product is not registerd to user, but is avaiable");
+      async function playSound() {
+        console.log("Loading Sound");
+        const { sound } = await Audio.Sound.createAsync(
+          require("../assets/tone.mp3")
+        );
+        setSound(sound);
+
+        console.log("Playing Sound");
+        await sound.playAsync();
+      }
+      playSound();
+      Alert.alert(
+        "Producto no esta registrado",
+        `${nonUserProduct.productTitle}`,
+        [
+          {
+            text: "Continuar",
+            style: "cancel",
+            onPress: () => {
+              setScanned(false);
+            },
+          },
+        ]
+      );
+      await dispatch(cartActions.addToCart(nonUserProduct));
+    }
+    if (!nonUserProduct && !userProduct) {
+      console.log("item not registered to owner nor in catalog");
+      async function playSound() {
+        console.log("Loading Sound");
+        const { sound } = await Audio.Sound.createAsync(
+          require("../assets/errorBeep.mp3")
+        );
+        setSound(sound);
+
+        console.log("Playing Sound");
+        await sound.playAsync();
+      }
+      playSound();
+      Alert.alert(
+        "Producto Escaneado",
+        `Este producto no esta registrado en el base de datos, ${data}`,
+        [
+          {
+            text: "Continuar",
+            style: "cancel",
+            onPress: () => {
+              setScanned(false);
+            },
+          },
+        ]
+      );
+      // await dispatch(cartActions.addToCart(userProduct));
     }
 
     // console.log("these are scanned products", cartItems);
@@ -852,8 +925,8 @@ const ScannerScreen = ({ navigation }) => {
                             }}
                             onPress={() => {
                               console.log("Listo, sale complete");
-                              sendOrderHandler();
                               continueScan();
+                              sendOrderHandler();
                             }}
                           >
                             <Text style={styles.textStyle}>Listo!</Text>
@@ -870,7 +943,7 @@ const ScannerScreen = ({ navigation }) => {
         <View
           style={{
             height: height,
-            width: "100%",
+            width: width,
             marginBottom: 5,
           }}
         >
@@ -939,25 +1012,28 @@ const ScannerScreen = ({ navigation }) => {
               />
             )}
           />
-          {cartItems.length > 0 && (
-            <Button
-              color={Colors.primary}
-              title="Borrar Todo"
-              // onPress={sendOrderHandler}
-              onPress={() => {
-                Alert.alert(`Borrar todo?`, "", [
-                  {
-                    text: "No",
-                    style: "cancel",
-                  },
-                  {
-                    text: "Sí",
-                    onPress: () => dispatch(sendProduct.removeAll()),
-                  },
-                ]);
-              }}
-            />
-          )}
+          <View style={{ marginTop: 15 }}>
+            {cartItems.length > 0 && (
+              <Button
+                color={Colors.primary}
+                title="Borrar Todo"
+                style={{ marginTop: 10 }}
+                // onPress={sendOrderHandler}
+                onPress={() => {
+                  Alert.alert(`Borrar todo?`, "", [
+                    {
+                      text: "No",
+                      style: "cancel",
+                    },
+                    {
+                      text: "Sí",
+                      onPress: () => dispatch(sendProduct.removeAll()),
+                    },
+                  ]);
+                }}
+              />
+            )}
+          </View>
         </View>
       </KeyboardAvoidingView>
     );
@@ -1610,7 +1686,7 @@ const ScannerScreen = ({ navigation }) => {
                               );
                               setLoadedMode(true);
                               setItemExist(false);
-                              continueScan();
+                              // continueScan();
                             }
                           }}
                         >

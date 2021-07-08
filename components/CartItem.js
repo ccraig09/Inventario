@@ -9,18 +9,34 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Colors from "../constants/Colors";
+import { Audio } from "expo-av";
 
 const CartItem = (props) => {
   let Container = props.addable ? TouchableOpacity : View;
   let totalQuantity = props.addable
     ? props.userProd.find((code) => code.productId === props.prodId)
     : "";
+  let shownQuantity =
+    typeof totalQuantity === "undefined" ? "?" : totalQuantity.productQuantity;
   const [maxReached, setMaxReached] = useState(false);
   const [oneTime, setOneTime] = useState(false);
-  if (totalQuantity.productQuantity === props.quantity && !oneTime) {
+  const [sound, setSound] = React.useState();
+
+  if (shownQuantity === props.quantity && !oneTime) {
     setMaxReached(true);
   }
   if (maxReached) {
+    async function playSound() {
+      console.log("Loading Sound");
+      const { sound } = await Audio.Sound.createAsync(
+        require("../assets/max.mp3")
+      );
+      setSound(sound);
+
+      console.log("Playing Sound");
+      await sound.playAsync();
+    }
+    playSound();
     Alert.alert(
       "Maxixmo Cantidad!",
       "llegaste a tu maximo de este producto, proceda con precaución."
@@ -33,7 +49,7 @@ const CartItem = (props) => {
       <View style={styles.itemData}>
         <Text style={styles.quantity}>{props.quantity} </Text>
         {props.addable && (
-          <Text style={styles.quantity}>/{totalQuantity.productQuantity} </Text>
+          <Text style={styles.quantity}>/{shownQuantity} </Text>
         )}
         <Text style={styles.mainText}>{props.title}</Text>
       </View>
@@ -89,7 +105,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginHorizontal: 20,
     borderRadius: 15,
-    marginVertical: 3,
+    marginVertical: 5,
   },
   itemData: {
     flexDirection: "row",

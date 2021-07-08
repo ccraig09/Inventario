@@ -484,7 +484,12 @@ const HomeScreen = ({ navigation }) => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+      }}
+    >
       <View style={styles.topContainer}>
         <View style={styles.topHeader}>
           <View style={styles.searchText}>

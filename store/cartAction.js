@@ -1,10 +1,14 @@
 export const ADD_TO_CART = "ADD_TO_CART";
+// export const ADD_TO_CART_NU = "ADD_TO_CART_NU";
 export const REMOVE_FROM_CART = "REMOVE_FROM_CART";
 export const COMPLETE_REMOVE_FROM_CART = "COMPLETE_REMOVE_FROM_CART";
 
 export const addToCart = (product) => {
   return { type: ADD_TO_CART, product: product };
 };
+// export const addToCartNU = (product) => {
+//   return { type: ADD_TO_CART_NU, product: product };
+// };
 
 export const removeFromCart = (productId) => {
   return { type: REMOVE_FROM_CART, pid: productId };

@@ -1,5 +1,6 @@
 import React, { useState, useContext } from "react";
 import { View, Text, Button, StyleSheet, Alert } from "react-native";
+import firebase from "../components/firebase";
 
 import CartItem from "./CartItem";
 import Colors from "../constants/Colors";
@@ -12,9 +13,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { TouchableOpacity } from "react-native";
 
 const OrderItem = (props) => {
-  const { orderQuantityUpdate, updateChecked, iconCheck } =
+  const { user, orderQuantityUpdate, updateChecked, iconCheck, addMemProd } =
     useContext(AuthContext);
-
+  const db = firebase.firestore().collection("Members");
   const [showDetails, setShowDetails] = useState(false);
   const dispatch = useDispatch();
   const id = props.id;
@@ -22,8 +23,57 @@ const OrderItem = (props) => {
   const newCart = props.items;
   const [allSet, setAllSet] = useState(false);
 
-  const checkyCheck = async (cartitem) => {
-    cartitem.isChecked = true;
+  const qUpdateHandler = async (cartItem) => {
+    console.log("check cartitem", cartItem);
+    const subNum = cartItem.quantity;
+    const Code = cartItem.productcode;
+    const availableProducts = props.available.find(
+      (cod) => cod.productcode === Code
+    );
+    console.log(availableProducts);
+    const increment = firebase.firestore.FieldValue.increment(-subNum);
+    let Title = availableProducts.productTitle;
+    let Price = availableProducts.productPrice;
+    let Category = availableProducts.productCategory;
+    let Size = availableProducts.productSize;
+    let Brand = availableProducts.productBrand;
+
+    try {
+      await db.doc(user.uid).collection("Member Products").doc(Code).update(
+        {
+          Quantity: increment,
+
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        }
+        // { merge: true }
+      );
+    } catch (err) {
+      if (err.message === "Requested entity was not found.") {
+        console.log("so far we noting something but we in the component");
+        Alert.alert(
+          "Product no esta registrado",
+          "Este producto era vendido sin estar registrado, agregarlo ahora?",
+          [
+            {
+              text: "Todavia",
+              onPress: () => console.log("Cancel Pressed"),
+              style: "cancel",
+            },
+            {
+              text: "Sí",
+              onPress: () =>
+                addMemProd(Title, Price, Category, Size, Brand, Code),
+            },
+          ]
+        );
+      } else {
+        console.log(err.message);
+      }
+    }
+  };
+
+  const checkyCheck = async (cartItem) => {
+    cartItem.isChecked = true;
     if (newCart.find((boo) => boo.isChecked === false)) {
       // console.log("ahhh we got sumn false");
       newCart.checked = false;
@@ -38,9 +88,10 @@ const OrderItem = (props) => {
     }
     // console.log("all chcek", cartitem);
     // console.log("final chcek", newCart);
-    updateChecked(newCart, id).then(() => {
-      refresh();
-    });
+    updateChecked(newCart, id);
+    //   .then(() => {
+    //   refresh();
+    // });
   };
 
   return (
@@ -104,9 +155,10 @@ const OrderItem = (props) => {
                       text: "Si",
                       onPress: async () => {
                         console.log("updating quantity test");
-                        orderQuantityUpdate(cartItem);
+                        qUpdateHandler(cartItem);
 
                         checkyCheck(cartItem);
+
                         // console.log("checky check", cartItem.isChecked);
 
                         // await dispatch(

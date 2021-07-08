@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 // import { HeaderButtons, Item } from "react-navigation-header-buttons";
+import firebase from "../components/firebase";
 
 // import HeaderButton from "../components/UI/HeaderButton";
 import OrderItem from "../components/OrderItem";
@@ -21,14 +22,46 @@ const OrdersScreen = (props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [allSet, setAllSet] = useState(false);
+  const [availableProducts, setAvailableProducts] = useState([]);
 
   const orders = useSelector((state) => state.orders.orders);
   let sortedOrders = orders.sort((a, b) => (a.date < b.date ? 1 : -1));
 
   const dispatch = useDispatch();
+  const fetchAvailableProducts = async () => {
+    try {
+      const list = [];
+      await firebase
+        .firestore()
+        .collection("Products")
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const { Product, Quantity, Category, Price, Brand, code, Size } =
+              doc.data();
+            list.push({
+              productId: doc.id,
+              productTitle: Product,
+              productPrice: Price,
+              productCategory: Category,
+              productQuantity: Quantity,
+              productSize: Size,
+              productBrand: Brand,
+              productcode: code,
+              docTitle: doc.id,
+              isChecked: false,
+            });
+          });
+        });
+      setAvailableProducts(list);
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   useEffect(() => {
     setIsLoading(true);
+    fetchAvailableProducts();
     dispatch(ProdActions.fetchOrders()).then(() => {
       setIsLoading(false);
     });
@@ -37,6 +70,8 @@ const OrdersScreen = (props) => {
   const loadDetails = async () => {
     console.log("reloading");
     setIsRefreshing(true);
+    fetchAvailableProducts();
+
     await dispatch(ProdActions.fetchOrders());
     // if (sortedOrders.find((boo) => boo.isChecked === true)) {
     // if (sortedOrders[0].items.find((boo) => boo.isChecked === true)) {
@@ -65,11 +100,7 @@ const OrdersScreen = (props) => {
   return (
     <FlatList
       refreshControl={
-        <RefreshControl
-          colors={Colors.primary}
-          refreshing={isRefreshing}
-          onRefresh={loadDetails}
-        />
+        <RefreshControl refreshing={isRefreshing} onRefresh={loadDetails} />
       }
       data={sortedOrders}
       keyExtractor={(item) => item.id}
@@ -78,6 +109,7 @@ const OrdersScreen = (props) => {
           amount={itemData.item.totalAmount}
           date={itemData.item.readableDate}
           checkable
+          available={availableProducts}
           allSet={allSet}
           id={itemData.item.doc}
           // time={itemData.item.readableTime}
