@@ -27,6 +27,7 @@ import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/FontAwesome";
 import InputSpinner from "react-native-input-spinner";
 import { BarCodeScanner } from "expo-barcode-scanner";
+import DropDownPicker from "react-native-dropdown-picker";
 import { TouchableWithoutFeedback } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import DateTimePicker from "react-native-modal-datetime-picker";
@@ -42,7 +43,7 @@ import Colors from "../constants/Colors";
 import { Audio } from "expo-av";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 
 const ScannerScreen = ({ navigation }) => {
   const height = Dimensions.get("window").height * 0.3;
@@ -51,9 +52,9 @@ const ScannerScreen = ({ navigation }) => {
   const { user, createProduct, editedProduct } = useContext(AuthContext);
 
   const [hasPermission, setHasPermission] = useState(null);
-  const [scanned, setScanned] = useState(false);
+  const [scanned, setScanned] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [userProducts, setUserProducts] = useState();
+  const [userProducts, setUserProducts] = useState([]);
   const [availableProducts, setAvailableProducts] = useState([]);
   const [itemExist, setItemExist] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
@@ -63,8 +64,6 @@ const ScannerScreen = ({ navigation }) => {
   const [placeholder, setPlaceholder] = useState();
   const [extendedDate, setExtendedDate] = useState(false);
   const [expDate, setExpDate] = useState();
-
-  const [scanner, setScanner] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState();
   const [title, setTitle] = useState("");
@@ -87,10 +86,13 @@ const ScannerScreen = ({ navigation }) => {
   const [newCategory, setNewCategory] = useState("");
   const [picker, setPicker] = useState(false);
   const [picked, setPicked] = useState();
+  const [dropMode, setDropMode] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(null);
+  const [items, setItems] = useState();
   const [sound, setSound] = React.useState();
-  const [scannedResults, setScannedResults] = useState();
   const [checkoutModal, setCheckoutModal] = useState(false);
-  const [scannedData, setScannedData] = useState();
+  const isFocused = useIsFocused();
 
   const dispatch = useDispatch();
   const moment = extendMoment(Moment);
@@ -144,6 +146,17 @@ const ScannerScreen = ({ navigation }) => {
           });
         });
       setUserProducts(list);
+      setItems(
+        list.map((dropItems) => ({
+          key: dropItems.productId,
+          label: dropItems.productTitle,
+          //   "     ",
+          //   dropItems.productPrice,
+          //   "bs",
+          // ],
+          value: dropItems.productId,
+        }))
+      );
     } catch (e) {
       console.log(e);
     }
@@ -180,26 +193,6 @@ const ScannerScreen = ({ navigation }) => {
       console.log(e);
     }
   };
-
-  // const userProducts = useSelector((state) => {
-  //   const transformedProducts = [];
-  //   for (const key in state.products.products) {
-  //     transformedProducts.push({
-  //       productId: key,
-  //       productTitle: state.products.products[key].Title,
-  //       productPrice: state.products.products[key].Price,
-  //       productCategory: state.products.products[key].Category,
-  //       productOwner: state.products.products[key].ownerId,
-  //       productQuantity: state.products.products[key].Quantity,
-  //       productSize: state.products.products[key].Size,
-  //       productBrand: state.products.products[key].Brand,
-  //       productTime: state.products.products[key].time,
-  //       productcode: state.products.products[key].Code,
-  //       docTitle: state.products.products[key].docTitle,
-  //     });
-  //   }
-  //   return transformedProducts;
-  // });
 
   const cartTotalAmount = useSelector((state) => state.cart.totalAmount);
   const cartItems = useSelector((state) => {
@@ -238,26 +231,6 @@ const ScannerScreen = ({ navigation }) => {
   ];
   let catOptions = catArray.sort();
 
-  // const availableProducts = useSelector(
-  //   (state) => state.availableProducts.availableProducts
-  // );
-  // const loadDetails = useCallback(async () => {
-  //   setIsRefreshing(true);
-  //   try {
-  //     dispatch(ProdActions.fetchProducts());
-  //     dispatch(ProdActions.fetchAvailableProducts());
-  //   } catch (err) {
-  //     setError(err.message);
-  //   }
-
-  //   setIsRefreshing(false);
-  // });
-  // useEffect(() => {
-  //   const willFocusSub = props.navigation.addListener("willFocus", loadDetails);
-  //   return () => {
-  //     willFocusSub.remove();
-  //   };
-  // }, [loadDetails]);
   useEffect(() => {
     // loadDetails();
     (async () => {
@@ -272,13 +245,12 @@ const ScannerScreen = ({ navigation }) => {
       fetchProducts();
       fetchAvailableProducts();
       continueScan();
+      return () => fetchProducts(), fetchAvailableProducts(), continueScan();
     }, [])
   );
 
   const modeHandler = () => {
     setSell((prevState) => !prevState);
-    console.log(sell);
-    // props.navigation.setParams({ mode: sell });
   };
 
   const itemUpdateHandler = () => {
@@ -403,95 +375,9 @@ const ScannerScreen = ({ navigation }) => {
     setModalVisible(false);
   };
 
-  // const quantityUpdateHandler = () => {
-  //   console.log(
-  //     "FROM NEW PRODUCT TO NEW Q",
-  //     title,
-  //     price,
-  //     category,
-  //     newQ,
-  //     size,
-  //     code
-  //   );
-  //   dispatch(
-  //     sendProduct.quantityUpdate(title, price, category, newQ, size, code)
-  //   );
-  //   setTimeout(() => {
-  //     fetchProducts();
-  //   }, 1000);
-  // };
-
-  // const uploadProduct = (
-  //   Title,
-  //   Price,
-  //   Category,
-  //   Quantity,
-  //   Size,
-  //   Brand,
-  //   Code
-  // ) => {
-  //   console.log("data listed", Quantity);
-  //   try {
-  //     if (Quantity > 1) {
-  //       console.log(
-  //         "item already exist, updating",
-  //         Title,
-  //         Price,
-  //         Category,
-  //         Quantity,
-  //         Size,
-  //         Brand,
-  //         Code
-  //       );
-
-  //       dispatch(
-  //         sendProduct.updateProducts(
-  //           Title,
-  //           Price,
-  //           Category,
-  //           Quantity,
-  //           Size,
-  //           Brand,
-  //           Code
-  //         )
-  //       );
-  //     } else {
-  //       console.log("first upload");
-  //       console.log(Title, Price, Category, Quantity, Size, Code);
-  //       dispatch(
-  //         sendProduct.createProduct(
-  //           Title,
-  //           Price,
-  //           Category,
-  //           Quantity,
-  //           Size,
-  //           Brand,
-  //           Code
-  //         )
-  //       );
-  //     }
-  //   } catch (err) {
-  //     setError(err.message);
-  //     console.log(error);
-  //   }
-  //   loadDetails();
-  // };
-
-  // const minusProduct = (Title, Price, Category, Quantity, Size, Code) => {
-  //   try {
-  //     console.log("subtracting product quantity");
-  //     dispatch(
-  //       sendProduct.subProducts(Title, Price, Category, Quantity, Size, Code)
-  //     );
-  //   } catch (err) {
-  //     setError(err.message);
-  //     console.log(error);
-  //   }
-  //   loadDetails();
-  // };
-
   const continueScan = () => {
-    setScanned(false);
+    isFocused ? setScanned(false) : setScanned(true);
+    // setScannedr(false);
   };
 
   let Title;
@@ -569,14 +455,43 @@ const ScannerScreen = ({ navigation }) => {
       dispatch(cartActions.addToCart(nonUserProduct));
     }
   };
+  handleBarCodeScannedSelected = async (value) => {
+    console.log("testing drop item selected", value);
+    const userProduct = userProducts.find((code) => code.productcode === value);
+    if (userProduct) {
+      console.log("scanned something to sell");
+      async function playSound() {
+        console.log("Loading Sound");
+        const { sound } = await Audio.Sound.createAsync(
+          require("../assets/beep.mp3")
+        );
+        setSound(sound);
 
-  const handleBarCodeScannedSell = async ({ type, data }) => {
+        console.log("Playing Sound");
+        await sound.playAsync();
+      }
+      playSound();
+      Alert.alert("Producto Escaneado", `${userProduct.productTitle}`, [
+        {
+          text: "Continuar",
+          style: "cancel",
+          onPress: () => {
+            setScanned(false);
+          },
+        },
+      ]);
+      await dispatch(cartActions.addToCart(userProduct));
+    }
+  };
+
+  const handleBarCodeScannedSell = async ({ data }) => {
     setScanned(true);
-    // setScannedData(data);
     const nonUserProduct = availableProducts.find(
       (cod) => cod.productcode === data
     );
-    const userProduct = userProducts.find((code) => code.productcode === data);
+    const userProduct = userProducts.find(
+      (code) => code.productcode === data || value
+    );
     if (userProduct) {
       console.log("scanned something to sell");
       async function playSound() {
@@ -816,7 +731,7 @@ const ScannerScreen = ({ navigation }) => {
         style={{
           flex: 1,
         }}
-        behavior={Platform.OS === "android" ? "padding" : "position"}
+        behavior={Platform.OS === "position"}
         keyboardVerticalOffset={80}
         // style={styles.screen}
       >
@@ -843,6 +758,32 @@ const ScannerScreen = ({ navigation }) => {
             </Text>
             <Text style={{ color: "silver" }}>
               cambiar a {!sell ? "Vender" : "Inventario"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            setDropMode((prevState) => !prevState);
+          }}
+        >
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              margin: 15,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: dropMode ? "blue" : "green",
+              }}
+            >
+              Modo: {dropMode ? "Menu" : "Escaner"}
+            </Text>
+            <Text style={{ color: "silver" }}>
+              cambiar a {!dropMode ? "Menu" : "Escaner"}
             </Text>
           </View>
         </TouchableOpacity>
@@ -947,11 +888,32 @@ const ScannerScreen = ({ navigation }) => {
             marginBottom: 5,
           }}
         >
-          <BarCodeScanner
-            barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
-            onBarCodeScanned={scanned ? undefined : handleBarCodeScannedSell}
-            style={StyleSheet.absoluteFillObject}
-          />
+          {dropMode ? (
+            <DropDownPicker
+              placeholder="Elige un producto"
+              searchable={true}
+              labelStyle={{
+                fontWeight: "bold",
+              }}
+              onChangeValue={(value) => {
+                // console.log(value);
+                handleBarCodeScannedSelected(value);
+              }}
+              searchPlaceholder="Buscar..."
+              open={open}
+              value={value}
+              items={items}
+              setOpen={setOpen}
+              setValue={setValue}
+              setItems={setItems}
+            />
+          ) : (
+            <BarCodeScanner
+              barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
+              onBarCodeScanned={scanned ? undefined : handleBarCodeScannedSell}
+              style={StyleSheet.absoluteFillObject}
+            />
+          )}
         </View>
 
         <Card style={styles.summary}>

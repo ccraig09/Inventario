@@ -79,3 +79,44 @@ return (
                           </View>
                         </View>
                       </Modal>
+
+
+
+
+
+
+
+
+
+
+
+
+<SearchableDropdown
+onTextChange={(text) => console.log(text)}
+onItemSelect={(item) => alert(JSON.stringify(item))}
+containerStyle={{ padding: 5 }}
+textInputStyle={{
+  padding: 12,
+  borderWidth: 1,
+  borderColor: "#ccc",
+  backgroundColor: "#FAF7F6",
+}}
+itemStyle={{
+  padding: 10,
+  marginTop: 2,
+  backgroundColor: "#FAF9F8",
+  borderColor: "#bbb",
+  borderWidth: 1,
+}}
+itemTextStyle={{
+  color: "#222",
+}}
+itemsContainerStyle={{
+  maxHeight: "60%",
+}}
+items={items}
+defaultIndex={1}
+placeholder="Elige un producto"
+resetValue={false}
+underlineColorAndroid="transparent"
+/>
