@@ -472,27 +472,48 @@ const ScannerScreen = ({ navigation }) => {
     if (nonUserProduct && !userProduct) {
       console.log("editing price for nonUserProduct");
       if (editMode) {
-        Object.assign((nonUserProduct.productPrice = newTax));
-        dispatch(cartActions.addToCart(nonUserProduct));
-        setValue(null);
-        setEditMode(false);
-      } else {
-        dispatch(cartActions.addToCart(nonUserProduct));
-        setValue(null);
+        if (
+          cartItems.find((code) => code.productId != selectedId) ||
+          cartItems.length == 0
+        ) {
+          // console.log("checking non reg", nonRegProduct);
+          Object.assign((nonUserProduct.productPrice = newTax));
+          dispatch(cartActions.addToCart(nonUserProduct));
+          setValue(null);
+          setEditMode(false);
+        }
+        if (cartItems.find((code) => code.productId === selectedId)) {
+          console.log("gotta delete sumn first");
+          dispatch(
+            cartActions.completeRemoveFromCart(nonUserProduct.productId)
+          );
+          Object.assign((nonUserProduct.productPrice = newTax));
+          dispatch(cartActions.addToCart(nonUserProduct));
+          setValue(null);
+        }
       }
     }
     if (!nonUserProduct && !userProduct) {
       console.log("editing price for nonREGProduct");
 
       if (editMode) {
-        console.log("checking non reg", nonRegProduct);
-        Object.assign((nonRegProduct.productPrice = newTax));
-        dispatch(cartActions.addToCart(nonRegProduct));
-        setValue(null);
-        setEditMode(false);
-      } else {
-        dispatch(cartActions.addToCart(nonRegProduct));
-        setValue(null);
+        if (
+          cartItems.find((code) => code.productId != selectedId) ||
+          cartItems.length == 0
+        ) {
+          // console.log("checking non reg", nonRegProduct);
+          Object.assign((nonRegProduct.productPrice = newTax));
+          dispatch(cartActions.addToCart(nonRegProduct));
+          setValue(null);
+          setEditMode(false);
+        }
+        if (cartItems.find((code) => code.productId === selectedId)) {
+          console.log("gotta delete sumn first");
+          dispatch(cartActions.completeRemoveFromCart(nonRegProduct.productId));
+          Object.assign((nonRegProduct.productPrice = newTax));
+          dispatch(cartActions.addToCart(nonRegProduct));
+          setValue(null);
+        }
       }
     }
   };
@@ -500,6 +521,31 @@ const ScannerScreen = ({ navigation }) => {
   const editPrice = (id) => {
     setEditPriceModal(true);
     setSelectedId(id);
+  };
+
+  const quickyAdd = () => {
+    console.log("we in a hurry");
+
+    const quickyArray = [
+      {
+        quantity: 1,
+        productPrice: parseInt(newQuickPrice),
+        productTitle: newQuickProduct,
+        productPrice: parseInt(newQuickPrice),
+        isChecked: false,
+        productcode: selectedId,
+        productId: selectedId,
+      },
+    ];
+    console.log("loading quickies", quickyArray);
+
+    const quickUserProduct = quickyArray.find(
+      (code) => code.productcode === selectedId
+    );
+    console.log("did anything work??", quickUserProduct);
+    dispatch(cartActions.addToCart(quickUserProduct));
+    setQuickProducts((quickProducts) => quickProducts.concat(quickUserProduct));
+    setQuickMode(false);
   };
 
   const addUp = (id) => {
@@ -515,32 +561,7 @@ const ScannerScreen = ({ navigation }) => {
 
       dispatch(cartActions.addToCart(userProduct));
     }
-    if (quickMode) {
-      console.log("we in a hurry");
 
-      const quickyArray = [
-        {
-          quantity: 1,
-          productPrice: parseInt(newQuickPrice),
-          productTitle: newQuickProduct,
-          productPrice: parseInt(newQuickPrice),
-          isChecked: false,
-          productcode: selectedId,
-          productId: selectedId,
-        },
-      ];
-      console.log("loading quickies", quickyArray);
-
-      const quickUserProduct = quickyArray.find(
-        (code) => code.productcode === selectedId
-      );
-      console.log("did anything work??", quickUserProduct);
-      dispatch(cartActions.addToCart(quickUserProduct));
-      setQuickProducts((quickProducts) =>
-        quickProducts.concat(quickUserProduct)
-      );
-      setQuickMode(false);
-    }
     if (nonRegProduct && !nonUserProduct && !userProduct) {
       console.log("aigh hold on adding non non prod", quickProducts);
       const quickUserProduct = quickProducts.find(
@@ -549,11 +570,11 @@ const ScannerScreen = ({ navigation }) => {
       dispatch(cartActions.addToCart(quickUserProduct));
     }
 
-    // if (nonUserProduct) {
-    //   console.log("adding up NON USER PROD to normal cart");
+    if (nonUserProduct) {
+      console.log("adding up NON USER PROD to normal cart");
 
-    //   dispatch(cartActions.addToCart(nonUserProduct));
-    // }
+      dispatch(cartActions.addToCart(nonUserProduct));
+    }
   };
 
   const handleBarCodeScannedSelected = async (value) => {
@@ -1040,7 +1061,7 @@ const ScannerScreen = ({ navigation }) => {
                         backgroundColor: "#2196F3",
                       }}
                       onPress={() => {
-                        addUp();
+                        quickyAdd();
                         setQuickAdd(!quickAdd);
                       }}
                     >
