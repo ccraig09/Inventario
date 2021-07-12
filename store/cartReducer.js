@@ -1,6 +1,6 @@
 import {
   ADD_TO_CART,
-  // ADD_TO_CART_NU,
+  EDIT_CART,
   REMOVE_FROM_CART,
   COMPLETE_REMOVE_FROM_CART,
 } from "./cartAction";
@@ -54,43 +54,44 @@ export default (state = initialState, action) => {
         },
         totalAmount: state.totalAmount + prodPrice,
       };
-    // case ADD_TO_CART_NU:
-    //   const addedProductNU = action.product;
-    //   const prodPriceNU = addedProductNU.Price;
-    //   const prodTitleNU = addedProductNU.Product;
-    //   const prodCheckedNU = addedProductNU.isChecked;
-    //   const prodCodeNU = addedProductNU.code;
+    case EDIT_CART:
+      const editProduct = action.product;
+      const editPrice = action.newPrice;
+      const editTitle = editProduct.productTitle;
+      const editChecked = editProduct.isChecked;
+      const editCode = editProduct.productcode;
 
-    //   let updatedOrNewCartItemNU;
+      // let updatedOrNewCartItem;
 
-    //   if (state.items[addedProductNU.productId]) {
-    //     //already have the item in the cart
-    //     updatedOrNewCartItemNU = new CartItem(
-    //       state.items[addedProductNU.productId].quantity + 1,
-    //       prodPriceNU,
-    //       prodTitleNU,
-    //       state.items[addedProductNU.productId].sum + prodPriceNU,
-    //       prodCheckedNU,
-    //       prodCodeNU
-    //     );
-    //   } else {
-    //     updatedOrNewCartItemNU = new CartItem(
-    //       1,
-    //       prodPriceNU,
-    //       prodTitleNU,
-    //       prodPriceNU,
-    //       prodCheckedNU,
-    //       prodCodeNU
-    //     );
-    //   }
-    //   return {
-    //     ...state,
-    //     items: {
-    //       ...state.items,
-    //       [addedProductNU.productId]: updatedOrNewCartItemNU,
-    //     },
-    //     totalAmount: state.totalAmount + prodPriceNU,
-    //   };
+      if (state.items[editProduct.productId]) {
+        //already have the item in the cart
+        updatedOrNewCartItem = new CartItem(
+          state.items[editProduct.productId].quantity + 1,
+          editPrice,
+          editTitle,
+          state.items[editProduct.productId].sum + editPrice,
+          editChecked,
+          editCode
+        );
+      } else {
+        updatedOrNewCartItem = new CartItem(
+          1,
+          editPrice,
+          editTitle,
+          editPrice,
+          editChecked,
+          editCode
+        );
+      }
+      return {
+        ...state,
+        items: {
+          ...state.items,
+          [editProduct.productId]: updatedOrNewCartItem,
+        },
+        totalAmount: state.totalAmount + editPrice,
+      };
+
     case ADD_ORDER:
       return initialState;
     case REMOVE_ORDER:

@@ -1,5 +1,12 @@
 import React, { useState, useContext } from "react";
-import { View, Text, Button, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  Button,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import firebase from "../components/firebase";
 
 import CartItem from "./CartItem";
@@ -17,6 +24,8 @@ const OrderItem = (props) => {
     useContext(AuthContext);
   const db = firebase.firestore().collection("Members");
   const [showDetails, setShowDetails] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const dispatch = useDispatch();
   const id = props.id;
   const refresh = props.reload;
@@ -24,6 +33,7 @@ const OrderItem = (props) => {
   const [allSet, setAllSet] = useState(false);
 
   const qUpdateHandler = async (cartItem) => {
+    setIsLoading(true);
     console.log("check cartitem", cartItem);
     const subNum = cartItem.quantity;
     const Code = cartItem.productcode;
@@ -70,6 +80,7 @@ const OrderItem = (props) => {
         console.log(err.message);
       }
     }
+    setIsLoading(false);
   };
 
   const checkyCheck = async (cartItem) => {
@@ -93,6 +104,14 @@ const OrderItem = (props) => {
     //   refresh();
     // });
   };
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={"red"} />
+        <Text>Actualizando</Text>
+      </View>
+    );
+  }
 
   return (
     <Card style={styles.orderItem}>
@@ -213,6 +232,11 @@ const styles = StyleSheet.create({
   },
   detailItems: {
     width: "100%",
+  },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 

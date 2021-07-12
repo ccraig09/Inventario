@@ -45,16 +45,18 @@ const CartItem = (props) => {
     setOneTime(true);
   }
   return (
-    <Container onPress={props.onAdd} style={styles.cartItem}>
-      <View style={styles.itemData}>
+    <View style={styles.cartItem}>
+      <Container onPress={props.onAdd} style={styles.itemData}>
         <Text style={styles.quantity}>{props.quantity} </Text>
         {props.addable && (
           <Text style={styles.quantity}>/{shownQuantity} </Text>
         )}
         <Text style={styles.mainText}>{props.title}</Text>
-      </View>
+      </Container>
       <View style={styles.itemData}>
-        <Text style={styles.amount}>{props.amount}bs</Text>
+        <Container onPress={props.onPriceEdit}>
+          <Text style={styles.amount}>{props.amount}bs</Text>
+        </Container>
         {/* <Text style={styles.amount}>${props.amount.toFixed(2)}</Text> */}
         {props.deletable && (
           <TouchableOpacity
@@ -92,7 +94,7 @@ const CartItem = (props) => {
           </View>
         )}
       </View>
-    </Container>
+    </View>
   );
 };
 

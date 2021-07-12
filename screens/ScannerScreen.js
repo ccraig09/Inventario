@@ -21,6 +21,8 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import { useSelector, useDispatch } from "react-redux";
 import * as sendProduct from "../store/productActions";
+import CartItemQuick from "../models/cart-item";
+
 import * as ProdActions from "../store/productActions";
 import ProductItem from "../components/ProductItem";
 import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
@@ -74,10 +76,13 @@ const ScannerScreen = ({ navigation }) => {
   const [brand, setBrand] = useState("");
   const [quantity, setQuantity] = useState(0);
   const [sell, setSell] = useState(false);
+  const [quickMode, setQuickMode] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [loadedModal, setLoadedModal] = useState(false);
   const [newQ, setNewQ] = useState();
   const [newMode, setNewMode] = useState(false);
+  const [editPriceModal, setEditPriceModal] = useState(false);
+  const [editedPrice, setEditedPrice] = useState();
   const [loadedMode, setLoadedMode] = useState(false);
   const [newProduct, setNewProduct] = useState("");
   const [newPrice, setNewPrice] = useState("");
@@ -85,10 +90,16 @@ const ScannerScreen = ({ navigation }) => {
   const [newBrand, setNewBrand] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [picker, setPicker] = useState(false);
+  const [newQuickPrice, setNewQuickPrice] = useState();
+  const [newQuickProduct, setNewQuickProduct] = useState();
+  const [quickAdd, setQuickAdd] = useState(false);
   const [picked, setPicked] = useState();
+  const [selectedId, setSelectedId] = useState();
   const [dropMode, setDropMode] = useState(false);
   const [open, setOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [value, setValue] = useState(null);
+  const [quickProducts, setQuickProducts] = useState([]);
   const [items, setItems] = useState();
   const [sound, setSound] = React.useState();
   const [checkoutModal, setCheckoutModal] = useState(false);
@@ -150,10 +161,7 @@ const ScannerScreen = ({ navigation }) => {
         list.map((dropItems) => ({
           key: dropItems.productId,
           label: dropItems.productTitle,
-          //   "     ",
-          //   dropItems.productPrice,
-          //   "bs",
-          // ],
+
           value: dropItems.productId,
         }))
       );
@@ -422,44 +430,138 @@ const ScannerScreen = ({ navigation }) => {
     );
   };
 
-  // const onChargePress = () => {
-  //   console.log("checking scannedresults", cartItems);
-  //   const userCode = userProducts.productcode;
-  //   console.log("what is this usercode", userCode);
-  //   const scannedUserProduct = cartItems.find(
-  //     (code) => code.productcode === userCode
-  //   );
-  //   console.log("subtracting product quantity", scannedUserProduct);
-  //   try {
-  //     const subNum = scannedUserProduct.quantity;
-  //     dispatch(sendProduct.subProducts(scannedUserProduct, subNum));
-  //   } catch (err) {
-  //     setError(err.message);
-  //     console.log(error);
-  //   }
-  //   console.log("order up");
-  // };
+  const changePriceHandler = () => {
+    console.log("loading selectedId", selectedId);
+    let newTax = parseInt(editedPrice);
+    const userProduct = userProducts.find(
+      (code) => code.productcode === selectedId
+    );
+    const nonUserProduct = availableProducts.find(
+      (code) => code.productcode === selectedId
+    );
+    const nonRegProduct = quickProducts.find(
+      (code) => code.productcode === selectedId
+    );
+
+    if (userProduct) {
+      console.log("editing price for userProduct", userProduct);
+
+      if (editMode) {
+        if (
+          cartItems.find((code) => code.productId != selectedId) ||
+          cartItems.length == 0
+        ) {
+          console.log("editing price with no prior need to delete");
+          Object.assign((userProduct.productPrice = newTax));
+          dispatch(cartActions.addToCart(userProduct));
+          setValue(null);
+          setEditMode(false);
+        }
+        if (cartItems.find((code) => code.productId === selectedId)) {
+          console.log("gotta delete sumn first");
+          dispatch(cartActions.completeRemoveFromCart(userProduct.productId));
+          Object.assign((userProduct.productPrice = newTax));
+          dispatch(cartActions.addToCart(userProduct));
+          setValue(null);
+          setEditMode(false);
+        }
+      }
+
+      // dispatch(cartActions.editCart(userProduct, newTax));
+    }
+    if (nonUserProduct && !userProduct) {
+      console.log("editing price for nonUserProduct");
+      if (editMode) {
+        Object.assign((nonUserProduct.productPrice = newTax));
+        dispatch(cartActions.addToCart(nonUserProduct));
+        setValue(null);
+        setEditMode(false);
+      } else {
+        dispatch(cartActions.addToCart(nonUserProduct));
+        setValue(null);
+      }
+    }
+    if (!nonUserProduct && !userProduct) {
+      console.log("editing price for nonREGProduct");
+
+      if (editMode) {
+        console.log("checking non reg", nonRegProduct);
+        Object.assign((nonRegProduct.productPrice = newTax));
+        dispatch(cartActions.addToCart(nonRegProduct));
+        setValue(null);
+        setEditMode(false);
+      } else {
+        dispatch(cartActions.addToCart(nonRegProduct));
+        setValue(null);
+      }
+    }
+  };
+
+  const editPrice = (id) => {
+    setEditPriceModal(true);
+    setSelectedId(id);
+  };
 
   const addUp = (id) => {
     const userProduct = userProducts.find((code) => code.productcode === id);
-    // dispatch(cartActions.addToCart(userProduct));
     const nonUserProduct = availableProducts.find(
       (code) => code.productcode === id
     );
-    // dispatch(cartActions.addToCart(nonUserProduct));
-
+    const nonRegProduct = quickProducts.find(
+      (code) => code.productcode === selectedId
+    );
     if (userProduct) {
+      console.log("adding up inside normal cart");
+
       dispatch(cartActions.addToCart(userProduct));
     }
-    if (nonUserProduct && !userProduct) {
-      dispatch(cartActions.addToCart(nonUserProduct));
+    if (quickMode) {
+      console.log("we in a hurry");
+
+      const quickyArray = [
+        {
+          quantity: 1,
+          productPrice: parseInt(newQuickPrice),
+          productTitle: newQuickProduct,
+          productPrice: parseInt(newQuickPrice),
+          isChecked: false,
+          productcode: selectedId,
+          productId: selectedId,
+        },
+      ];
+      console.log("loading quickies", quickyArray);
+
+      const quickUserProduct = quickyArray.find(
+        (code) => code.productcode === selectedId
+      );
+      console.log("did anything work??", quickUserProduct);
+      dispatch(cartActions.addToCart(quickUserProduct));
+      setQuickProducts((quickProducts) =>
+        quickProducts.concat(quickUserProduct)
+      );
+      setQuickMode(false);
     }
+    if (nonRegProduct && !nonUserProduct && !userProduct) {
+      console.log("aigh hold on adding non non prod", quickProducts);
+      const quickUserProduct = quickProducts.find(
+        (code) => code.productcode === id
+      );
+      dispatch(cartActions.addToCart(quickUserProduct));
+    }
+
+    // if (nonUserProduct) {
+    //   console.log("adding up NON USER PROD to normal cart");
+
+    //   dispatch(cartActions.addToCart(nonUserProduct));
+    // }
   };
-  handleBarCodeScannedSelected = async (value) => {
+
+  const handleBarCodeScannedSelected = async (value) => {
+    setSelectedId(value);
     console.log("testing drop item selected", value);
     const userProduct = userProducts.find((code) => code.productcode === value);
     if (userProduct) {
-      console.log("scanned something to sell");
+      console.log("SELECTED something to sell");
       async function playSound() {
         console.log("Loading Sound");
         const { sound } = await Audio.Sound.createAsync(
@@ -471,27 +573,51 @@ const ScannerScreen = ({ navigation }) => {
         await sound.playAsync();
       }
       playSound();
-      Alert.alert("Producto Escaneado", `${userProduct.productTitle}`, [
-        {
-          text: "Continuar",
-          style: "cancel",
-          onPress: () => {
-            setScanned(false);
+      Alert.alert(
+        "Producto Elegido",
+        `${userProduct.productTitle} ${userProduct.productPrice}bs`,
+        [
+          {
+            text: "Continuar",
+            style: "cancel",
+            onPress: async () => {
+              setEditMode(false);
+              setScanned(false);
+              await dispatch(cartActions.addToCart(userProduct));
+              setValue(null);
+            },
           },
-        },
-      ]);
-      await dispatch(cartActions.addToCart(userProduct));
+          {
+            text: "Edit Price",
+            style: "cancel",
+            onPress: () => {
+              setEditedPrice();
+              setEditMode(true);
+              setScanned(false);
+              setEditPriceModal(true);
+            },
+          },
+          {
+            text: "Cancelar",
+            style: "cancel",
+            onPress: () => {
+              setScanned(false);
+              setValue(null);
+            },
+          },
+        ]
+      );
     }
   };
 
   const handleBarCodeScannedSell = async ({ data }) => {
     setScanned(true);
+    setSelectedId(data);
+    console.log(data);
     const nonUserProduct = availableProducts.find(
       (cod) => cod.productcode === data
     );
-    const userProduct = userProducts.find(
-      (code) => code.productcode === data || value
-    );
+    const userProduct = userProducts.find((code) => code.productcode === data);
     if (userProduct) {
       console.log("scanned something to sell");
       async function playSound() {
@@ -505,16 +631,38 @@ const ScannerScreen = ({ navigation }) => {
         await sound.playAsync();
       }
       playSound();
-      Alert.alert("Producto Escaneado", `${userProduct.productTitle}`, [
-        {
-          text: "Continuar",
-          style: "cancel",
-          onPress: () => {
-            setScanned(false);
+      Alert.alert(
+        "Producto Escaneado",
+        `${userProduct.productTitle} ${userProduct.productPrice}bs`,
+        [
+          {
+            text: "Continuar",
+            style: "cancel",
+            onPress: async () => {
+              setEditMode(false);
+              setScanned(false);
+              await dispatch(cartActions.addToCart(userProduct));
+            },
           },
-        },
-      ]);
-      await dispatch(cartActions.addToCart(userProduct));
+          {
+            text: "Edit Price",
+            style: "cancel",
+            onPress: () => {
+              setEditedPrice();
+              setEditMode(true);
+              setScanned(false);
+              setEditPriceModal(true);
+            },
+          },
+          {
+            text: "Cancelar",
+            style: "cancel",
+            onPress: () => {
+              setScanned(false);
+            },
+          },
+        ]
+      );
     }
     if (nonUserProduct && !userProduct) {
       console.log("Product is not registerd to user, but is avaiable");
@@ -531,10 +679,29 @@ const ScannerScreen = ({ navigation }) => {
       playSound();
       Alert.alert(
         "Producto no esta registrado",
-        `${nonUserProduct.productTitle}`,
+        `Puedes agregar el producto despues la transacción, ${nonUserProduct.productTitle} ${nonUserProduct.productPrice}bs`,
         [
           {
             text: "Continuar",
+            style: "cancel",
+            onPress: async () => {
+              setEditMode(false);
+              setScanned(false);
+              await dispatch(cartActions.addToCart(nonUserProduct));
+            },
+          },
+          {
+            text: "Edit Price",
+            style: "cancel",
+            onPress: () => {
+              setEditedPrice();
+              setEditMode(true);
+              setScanned(false);
+              setEditPriceModal(true);
+            },
+          },
+          {
+            text: "Cancelar",
             style: "cancel",
             onPress: () => {
               setScanned(false);
@@ -542,7 +709,6 @@ const ScannerScreen = ({ navigation }) => {
           },
         ]
       );
-      await dispatch(cartActions.addToCart(nonUserProduct));
     }
     if (!nonUserProduct && !userProduct) {
       console.log("item not registered to owner nor in catalog");
@@ -562,9 +728,21 @@ const ScannerScreen = ({ navigation }) => {
         `Este producto no esta registrado en el base de datos, ${data}`,
         [
           {
-            text: "Continuar",
+            text: "Continuar sin vender",
             style: "cancel",
             onPress: () => {
+              setScanned(false);
+            },
+          },
+          {
+            text: "Editar y vender",
+            style: "cancel",
+            onPress: () => {
+              setSelectedId(data);
+              setNewQuickPrice();
+              setNewQuickProduct();
+              setQuickMode(true);
+              setQuickAdd(true);
               setScanned(false);
             },
           },
@@ -788,6 +966,164 @@ const ScannerScreen = ({ navigation }) => {
           </View>
         </TouchableOpacity>
 
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={quickAdd}
+          onRequestClose={() => {
+            setQuickAdd(!quickAdd);
+          }}
+        >
+          <KeyboardAvoidingView
+            style={{
+              flex: 1,
+              marginBottom: 100,
+            }}
+            behavior={"padding"}
+            keyboardVerticalOffset={30}
+          >
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Keyboard.dismiss();
+              }}
+            >
+              <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <View>
+                    <Text style={styles.modalTitle}>Nuevo Producto</Text>
+                    <View>
+                      <TextInput
+                        style={styles.textInputStyle}
+                        placeholder="Producto"
+                        placeholderTextColor="silver"
+                        value={newQuickProduct}
+                        onChangeText={(name) => {
+                          setNewQuickProduct(name);
+                        }}
+                      />
+
+                      <TextInput
+                        style={styles.textInputStyle}
+                        keyboardType="numeric"
+                        placeholderTextColor="silver"
+                        placeholder="Precio"
+                        value={newQuickPrice}
+                        onChangeText={(price) => {
+                          setNewQuickPrice(price);
+                        }}
+                      />
+                    </View>
+                  </View>
+                  <View
+                    style={{
+                      width: "100%",
+                      flexDirection: "row",
+                      justifyContent: "space-around",
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={{
+                        ...styles.openButton,
+                        backgroundColor: "green",
+                      }}
+                      onPress={() => {
+                        setNewQuickPrice();
+                        setNewQuickProduct();
+                        setQuickAdd(!quickAdd);
+                      }}
+                    >
+                      <Text style={styles.textStyle}>Cerrar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{
+                        ...styles.openButton,
+                        backgroundColor: "#2196F3",
+                      }}
+                      onPress={() => {
+                        addUp();
+                        setQuickAdd(!quickAdd);
+                      }}
+                    >
+                      <Text style={styles.textStyle}>Guardar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={editPriceModal}
+          onRequestClose={() => {
+            setEditPriceModal(!editPriceModal);
+          }}
+        >
+          <KeyboardAvoidingView
+            style={{
+              flex: 1,
+              marginBottom: 100,
+            }}
+            behavior={"padding"}
+            keyboardVerticalOffset={30}
+          >
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Keyboard.dismiss();
+              }}
+            >
+              <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  <Text style={styles.modalEdit2}>Editar Precio:</Text>
+                  <TextInput
+                    style={styles.textInputStyleEdit}
+                    keyboardType={"numeric"}
+                    clearButtonMode={"always"}
+                    underlineColorAndroid="transparent"
+                    // placeholder={placeholder}
+                    onChangeText={(text) => setEditedPrice(text)}
+                    value={editedPrice}
+                  />
+                  <View
+                    style={{
+                      width: "100%",
+                      flexDirection: "row",
+                      justifyContent: "space-around",
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={{
+                        ...styles.openButton,
+                        backgroundColor: "green",
+                      }}
+                      onPress={() => {
+                        setEditedPrice();
+                        setEditPriceModal(!editPriceModal);
+                      }}
+                    >
+                      <Text style={styles.textStyle}>Cerrar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{
+                        ...styles.openButton,
+                        backgroundColor: "#2196F3",
+                      }}
+                      onPress={() => {
+                        changePriceHandler();
+                        setEditPriceModal(!editPriceModal);
+                      }}
+                    >
+                      <Text style={styles.textStyle}>Guardar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+        </Modal>
+
         <View>
           <Modal
             animationType="slide"
@@ -867,6 +1203,7 @@ const ScannerScreen = ({ navigation }) => {
                             onPress={() => {
                               console.log("Listo, sale complete");
                               continueScan();
+                              setQuickProducts();
                               sendOrderHandler();
                             }}
                           >
@@ -948,6 +1285,11 @@ const ScannerScreen = ({ navigation }) => {
                 deletable
                 userProd={userProducts}
                 addable
+                onPriceEdit={() => {
+                  setEditedPrice();
+                  setEditMode(true);
+                  editPrice(itemData.item.productId);
+                }}
                 onAdd={() => {
                   addUp(itemData.item.productId);
                 }}
@@ -983,6 +1325,28 @@ const ScannerScreen = ({ navigation }) => {
                 // onPress={sendOrderHandler}
                 onPress={() => {
                   Alert.alert(`Borrar todo?`, "", [
+                    {
+                      text: "No",
+                      style: "cancel",
+                    },
+                    {
+                      text: "Sí",
+                      onPress: () => {
+                        dispatch(sendProduct.removeAll()), setQuickProducts([]);
+                      },
+                    },
+                  ]);
+                }}
+              />
+            )}
+            {cartItems.length == 0 && cartTotalAmount != 0 && (
+              <Button
+                color={Colors.primary}
+                title="Borrar Total"
+                style={{ marginTop: 10 }}
+                // onPress={sendOrderHandler}
+                onPress={() => {
+                  Alert.alert(`Borrar Total?`, "", [
                     {
                       text: "No",
                       style: "cancel",
@@ -1852,6 +2216,7 @@ const styles = StyleSheet.create({
   },
   textInputStyle: {
     height: 40,
+
     borderWidth: 1,
     borderRadius: 10,
     paddingLeft: 20,
@@ -1862,6 +2227,16 @@ const styles = StyleSheet.create({
   textInputStyleEdit: {
     height: 40,
     width: "70%",
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    margin: 10,
+    borderColor: "black",
+    backgroundColor: "#FFFFFF",
+  },
+  textInputStyleEditNew: {
+    height: 40,
+    width: "100%",
     borderRadius: 20,
     borderWidth: 1,
     paddingHorizontal: 10,
