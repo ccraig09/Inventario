@@ -16,7 +16,6 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import ProductItem from "../components/ProductItem";
 import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
 import { Avatar, Divider, Input, Button } from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -156,6 +155,7 @@ const MenuScreen = (props) => {
     } catch (e) {
       console.log(e);
     }
+    // setIsLoading(false);
   };
 
   let catArray = [
@@ -449,9 +449,9 @@ const MenuScreen = (props) => {
   //   fetchAvailableProducts();
   // };
 
-  const continueScan = () => {
-    setScanned(false);
-  };
+  // const continueScan = () => {
+  //   setScanned(false);
+  // };
 
   let Title;
   let Price;
@@ -586,7 +586,7 @@ const MenuScreen = (props) => {
                           "theres a new available product",
                           newProduct
                         );
-                        continueScan();
+                        // continueScan();
                       }}
                     >
                       <Text style={{ color: "blue" }}>Guardar</Text>
@@ -965,7 +965,7 @@ const MenuScreen = (props) => {
                         newInvProd();
                         quantityUpdateHandler();
                         setModalVisible(!modalVisible);
-                        continueScan();
+                        // continueScan();
                         // }
                         // if (title) {
                         //   console.log(
@@ -993,7 +993,7 @@ const MenuScreen = (props) => {
           onRefresh={() => {
             fetchAvailableProducts();
           }}
-          initialNumToRender={5}
+          initialNumToRender={10}
           sections={catSections}
           keyExtractor={(item, index) => item + index}
           stickySectionHeadersEnabled={true}

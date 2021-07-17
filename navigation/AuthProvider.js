@@ -125,7 +125,7 @@ export const AuthProvider = ({ children }) => {
           code
         ) => {
           try {
-            console.log("creating an available product");
+            console.log("A product was edited, now applying changes");
             await db
               .doc(user.uid)
               .collection("Member Products")

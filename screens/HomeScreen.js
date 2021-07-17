@@ -726,7 +726,7 @@ const styles = StyleSheet.create({
     height: 200,
   },
   topHeader: {
-    height: "90%",
+    height: "97%",
     backgroundColor: "#FF4949",
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,

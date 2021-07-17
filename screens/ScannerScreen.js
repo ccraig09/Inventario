@@ -21,10 +21,6 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import { useSelector, useDispatch } from "react-redux";
 import * as sendProduct from "../store/productActions";
-import CartItemQuick from "../models/cart-item";
-
-import * as ProdActions from "../store/productActions";
-import ProductItem from "../components/ProductItem";
 import { FontAwesome, AntDesign, Entypo } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/FontAwesome";
 import InputSpinner from "react-native-input-spinner";
@@ -49,7 +45,7 @@ import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 
 const ScannerScreen = ({ navigation }) => {
   const height = Dimensions.get("window").height * 0.3;
-  const width = Dimensions.get("window").width;
+  const width = Dimensions.get("window").width * 0.98;
 
   const { user, createProduct, editedProduct } = useContext(AuthContext);
 
@@ -290,26 +286,6 @@ const ScannerScreen = ({ navigation }) => {
       console.log("type is Size");
       setSize(newText);
     }
-    // if (type === "Marca") {
-    //   console.log("type is Marca");
-    //   dispatch(sendProduct.brandUpdate(newText, code));
-    // }
-    // if (type === "Precio") {
-    //   console.log("type is Precio");
-    //   dispatch(sendProduct.priceUpdate(newText, code));
-    // }
-    // if (type === "Tomaño") {
-    //   console.log("type is Tomaño");
-    //   dispatch(sendProduct.sizeUpdate(newText, code));
-    // }
-    // if (type === "Categoria") {
-    //   console.log("type is Categoria");
-    //   dispatch(sendProduct.categoryUpdate(newText, code));
-    // }
-    // setNewText();
-    // setTimeout(() => {
-    //   props.reload();
-    // }, 1000);
   };
 
   const newEntry = () => {
@@ -395,6 +371,7 @@ const ScannerScreen = ({ navigation }) => {
   let Size;
   let Brand;
   let Code;
+  let ExpDate;
   let alertQuantity;
   let result;
 
@@ -570,7 +547,7 @@ const ScannerScreen = ({ navigation }) => {
       dispatch(cartActions.addToCart(quickUserProduct));
     }
 
-    if (nonUserProduct) {
+    if (nonUserProduct && !userProduct && !nonRegProduct) {
       console.log("adding up NON USER PROD to normal cart");
 
       dispatch(cartActions.addToCart(nonUserProduct));
@@ -834,6 +811,7 @@ const ScannerScreen = ({ navigation }) => {
         Size = userProduct.productSize;
         Brand = userProduct.productBrand;
         Code = userProduct.productcode.toString();
+        ExpDate = userProduct.productExp;
         console.log("THIS IS FIRST CODE TEST", Code);
         Quantity =
           typeof userQuantity === "undefined"
@@ -915,6 +893,7 @@ const ScannerScreen = ({ navigation }) => {
     setCategory(Category);
     setBrand(Brand);
     setCode(Code);
+    setExpDate(ExpDate);
   };
 
   if (hasPermission === null) {
@@ -939,22 +918,51 @@ const ScannerScreen = ({ navigation }) => {
             modeHandler();
           }}
         >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: "black",
+              alignSelf: "center",
+            }}
+          >
+            Modo:
+          </Text>
+
           <View
             style={{
               alignItems: "center",
-              justifyContent: "center",
-              margin: 15,
+              justifyContent: "space-around",
+              margin: 5,
+              flexDirection: "row",
             }}
           >
             <Text
               style={{
                 fontSize: 20,
                 fontWeight: "bold",
-                color: sell ? "green" : "blue",
+                color: sell ? "grey" : "blue",
               }}
             >
-              Modo: {sell ? "Vender" : "Inventario"}
+              {!sell ? "Vender" : "Inventario"}
             </Text>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: !sell ? "green" : Colors.primary,
+              }}
+            >
+              {sell ? "Vender" : "Inventario"}
+            </Text>
+          </View>
+          <View
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              marginBottom: 5,
+            }}
+          >
             <Text style={{ color: "silver" }}>
               cambiar a {!sell ? "Vender" : "Inventario"}
             </Text>
@@ -1244,15 +1252,13 @@ const ScannerScreen = ({ navigation }) => {
             height: height,
             width: width,
             marginBottom: 5,
+            alignSelf: "center",
           }}
         >
           {dropMode ? (
             <DropDownPicker
               placeholder="Elige un producto"
               searchable={true}
-              labelStyle={{
-                fontWeight: "bold",
-              }}
               onChangeValue={(value) => {
                 // console.log(value);
                 handleBarCodeScannedSelected(value);
@@ -1264,13 +1270,20 @@ const ScannerScreen = ({ navigation }) => {
               setOpen={setOpen}
               setValue={setValue}
               setItems={setItems}
+              translation={{
+                NOTHING_TO_SHOW: "No hay resultados",
+              }}
             />
           ) : (
-            <BarCodeScanner
-              barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
-              onBarCodeScanned={scanned ? undefined : handleBarCodeScannedSell}
-              style={StyleSheet.absoluteFillObject}
-            />
+            <View style={{ flex: 1, backgroundColor: "#000", padding: 0 }}>
+              <BarCodeScanner
+                barCodeTypes={[BarCodeScanner.Constants.BarCodeType.ean13]}
+                onBarCodeScanned={
+                  scanned ? undefined : handleBarCodeScannedSell
+                }
+                style={StyleSheet.absoluteFillObject}
+              />
+            </View>
           )}
         </View>
 
@@ -1399,22 +1412,51 @@ const ScannerScreen = ({ navigation }) => {
             modeHandler();
           }}
         >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: "black",
+              alignSelf: "center",
+            }}
+          >
+            Modo:
+          </Text>
+
           <View
             style={{
               alignItems: "center",
-              justifyContent: "center",
-              margin: 15,
+              justifyContent: "space-around",
+              margin: 5,
+              flexDirection: "row",
             }}
           >
             <Text
               style={{
                 fontSize: 20,
                 fontWeight: "bold",
-                color: sell ? "green" : "blue",
+                color: sell ? "grey" : Colors.primary,
               }}
             >
-              Modo: {sell ? "Vender" : "Contar"}
+              {!sell ? "Inventario" : "Vender"}
             </Text>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: !sell ? "grey" : Colors.primary,
+              }}
+            >
+              {sell ? "Inventario" : "Vender"}
+            </Text>
+          </View>
+          <View
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              marginBottom: 5,
+            }}
+          >
             <Text style={{ color: "silver" }}>
               cambiar a {!sell ? "Vender" : "Inventario"}
             </Text>
@@ -1935,18 +1977,13 @@ const ScannerScreen = ({ navigation }) => {
                       {loadedMode && (
                         <KeyboardAvoidingView
                           keyboardVerticalOffset={80}
-                          behavior={
-                            Platform.OS === "android" ? "padding" : "position"
-                          }
-                          style={{
-                            margin: 10,
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}
+                          behavior={"padding"}
+                          style={[
+                            styles.modalItemBorderCategoria,
+                            { marginBottom: 20 },
+                          ]}
                         >
-                          <Text style={styles.quantitySelect}>
-                            (Opcional) Entrar cantidad
-                          </Text>
+                          <Text style={styles.modalTextTitle}>Cantidad: </Text>
 
                           <InputSpinner
                             max={10000}
@@ -1976,6 +2013,9 @@ const ScannerScreen = ({ navigation }) => {
                               }
                             }}
                           />
+                          <Text style={styles.quantitySelect}>
+                            Entrar cantidad
+                          </Text>
                         </KeyboardAvoidingView>
                       )}
 
@@ -2174,6 +2214,18 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: "silver",
   },
+  modalEdit2: {
+    marginBottom: 10,
+    textAlign: "center",
+    fontSize: 20,
+    // fontWeight: "bold",
+  },
+  modalEdit: {
+    marginBottom: 10,
+    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
   modalItemBorder: {
     width: 150,
     backgroundColor: "#F5F3F3",
@@ -2278,5 +2330,15 @@ const styles = StyleSheet.create({
   },
   amount: {
     color: Colors.primary,
+  },
+  cameraContainer: {
+    marginHorizontal: 0,
+    marginLeft: 0,
+    marginStart: 0,
+    paddingHorizontal: 0,
+    paddingLeft: 0,
+    paddingStart: 0,
+    height: "115%",
+    padding: 0,
   },
 });

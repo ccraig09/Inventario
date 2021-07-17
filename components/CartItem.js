@@ -13,6 +13,10 @@ import { Audio } from "expo-av";
 
 const CartItem = (props) => {
   let Container = props.addable ? TouchableOpacity : View;
+  // const userProducts =
+  //   typeof totalQuantity === "undefined"
+  //     ? null
+  //     : props.userProducts.find((code) => code.productId === props.key);
   let totalQuantity = props.addable
     ? props.userProd.find((code) => code.productId === props.prodId)
     : "";
@@ -21,6 +25,21 @@ const CartItem = (props) => {
   const [maxReached, setMaxReached] = useState(false);
   const [oneTime, setOneTime] = useState(false);
   const [sound, setSound] = React.useState();
+  const [yellowCheck, setYellowCheck] = useState(false);
+  const importedIds = props.pId;
+  const usersimportedProd = props.userProduct;
+
+  // console.log("either way this is the key", importedIds);
+  const prodMatch =
+    typeof usersimportedProd === "undefined"
+      ? "null"
+      : usersimportedProd.find((cod) => cod.productcode === importedIds);
+
+  if (prodMatch) {
+    console.log("do we have a match?", prodMatch);
+  } else {
+    console.log("fk it");
+  }
 
   if (shownQuantity === props.quantity && !oneTime) {
     setMaxReached(true);
@@ -47,6 +66,14 @@ const CartItem = (props) => {
   return (
     <View style={styles.cartItem}>
       <Container onPress={props.onAdd} style={styles.itemData}>
+        {!prodMatch && (
+          <TouchableOpacity
+            onPress={props.onYellowCheck}
+            style={styles.deleteButton}
+          >
+            <Ionicons name={"alert-circle-outline"} size={23} color="orange" />
+          </TouchableOpacity>
+        )}
         <Text style={styles.quantity}>{props.quantity} </Text>
         {props.addable && (
           <Text style={styles.quantity}>/{shownQuantity} </Text>

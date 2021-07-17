@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   FlatList,
@@ -10,6 +10,8 @@ import {
   Alert,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
+import { AuthContext } from "../navigation/AuthProvider";
+
 // import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import firebase from "../components/firebase";
 
@@ -23,11 +25,61 @@ const OrdersScreen = (props) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [allSet, setAllSet] = useState(false);
   const [availableProducts, setAvailableProducts] = useState([]);
+  const [userProducts, setUserProducts] = useState([]);
+
+  const { user } = useContext(AuthContext);
 
   const orders = useSelector((state) => state.orders.orders);
   let sortedOrders = orders.sort((a, b) => (a.date < b.date ? 1 : -1));
 
   const dispatch = useDispatch();
+  const fetchProducts = async () => {
+    // setError(null);
+    // console.log("refreshing");
+    try {
+      const list = [];
+      await firebase
+        .firestore()
+        .collection("Members")
+        .doc(user.uid)
+        .collection("Member Products")
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            const {
+              Title,
+              Quantity,
+              Category,
+              Price,
+              ownerId,
+              Brand,
+              Code,
+              ExpDate,
+              Size,
+              docTitle,
+              isChecked,
+            } = doc.data();
+            list.push({
+              productId: doc.id,
+              productTitle: Title,
+              productPrice: Price,
+              productCategory: Category,
+              productOwner: ownerId,
+              productQuantity: Quantity,
+              productSize: Size,
+              productBrand: Brand,
+              productcode: Code,
+              productExp: ExpDate,
+              docTitle: docTitle,
+              isChecked: isChecked,
+            });
+          });
+        });
+      setUserProducts(list);
+    } catch (e) {
+      console.log(e);
+    }
+  };
   const fetchAvailableProducts = async () => {
     try {
       const list = [];
@@ -62,6 +114,7 @@ const OrdersScreen = (props) => {
   useEffect(() => {
     setIsLoading(true);
     fetchAvailableProducts();
+    fetchProducts();
     dispatch(ProdActions.fetchOrders()).then(() => {
       setIsLoading(false);
     });
@@ -71,7 +124,7 @@ const OrdersScreen = (props) => {
     console.log("reloading");
     setIsRefreshing(true);
     fetchAvailableProducts();
-
+    fetchProducts();
     await dispatch(ProdActions.fetchOrders());
     // if (sortedOrders.find((boo) => boo.isChecked === true)) {
     // if (sortedOrders[0].items.find((boo) => boo.isChecked === true)) {
@@ -110,8 +163,10 @@ const OrdersScreen = (props) => {
           date={itemData.item.readableDate}
           checkable
           available={availableProducts}
+          userProducts={userProducts}
           allSet={allSet}
           id={itemData.item.doc}
+          pId={itemData.item.productcode}
           // time={itemData.item.readableTime}
           items={itemData.item.items}
           checked={itemData.item.checked}

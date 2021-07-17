@@ -23,6 +23,8 @@
     "expo-app-loading": "^1.0.3",
     "expo-av": "~9.1.2",
     "expo-barcode-scanner": "~10.1.2",
+    "expo-camera": "~11.0.2",
+    "expo-face-detector": "~10.0.1",
     "expo-file-system": "~11.0.2",
     "expo-font": "~9.1.0",
     "expo-sharing": "~9.1.2",

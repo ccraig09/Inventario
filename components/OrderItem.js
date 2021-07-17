@@ -25,8 +25,8 @@ const OrderItem = (props) => {
   const db = firebase.firestore().collection("Members");
   const [showDetails, setShowDetails] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const dispatch = useDispatch();
+  const [yellowCheck, setYellowCheck] = useState(false);
+  const [cartProps, setCartProps] = useState();
   const id = props.id;
   const refresh = props.reload;
   const newCart = props.items;
@@ -40,7 +40,60 @@ const OrderItem = (props) => {
     const availableProducts = props.available.find(
       (cod) => cod.productcode === Code
     );
-    console.log(availableProducts);
+    const userProducts = props.userProducts.find(
+      (cod) => cod.productcode === Code
+    );
+
+    if (typeof availableProducts === "undefined") {
+      console.log("check these!", cartItem);
+
+      Title = cartItem.productTitle;
+      Price = cartItem.productPrice;
+      Category = "";
+      Size = "";
+      Brand = "";
+      Code;
+      Alert.alert(
+        "Product no esta registrado",
+        "Este producto era vendido sin estar registrado, agregarlo ahora?",
+        [
+          {
+            text: "Todavia",
+            onPress: () => console.log("Cancel Pressed"),
+            style: "cancel",
+          },
+          {
+            text: "Sí",
+            onPress: () => {
+              setIsLoading(true);
+              addMemProd(Title, Price, Category, Size, Brand, Code),
+                setIsLoading(false),
+                refresh();
+              Alert.alert(
+                "Producto registrado",
+                "Por favor revisa los datos del producto en tu inventario",
+                [
+                  {
+                    text: "Listo",
+                    // onPress: () => console.log("Cancel Pressed"),
+                    style: "cancel",
+                  },
+                ]
+              );
+            },
+          },
+        ]
+      );
+
+      // addMemProd(Title, Price, Category, Size, Brand, Code),
+      setIsLoading(false);
+      return;
+    }
+
+    const nonRegProduct = props.available.find(
+      (cod) => cod.productcode !== Code
+    );
+    // console.log(availableProducts);
     const increment = firebase.firestore.FieldValue.increment(-subNum);
     let Title = availableProducts.productTitle;
     let Price = availableProducts.productPrice;
@@ -48,38 +101,57 @@ const OrderItem = (props) => {
     let Size = availableProducts.productSize;
     let Brand = availableProducts.productBrand;
 
-    try {
-      await db.doc(user.uid).collection("Member Products").doc(Code).update(
-        {
-          Quantity: increment,
+    if (userProducts) {
+      try {
+        await db.doc(user.uid).collection("Member Products").doc(Code).update(
+          {
+            Quantity: increment,
 
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        }
-        // { merge: true }
-      );
-    } catch (err) {
-      if (err.message === "Requested entity was not found.") {
-        console.log("so far we noting something but we in the component");
-        Alert.alert(
-          "Product no esta registrado",
-          "Este producto era vendido sin estar registrado, agregarlo ahora?",
-          [
-            {
-              text: "Todavia",
-              onPress: () => console.log("Cancel Pressed"),
-              style: "cancel",
-            },
-            {
-              text: "Sí",
-              onPress: () =>
-                addMemProd(Title, Price, Category, Size, Brand, Code),
-            },
-          ]
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          }
+          // { merge: true }
         );
-      } else {
+      } catch (err) {
         console.log(err.message);
       }
     }
+    if (availableProducts && !userProducts) {
+      console.log(
+        "while completing order, this item is not part of user database"
+      );
+      Alert.alert(
+        "Product no esta registrado",
+        "Este producto era vendido sin estar registrado, agregarlo ahora?",
+        [
+          {
+            text: "Todavia",
+            onPress: () => console.log("Cancel Pressed"),
+            style: "cancel",
+          },
+          {
+            text: "Sí",
+            onPress: () => {
+              setIsLoading(true);
+              addMemProd(Title, Price, Category, Size, Brand, Code),
+                setIsLoading(false),
+                Alert.alert(
+                  "Producto registrado",
+                  "Por favor revisa los datos del producto en tu inventario",
+                  [
+                    {
+                      text: "Listo",
+                      // onPress: () => console.log("Cancel Pressed"),
+                      style: "cancel",
+                    },
+                  ]
+                );
+              refresh();
+            },
+          },
+        ]
+      );
+    }
+
     setIsLoading(false);
   };
 
@@ -155,12 +227,18 @@ const OrderItem = (props) => {
           {props.items.map((cartItem) => (
             <CartItem
               key={cartItem.productId}
+              pId={cartItem.productId}
               quantity={cartItem.quantity}
               amount={cartItem.sum}
               checkable={props.checkable}
               checked={cartItem.isChecked}
+              userProduct={props.userProducts}
+              yellowCheck={yellowCheck}
               title={cartItem.productTitle}
               dId={props.id}
+              onYellowCheck={() => {
+                qUpdateHandler(cartItem);
+              }}
               onCheck={() => {
                 Alert.alert(
                   "Actualizar?",
@@ -173,7 +251,6 @@ const OrderItem = (props) => {
                     {
                       text: "Si",
                       onPress: async () => {
-                        console.log("updating quantity test");
                         qUpdateHandler(cartItem);
 
                         checkyCheck(cartItem);

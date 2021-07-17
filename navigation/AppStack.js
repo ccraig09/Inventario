@@ -11,7 +11,6 @@ import SettingsScreen from "../screens/SettingsScreen";
 import HomeScreen from "../screens/HomeScreen";
 // import ChatScreen from '../screens/ChatScreen';
 // import ProfileScreen from '../screens/ProfileScreen';
-import SelectScreen from "../screens/SelectScreen";
 import ScannerScreen from "../screens/ScannerScreen";
 import MenuScreen from "../screens/MenuScreen";
 import OrdersScreen from "../screens/OrdersScreen";
@@ -88,38 +87,6 @@ const SettingsStack = ({ navigation }) => (
         headerStyle: {
           backgroundColor: "white",
           shadowColor: "white",
-          elevation: 0,
-        },
-        headerBackTitleVisible: false,
-        headerLeft: () => (
-          <View style={{ marginLeft: 10 }}>
-            <Icon.Button
-              name="ios-menu"
-              size={25}
-              backgroundColor="#fff"
-              color="#FF4949"
-              onPress={() => {
-                navigation.openDrawer();
-              }}
-            />
-          </View>
-        ),
-      }}
-    />
-  </Stack.Navigator>
-);
-
-const SelectStack = ({ navigation }) => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="Select"
-      component={SelectScreen}
-      options={{
-        title: "",
-        headerTitleAlign: "center",
-        headerStyle: {
-          backgroundColor: "#2e64e515",
-          shadowColor: "#2e64e515",
           elevation: 0,
         },
         headerBackTitleVisible: false,
@@ -248,7 +215,6 @@ const AppStack = () => {
           ),
         }}
       />
-      {/* <Drawer.Screen name="Menu" component={SelectStack} /> */}
       <Drawer.Screen
         name="Configuracions"
         component={SettingsStack}
