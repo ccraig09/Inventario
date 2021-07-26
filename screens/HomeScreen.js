@@ -639,8 +639,8 @@ const HomeScreen = ({ navigation }) => {
               onRefresh={loadDetails}
             />
           }
-          useFlatList={true}
-          data={inventory}
+          // useFlatList={true}
+          data={focused ? filteredDataSource : inventory}
           keyExtractor={(item) => item.key}
           renderItem={renderItem}
           renderHiddenItem={renderHiddenItem}

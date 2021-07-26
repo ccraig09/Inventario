@@ -144,7 +144,7 @@ const ProductItem = (props) => {
   const itemDeleteHandler = () => {
     Alert.alert(
       "Borrar producto?",
-      `El producto "${props.title}" será borrado de tu inventario?`,
+      `El producto ${props.title} será borrado de tu inventario?`,
       [
         {
           text: "No",

@@ -24,6 +24,7 @@ import InputSpinner from "react-native-input-spinner";
 import CategoryGridTile from "../components/CategoryGridTile";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { TouchableWithoutFeedback } from "react-native";
 import Colors from "../constants/Colors";
@@ -33,6 +34,7 @@ const MenuScreen = (props) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [availableProducts, setAvailableProducts] = useState([]);
+  const [userProducts, setUserProducts] = useState();
   const [scanned, setScanned] = useState(false);
   const [scanner, setScanner] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -127,35 +129,50 @@ const MenuScreen = (props) => {
       console.log(e);
     }
   };
-
-  const startAvailableProducts = async () => {
+  const fetchPost = async () => {
+    console.log("catalog userProducts loading");
     try {
       const list = [];
       await firebase
         .firestore()
-        .collection("Products")
+        .collection("Members")
+        .doc(user.uid)
+        .collection("Member Products")
+        .orderBy("Title", "asc")
         .get()
         .then((querySnapshot) => {
           querySnapshot.forEach((doc) => {
-            const { Product, Quantity, Category, Price, Brand, code, Size } =
-              doc.data();
-            list.push({
-              productId: doc.id,
-              Product,
-              Price,
-              Category,
+            const {
+              Title,
               Quantity,
-              Size,
+              Category,
+              Price,
+              ownerId,
               Brand,
-              code,
+              Code,
+              ExpDate,
+              Size,
+              docTitle,
+            } = doc.data();
+            list.push({
+              key: doc.id,
+              productTitle: Title,
+              productPrice: Price,
+              productCategory: Category,
+              productOwner: ownerId,
+              productQuantity: Quantity,
+              productSize: Size,
+              productBrand: Brand,
+              productcode: Code,
+              productExp: ExpDate,
+              docTitle: docTitle,
             });
           });
         });
-      setAvailableProducts(list);
+      setUserProducts(list);
     } catch (e) {
       console.log(e);
     }
-    // setIsLoading(false);
   };
 
   let catArray = [
@@ -243,17 +260,95 @@ const MenuScreen = (props) => {
     },
   ];
 
-  useEffect(() => {
-    setIsLoading(true);
-    startAvailableProducts();
-    setIsLoading(false);
-  });
+  useFocusEffect(
+    React.useCallback(() => {
+      setIsLoading(true);
+      const startAvailableProducts = async () => {
+        try {
+          const list = [];
+          await firebase
+            .firestore()
+            .collection("Products")
+            .get()
+            .then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                const {
+                  Product,
+                  Quantity,
+                  Category,
+                  Price,
+                  Brand,
+                  code,
+                  Size,
+                } = doc.data();
+                list.push({
+                  productId: doc.id,
+                  Product,
+                  Price,
+                  Category,
+                  Quantity,
+                  Size,
+                  Brand,
+                  code,
+                });
+              });
+            });
+          setAvailableProducts(list);
+        } catch (e) {
+          console.log(e);
+        }
+        // setIsLoading(false);
+      };
+      const fetchPost = async () => {
+        try {
+          const list = [];
+          await firebase
+            .firestore()
+            .collection("Members")
+            .doc(user.uid)
+            .collection("Member Products")
+            .orderBy("Title", "asc")
+            .get()
+            .then((querySnapshot) => {
+              querySnapshot.forEach((doc) => {
+                const {
+                  Title,
+                  Quantity,
+                  Category,
+                  Price,
+                  ownerId,
+                  Brand,
+                  Code,
+                  ExpDate,
+                  Size,
+                  docTitle,
+                } = doc.data();
+                list.push({
+                  key: doc.id,
+                  productTitle: Title,
+                  productPrice: Price,
+                  productCategory: Category,
+                  productOwner: ownerId,
+                  productQuantity: Quantity,
+                  productSize: Size,
+                  productBrand: Brand,
+                  productcode: Code,
+                  productExp: ExpDate,
+                  docTitle: docTitle,
+                });
+              });
+            });
+          setUserProducts(list);
+        } catch (e) {
+          console.log(e);
+        }
+      };
+      fetchPost();
+      startAvailableProducts();
+      setIsLoading(false);
+    }, [])
+  );
 
-  const modeHandler = () => {
-    setSell((prevState) => !prevState);
-    console.log(sell);
-    // props.navigation.setParams({ mode: sell });
-  };
   const searchFilterFunction = (text) => {
     // Check if searched text is not blank
     if (text) {
@@ -306,6 +401,7 @@ const MenuScreen = (props) => {
 
     if (hasCode) {
       createProduct(newProduct, newSize, newPrice, newCategory, newBrand, code);
+      // fetch
     }
     if (!hasCode) {
       createProduct(
@@ -328,7 +424,6 @@ const MenuScreen = (props) => {
           onPress: () => {
             setManualAdd(!manualAdd);
             setModalVisible(!modalVisible);
-            setScanned(false);
           },
         },
         {
@@ -835,7 +930,7 @@ const MenuScreen = (props) => {
               <View style={styles.centeredView}>
                 <View style={styles.modalView}>
                   <View>
-                    <Text style={styles.modalTitle}>Editar Producto:</Text>
+                    <Text style={styles.modalTitle}>Producto para editar:</Text>
                     <Text style={styles.modalHead}>{newProduct}</Text>
                     <View
                       style={{
@@ -992,6 +1087,7 @@ const MenuScreen = (props) => {
           refreshing={isRefreshing}
           onRefresh={() => {
             fetchAvailableProducts();
+            fetchPost();
           }}
           initialNumToRender={10}
           sections={catSections}
@@ -1007,8 +1103,10 @@ const MenuScreen = (props) => {
               quantity={item.Quantity}
               brand={item.Brand}
               code={item.code}
+              userProducts={userProducts}
               reload={() => {
                 fetchAvailableProducts();
+                fetchPost();
               }}
             />
           )}
@@ -1023,11 +1121,6 @@ const MenuScreen = (props) => {
   );
 };
 
-MenuScreen.navigationOptions = (navData) => {
-  return {
-    headerTitle: "Catálogo",
-  };
-};
 export default MenuScreen;
 
 const styles = StyleSheet.create({
@@ -1097,23 +1190,65 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   modalText: {
-    marginBottom: 10,
+    marginBottom: 2,
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 22,
   },
-  modalTextCode: {
-    color: "grey",
-    marginTop: 10,
-    marginBottom: 10,
-    textAlign: "left",
-    fontSize: 20,
+  modalItemBorder: {
+    width: 150,
+    backgroundColor: "#F5F3F3",
+    borderWidth: 2,
+    borderRadius: 8,
+    borderColor: "#F5F3F3",
+    // justifyContent: "space-between",
+    margin: 5,
+    padding: 5,
+    shadowColor: "silver",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.75,
+    shadowRadius: 1.84,
+    elevation: 1,
   },
-  modalTextCodigo: {
-    color: "grey",
-    marginTop: 10,
-    marginBottom: 10,
-    textAlign: "right",
-    fontSize: 20,
+  modalViewPicker: {
+    flex: 0.3,
+    justifyContent: "center",
+    height: "40%",
+    width: "95%",
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    alignContent: "center",
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalItemBorderCategoria: {
+    backgroundColor: "#F5F3F3",
+    borderWidth: 2,
+    borderRadius: 8,
+    borderColor: "#F5F3F3",
+    // justifyContent: "space-between",
+    margin: 5,
+    padding: 5,
+    shadowColor: "silver",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.75,
+    shadowRadius: 1.84,
+    elevation: 1,
   },
   quantitySelect: {
     marginBottom: 10,
@@ -1124,8 +1259,9 @@ const styles = StyleSheet.create({
   modalHead: {
     marginBottom: 10,
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
+    color: "#FF4949",
   },
   modalTitle: {
     marginBottom: 10,
@@ -1133,12 +1269,55 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: "bold",
   },
+  modalTextTitle: {
+    // marginBottom: 2,
+    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  modalEdit2: {
+    marginBottom: 10,
+    textAlign: "center",
+    fontSize: 20,
+    // fontWeight: "bold",
+  },
+  modalEdit: {
+    marginBottom: 10,
+    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  modalTextCode: {
+    color: "grey",
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: "left",
+    fontSize: 20,
+  },
+  textInputStyleEdit: {
+    height: 40,
+    width: "70%",
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    margin: 10,
+    borderColor: "black",
+    backgroundColor: "#FFFFFF",
+  },
+  modalTextCodigo: {
+    color: "grey",
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: "right",
+    fontSize: 20,
+  },
   textInputStyle: {
     height: 40,
+    width: "70%",
+    borderRadius: 20,
     borderWidth: 1,
-    borderRadius: 10,
-    paddingLeft: 20,
-    margin: 5,
+    paddingHorizontal: 10,
+    margin: 10,
     borderColor: "black",
     backgroundColor: "#FFFFFF",
   },

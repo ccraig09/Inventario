@@ -14,6 +14,7 @@ import {
   TextInput,
   TouchableWithoutFeedback,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import * as sendProduct from "../store/productActions";
 import Moment from "moment";
 import localization from "moment/locale/es-us";
@@ -24,14 +25,17 @@ import DateTimePicker from "react-native-modal-datetime-picker";
 import { extendMoment } from "moment-range";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
+import { useFocusEffect } from "@react-navigation/native";
+import Colors from "../constants/Colors";
 
 const { height, width } = Dimensions.get("window");
 const itemWidth = (width - (15 * 2 + 5 * (2 - 1))) / 2;
 const CategoryGridTile = (props) => {
   let TouchableCmp = TouchableOpacity;
-  const { user, addMemProd } = useContext(AuthContext);
+  const { user, addMemProd, editedProduct, deleteProduct } =
+    useContext(AuthContext);
   const db = firebase.firestore().collection("Members");
-  const [quantityColor, setQuantity] = useState("#666");
+  const [quantityColor, setQuantityColor] = useState("#666");
   const [userProducts, setUserProducts] = useState();
   const [modalVisible, setModalVisible] = useState(false);
   const [newQ, setNewQ] = useState();
@@ -41,26 +45,16 @@ const CategoryGridTile = (props) => {
   const [newText, setNewText] = useState();
   const [extendedDate, setExtendedDate] = useState(false);
   const [expDate, setExpDate] = useState();
-
-  // const userProducts = useSelector((state) => {
-  //   const transformedProducts = [];
-  //   for (const key in state.products.products) {
-  //     transformedProducts.push({
-  //       productId: key,
-  //       productTitle: state.products.products[key].Title,
-  //       productPrice: state.products.products[key].Price,
-  //       productCategory: state.products.products[key].Category,
-  //       productOwner: state.products.products[key].ownerId,
-  //       productQuantity: state.products.products[key].Quantity,
-  //       productSize: state.products.products[key].Size,
-  //       productBrand: state.products.products[key].Brand,
-  //       productTime: state.products.products[key].time,
-  //       productcode: state.products.products[key].Code,
-  //       docTitle: state.products.products[key].docTitle,
-  //     });
-  //   }
-  //   return transformedProducts;
-  // });
+  const [placeholder, setPlaceholder] = useState();
+  const [picker, setPicker] = useState(false);
+  const [picked, setPicked] = useState();
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState();
+  const [size, setSize] = useState("");
+  const [code, setCode] = useState("");
+  const [category, setCategory] = useState("");
+  const [brand, setBrand] = useState("");
+  const [quantity, setQuantity] = useState(0);
 
   if (Platform.OS === "android" && Platform.Version >= 21) {
     TouchableCmp = TouchableNativeFeedback;
@@ -82,56 +76,40 @@ const CategoryGridTile = (props) => {
 
   const dispatch = useDispatch();
 
+  let catArray = [
+    "Embutidos",
+    "Frutas y Verduras",
+    "Panaderia y Dulces",
+    "Huevos y Lacteos",
+    "Infantil",
+    "Aceites y Legumbres",
+    "Pastas",
+    "Conservas y comida preparada",
+    "Bebidas sin alcohol",
+    "Bebidas con alcohol",
+    "Congelados",
+    "Aperitivos",
+    "Cosmetica y Cuidado personal",
+    "Hogar y Limpieza",
+  ];
+  let catOptions = catArray.sort();
+
   useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const list = [];
-        await firebase
-          .firestore()
-          .collection("Members")
-          .doc(user.uid)
-          .collection("Member Products")
-          .orderBy("Title", "asc")
-          .get()
-          .then((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-              const {
-                Title,
-                Quantity,
-                Category,
-                Price,
-                ownerId,
-                Brand,
-                Code,
-                ExpDate,
-                Size,
-                docTitle,
-              } = doc.data();
-              list.push({
-                key: doc.id,
-                productTitle: Title,
-                productPrice: Price,
-                productCategory: Category,
-                productOwner: ownerId,
-                productQuantity: Quantity,
-                productSize: Size,
-                productBrand: Brand,
-                productcode: Code,
-                productExp: ExpDate,
-                docTitle: docTitle,
-              });
-            });
-          });
-        setUserProducts(list);
-      } catch (e) {
-        console.log(e);
-      }
-    };
-    fetchPost();
+    setTitle(props.title);
+    setPrice(props.price);
+    setSize(props.size);
+    setCode(props.code);
+    setBrand(props.brand);
+    setCategory(props.category);
+    setQuantity(props.quantity);
+    setExpDate(props.exp);
     if (props.quantity > 5) {
-      setQuantity("red");
+      setQuantityColor("red");
     }
   }, []);
+
+  // useEffect(() => {
+  // }, []);
 
   const quantityUpdateHandler = (newQ) => {
     let Title;
@@ -170,39 +148,40 @@ const CategoryGridTile = (props) => {
   });
 
   const itemUpdateHandler = () => {
-    let Code;
-    Code = props.code;
+    console.log(
+      "need to see these deets",
+      brand,
+      title,
+      price,
+      size,
+      category,
+      quantity,
+      expDate,
+      code
+    );
     console.log("need to see these deets", newText, type);
-    if (type === "Titulo") {
+    if (type === "Title") {
       console.log("type is Title");
-      dispatch(sendProduct.titleUpdate(newText, Code));
+      setTitle(newText);
     }
-    if (type === "Marca") {
-      console.log("type is Marca");
-      dispatch(sendProduct.brandUpdate(newText, Code));
+    if (type === "Brand") {
+      console.log("type is Brand");
+      setBrand(newText);
     }
-    if (type === "Precio") {
-      console.log("type is Precio");
-      dispatch(sendProduct.priceUpdate(newText, Code));
+    if (type === "Price") {
+      console.log("type is Price");
+      setPrice(newText);
     }
-    if (type === "Tomaño") {
-      console.log("type is Tomaño");
-      dispatch(sendProduct.sizeUpdate(newText, Code));
+    if (type === "Size") {
+      console.log("type is Size");
+      setSize(newText);
     }
-    if (type === "Categoria") {
-      console.log("type is Categoria");
-      dispatch(sendProduct.categoryUpdate(newText, Code));
-    }
-    setNewText();
-    setTimeout(() => {
-      props.reload();
-    }, 1000);
   };
 
   const itemDeleteHandler = () => {
     Alert.alert(
       "Borrar producto?",
-      `El producto ___ será borrado de tu inventario?`,
+      `El producto ${props.title} será borrado de tu inventario?`,
       [
         {
           text: "No",
@@ -219,13 +198,13 @@ const CategoryGridTile = (props) => {
   const DeleteHandler = () => {
     let Code = props.code;
     console.log("code to delete", Code);
-    dispatch(sendProduct.productDelete(Code));
+    deleteProduct(Code);
     setModalVisible(!modalVisible);
     props.reload();
   };
 
   const afterAddedHandler = () => {
-    const userProductExist = userProducts.find(
+    const userProductExist = props.userProducts.find(
       (prod) => prod.productcode === props.code
     );
     if (userProductExist) {
@@ -259,7 +238,7 @@ const CategoryGridTile = (props) => {
       Size = props.size;
       Brand = props.brand;
       Code = props.code;
-      addMemProd(Title, Price, Category, Quantity, Size, Brand, Code);
+      addMemProd(Title, Price, Category, Size, Brand, Code);
       Alert.alert(
         `El producto ${props.title} ha sido agregado!`,
         `Usted quisiera editar el producto?`,
@@ -267,10 +246,13 @@ const CategoryGridTile = (props) => {
           {
             text: "No",
             style: "cancel",
+            onPress: () => props.reload(),
           },
           {
             text: "Si",
-            onPress: () => setModalVisible(true),
+            onPress: () => {
+              props.reload(), setModalVisible(true);
+            },
           },
         ]
       );
@@ -403,105 +385,169 @@ const CategoryGridTile = (props) => {
                   </Modal>
                   {props.title && (
                     <View>
-                      <Text style={styles.modalTitle}>Editar Producto:</Text>
                       <TouchableOpacity
                         onPress={() => {
-                          setPrompt(props.title);
-                          setType("Titulo");
+                          setPrompt("Titulo");
+                          setType("Title");
+                          setPlaceholder(title);
                           setEditVisible(true);
                         }}
                       >
-                        <Text style={styles.modalHead}>{props.title}</Text>
+                        <Text style={styles.modalTitle}>
+                          Producto para editar:
+                        </Text>
+                        <Text style={styles.modalHead}>{title}</Text>
                       </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.modalItemBorderCategoria}
+                        onPress={() => {
+                          setPrompt("Tamaño");
+                          setType("Size");
+                          setPlaceholder(size);
+                          setEditVisible(true);
+                        }}
+                      >
+                        <Text style={styles.modalTextTitle}>Tamaño: </Text>
+                        <Text style={styles.modalText}>{size}</Text>
+                      </TouchableOpacity>
+
                       <View
                         style={{
                           flexDirection: "row",
                           justifyContent: "space-between",
                         }}
                       >
-                        <Text style={styles.modalText}>Marca: </Text>
                         <TouchableOpacity
+                          style={styles.modalItemBorder}
                           onPress={() => {
-                            setPrompt(props.brand);
-                            setType("Marca");
+                            setPrompt("Marca");
+                            setType("Brand");
+                            setPlaceholder(brand);
                             setEditVisible(true);
                           }}
                         >
-                          <Text style={styles.modalText}>{props.brand}</Text>
+                          <Text style={styles.modalTextTitle}>Marca: </Text>
+                          <Text style={styles.modalText}>{brand}</Text>
                         </TouchableOpacity>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Precio: </Text>
+
                         <TouchableOpacity
+                          style={styles.modalItemBorder}
                           onPress={() => {
-                            setPrompt(props.price);
-                            setType("Precio");
+                            setPrompt("Precio");
+                            setType("Price");
+                            setPlaceholder(price.toString());
                             setEditVisible(true);
                           }}
                         >
-                          <Text style={styles.modalText}>${props.price}bs</Text>
+                          <Text style={styles.modalTextTitle}>Precio: </Text>
+                          <Text style={styles.modalText}>${price}bs</Text>
                         </TouchableOpacity>
                       </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
+
+                      <TouchableOpacity
+                        style={styles.modalItemBorderCategoria}
+                        onPress={() => {
+                          setPrompt("Categoria");
+                          setType("Category");
+                          setPicker(true);
                         }}
                       >
-                        <Text style={styles.modalText}>Tamaño: </Text>
-                        <TouchableOpacity
-                          onPress={() => {
-                            setPrompt(props.size);
-                            setType("Tomaño");
-                            setEditVisible(true);
-                          }}
-                        >
-                          <Text style={styles.modalText}>{props.size}</Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Text style={styles.modalText}>Categoria: </Text>
-                        <TouchableOpacity
-                          onPress={() => {
-                            setPrompt(props.category);
-                            setType("Categoria");
-                            setEditVisible(true);
-                          }}
-                        >
-                          <Text style={styles.modalText}>{props.category}</Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
-                        }}
-                      >
+                        <Text style={styles.modalTextTitle}>Categoria: </Text>
+                        <Text style={styles.modalText}>{category}</Text>
+                      </TouchableOpacity>
+
+                      {/* ///////////
+///////////
+///////////
+///////////
+///////////
+///////////
+/////////// */}
+
+                      <View style={styles.modalItemBorderCategoria}>
                         <TouchableOpacity
                           onPress={() => {
                             setExtendedDate(true);
-                            // setPrompt(props.category);
-                            // setType("Categoria");
-                            // setEditVisible(true);
                           }}
                         >
-                          <Text style={styles.modalText}>Fecha de Exp: </Text>
+                          <Text style={styles.modalTextTitle}>
+                            Fecha de Exp:
+                          </Text>
                           <Text style={styles.modalText}>
-                            {moment(props.exp)
+                            {moment(expDate)
                               .locale("es", localization)
                               .format("LL")}
                           </Text>
                         </TouchableOpacity>
+                        <Modal
+                          animationType="slide"
+                          transparent={true}
+                          visible={picker}
+                          onRequestClose={() => {
+                            // setPicker(!picker);
+                          }}
+                        >
+                          <View style={styles.centeredView}>
+                            <View style={styles.modalViewPicker}>
+                              <Picker
+                                selectedValue={picked}
+                                mode="dropdown"
+                                style={{
+                                  height: 30,
+                                  marginTop: 20,
+                                  // marginBottom: 30,
+                                  width: "100%",
+                                  justifyContent: "center",
+                                }}
+                                itemStyle={{ fontSize: 16 }}
+                                onValueChange={(itemValue) =>
+                                  setPicked(itemValue)
+                                }
+                              >
+                                {catOptions.map((item, index) => {
+                                  return (
+                                    <Picker.Item
+                                      label={item}
+                                      value={item}
+                                      key={index}
+                                    />
+                                  );
+                                })}
+                              </Picker>
+                              <View
+                                style={{
+                                  width: "100%",
+                                  flexDirection: "row",
+                                  justifyContent: "space-around",
+                                  marginTop: 90,
+                                }}
+                              >
+                                <TouchableOpacity
+                                  style={{
+                                    ...styles.openButton,
+                                  }}
+                                  onPress={() => {
+                                    setPicker(!picker);
+                                  }}
+                                >
+                                  <Text style={styles.textStyle}>Volver</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  style={{
+                                    ...styles.openButton,
+                                  }}
+                                  onPress={() => {
+                                    setCategory(picked);
+                                    setPicker(false);
+                                  }}
+                                >
+                                  <Text style={styles.textStyle}>Guardar</Text>
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          </View>
+                        </Modal>
 
                         {extendedDate && (
                           <View>
@@ -525,15 +571,141 @@ const CategoryGridTile = (props) => {
                           </View>
                         )}
                       </View>
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          justifyContent: "space-between",
+
+                      {/* //////////////////////////////
+                    //////////////////
+                    //////////////////////////////
+                    //////////////////
+                    //////////////////////////////
+                    //////////////////
+                    //////////////////////////////
+                    ////////////////// */}
+
+                      {/* <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text style={styles.modalText}>Marca: </Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setPrompt(brand);
+                          setType("Marca");
+                          setEditVisible(true);
                         }}
                       >
-                        <Text style={styles.modalText}>Cantidad Total: </Text>
-                        <Text style={styles.modalText}>{props.quantity}</Text>
-                      </View>
+                        <Text style={styles.modalText}>{props.brand}</Text>
+                      </TouchableOpacity>
+                    </View> */}
+                      {/* <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text style={styles.modalText}>Precio: </Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setPrompt(props.price);
+                          setType("Precio");
+                          setEditVisible(true);
+                        }}
+                      >
+                        <Text style={styles.modalText}>
+                          ${props.price}bs
+                        </Text>
+                      </TouchableOpacity>
+                    </View> */}
+                      {/* <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text style={styles.modalText}>Tamaño: </Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setPrompt(props.size);
+                          setType("Tomaño");
+                          setEditVisible(true);
+                        }}
+                      >
+                        <Text style={styles.modalText}>{props.size}</Text>
+                      </TouchableOpacity>
+                    </View> */}
+                      {/* <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text style={styles.modalText}>Categoria: </Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setPrompt(props.category);
+                          setType("Categoria");
+                          setEditVisible(true);
+                        }}
+                      >
+                        <Text style={styles.modalText}>
+                          {props.category}
+                        </Text>
+                      </TouchableOpacity>
+                    </View> */}
+                      {/* <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <TouchableOpacity
+                        onPress={() => {
+                          setExtendedDate(true);
+                          // setPrompt(props.category);
+                          // setType("Categoria");
+                          // setEditVisible(true);
+                        }}
+                      >
+                        <Text style={styles.modalText}>Fecha de Exp: </Text>
+                        <Text style={styles.modalText}>
+                          {moment(props.exp)
+                            .locale("es", localization)
+                            .format("LL")}
+                        </Text>
+                      </TouchableOpacity>
+
+                      {extendedDate && (
+                        <View>
+                          <DateTimePicker
+                            mode="date"
+                            isVisible={extendedDate}
+                            locale="es-ES"
+                            onConfirm={
+                              (date) => {
+                                dateHandler(date);
+                              }
+                              // this.handleDatePicked(date, "start", "showStart")
+                            }
+                            onCancel={() => {
+                              setExtendedDate(false);
+                            }}
+                            cancelTextIOS={"Cancelar"}
+                            confirmTextIOS={"Confirmar"}
+                            headerTextIOS={"Elige una fecha"}
+                          />
+                        </View>
+                      )}
+                    </View> */}
+                      {/* <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Text style={styles.modalText}>Cantidad Total: </Text>
+                      <Text style={styles.modalText}>{props.quantity}</Text>
+                    </View> */}
                     </View>
                   )}
 
@@ -604,7 +776,7 @@ const CategoryGridTile = (props) => {
                         setModalVisible(!modalVisible);
                       }}
                     >
-                      <Text style={styles.textStyle}>Volver</Text>
+                      <Text style={styles.textStyle}>Cerrar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={{
@@ -765,7 +937,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   openButton: {
-    backgroundColor: "#F194FF",
+    backgroundColor: Colors.primary,
     borderRadius: 20,
     padding: 10,
     elevation: 2,
@@ -777,9 +949,65 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   modalText: {
-    marginBottom: 10,
+    marginBottom: 2,
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 22,
+  },
+  modalItemBorder: {
+    width: 150,
+    backgroundColor: "#F5F3F3",
+    borderWidth: 2,
+    borderRadius: 8,
+    borderColor: "#F5F3F3",
+    // justifyContent: "space-between",
+    margin: 5,
+    padding: 5,
+    shadowColor: "silver",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.75,
+    shadowRadius: 1.84,
+    elevation: 1,
+  },
+  modalViewPicker: {
+    flex: 0.3,
+    justifyContent: "center",
+    height: "40%",
+    width: "95%",
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    alignContent: "center",
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalItemBorderCategoria: {
+    backgroundColor: "#F5F3F3",
+    borderWidth: 2,
+    borderRadius: 8,
+    borderColor: "#F5F3F3",
+    // justifyContent: "space-between",
+    margin: 5,
+    padding: 5,
+    shadowColor: "silver",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.75,
+    shadowRadius: 1.84,
+    elevation: 1,
   },
   quantitySelect: {
     marginBottom: 10,
@@ -790,9 +1018,9 @@ const styles = StyleSheet.create({
   modalHead: {
     marginBottom: 10,
     textAlign: "center",
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
-    textDecorationLine: "underline",
+    color: "#FF4949",
   },
   modalTitle: {
     marginBottom: 10,
@@ -800,17 +1028,23 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: "bold",
   },
+  modalTextTitle: {
+    // marginBottom: 2,
+    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
   modalEdit2: {
     marginBottom: 10,
     textAlign: "center",
     fontSize: 20,
-    fontWeight: "bold",
+    // fontWeight: "bold",
   },
   modalEdit: {
     marginBottom: 10,
     textAlign: "center",
     fontSize: 20,
-    // fontWeight: "bold",
+    fontWeight: "bold",
   },
   modalTextCode: {
     color: "grey",
@@ -818,6 +1052,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "left",
     fontSize: 20,
+  },
+  textInputStyleEdit: {
+    height: 40,
+    width: "70%",
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    margin: 10,
+    borderColor: "black",
+    backgroundColor: "#FFFFFF",
   },
   modalTextCodigo: {
     color: "grey",
