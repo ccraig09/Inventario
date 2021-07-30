@@ -19,7 +19,6 @@ import * as sendProduct from "../store/productActions";
 import Moment from "moment";
 import localization from "moment/locale/es-us";
 import InputSpinner from "react-native-input-spinner";
-import { useSelector, useDispatch } from "react-redux";
 import { Octicons } from "@expo/vector-icons";
 import DateTimePicker from "react-native-modal-datetime-picker";
 import { extendMoment } from "moment-range";
@@ -74,8 +73,6 @@ const CategoryGridTile = (props) => {
     if (dateDiff > 5) dateDiff = 0;
   };
 
-  const dispatch = useDispatch();
-
   let catArray = [
     "Embutidos",
     "Frutas y Verduras",
@@ -107,34 +104,6 @@ const CategoryGridTile = (props) => {
       setQuantityColor("red");
     }
   }, []);
-
-  // useEffect(() => {
-  // }, []);
-
-  // const quantityUpdateHandler = (newQ) => {
-  //   let Title;
-  //   let Price;
-  //   let Category;
-  //   let Size;
-  //   let brand;
-  //   let Code;
-
-  //   Title = props.title;
-  //   Price = props.price;
-  //   Category = props.category;
-  //   Size = props.size;
-  //   brand = props.brand;
-  //   Code = props.code;
-
-  //   console.log("need to see these deets", Title, Code, newQ);
-
-  //   dispatch(
-  //     sendProduct.quantityUpdate(Title, Price, Category, newQ, Size, Code)
-  //   );
-  //   setTimeout(() => {
-  //     props.reload();
-  //   }, 1000);
-  // };
 
   const dateHandler = useCallback(async (date) => {
     setExtendedDate(false);

@@ -6214,6 +6214,11 @@ react-native-searchable-dropdown@^1.1.3:
   resolved "https://registry.yarnpkg.com/react-native-searchable-dropdown/-/react-native-searchable-dropdown-1.1.3.tgz#dace445ab8696fc90438a5b3d05b4d5e569f9ea6"
   integrity sha512-ip6YwjKED/h27oRQGN3f62usFMj5IfS6tr/zZWfQItCAV/XAq5E9P0Exvg/86gSlcGJnnZdoixK+PS1sElxcyA==
 
+react-native-searchable-list@^1.1.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/react-native-searchable-list/-/react-native-searchable-list-1.1.3.tgz#d56884352f040cde058b251cc37c104ca532c604"
+  integrity sha512-dYuc2hCaEvu3CQcIJgEsJpHAuu4VLMkRJDGdFOlS68QQrO1/0IjrjIewOD3QDuAW8XmTcuEyCgE3r2+GidJ3oQ==
+
 react-native-size-matters@^0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/react-native-size-matters/-/react-native-size-matters-0.3.1.tgz#24d0cfc335a2c730f6d58bd7b43ea5a41be4b49f"

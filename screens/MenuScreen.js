@@ -29,6 +29,7 @@ import Moment from "moment";
 import { extendMoment } from "moment-range";
 import localization from "moment/locale/es-us";
 import DateTimePicker from "react-native-modal-datetime-picker";
+import { SearchableSectionList } from "react-native-searchable-list";
 
 import { TouchableWithoutFeedback } from "react-native";
 import Colors from "../constants/Colors";
@@ -45,6 +46,7 @@ const MenuScreen = (props) => {
   const [extendedDate, setExtendedDate] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
   const [prompt, setPrompt] = useState();
+  const [selectedDate, setSelectedDate] = useState();
   const [type, setType] = useState();
   const [newText, setNewText] = useState();
   const [placeholder, setPlaceholder] = useState();
@@ -58,13 +60,11 @@ const MenuScreen = (props) => {
   const [code, setCode] = useState("");
   const [category, setCategory] = useState("");
   const [brand, setBrand] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchAttribute, setSearchAttribute] = useState("Brand");
   const [quantity, setQuantity] = useState(0);
-  const [value, setValue] = useState("");
-  const [sell, setSell] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [loadedModal, setLoadedModal] = useState(false);
-  const [selected, setSelected] = useState(0);
-  const [newQ, setNewQ] = useState();
   const [newMode, setNewMode] = useState(true);
   const [loadedMode, setLoadedMode] = useState(false);
   const [newProduct, setNewProduct] = useState("");
@@ -600,18 +600,18 @@ const MenuScreen = (props) => {
         >
           <TextInput
             style={{ flex: 1 }}
-            onFocus={() => {
-              setSearchScreen(true);
-              // setFocused(true);
-              // setFilteredDataSource(availableProducts);
-              // setMasterDataSource(availableProducts);
-            }}
-            // clearButtonMode={"always"}
+            // onFocus={() => {
+            //   setSearchScreen(true);
+            //   // setFocused(true);
+            //   // setFilteredDataSource(availableProducts);
+            //   // setMasterDataSource(availableProducts);
+            // }}
+            clearButtonMode={"always"}
             // onBlur={() => {
             //   setFocused(false);
             // }}
-            // onChangeText={(text) => searchFilterFunction(text)}
-            // value={search}
+            onChangeText={(text) => setSearchTerm(text)}
+            value={searchTerm}
             // underlineColorAndroid="transparent"
             placeholder="Buscar"
           />
@@ -639,8 +639,8 @@ const MenuScreen = (props) => {
             // flex: 1,
           }
         }
-        behavior={Platform.OS === "android" ? "padding" : "position"}
-        keyboardVerticalOffset={-80}
+        behavior={"padding"}
+        keyboardVerticalOffset={80}
         // style={styles.screen}
       >
         <View>
@@ -924,7 +924,7 @@ const MenuScreen = (props) => {
                             style={styles.textInputStyle}
                             clearButtonMode={"always"}
                             underlineColorAndroid="transparent"
-                            // placeholder={newText}
+                            placeholder={placeholder}
                             onChangeText={(text) => setNewText(text)}
                             value={newText}
                           />
@@ -1140,8 +1140,10 @@ const MenuScreen = (props) => {
                             mode="date"
                             isVisible={extendedDate}
                             locale="es-ES"
+                            date={selectedDate}
                             onConfirm={
                               (date) => {
+                                setSelectedDate(date);
                                 dateHandler(date);
                               }
                               // this.handleDatePicked(date, "start", "showStart")
@@ -1260,12 +1262,16 @@ const MenuScreen = (props) => {
       </KeyboardAvoidingView>
 
       <View style={{ flex: 1, marginBottom: 30 }}>
-        <SectionList
+        <SearchableSectionList
           refreshing={isRefreshing}
           onRefresh={() => {
             fetchAvailableProducts();
             fetchPost();
           }}
+          searchTerm={searchTerm}
+          searchAttribute={searchAttribute}
+          ignoreCase={true}
+          searchByTitle={false}
           initialNumToRender={10}
           sections={catSections}
           keyExtractor={(item, index) => item + index}

@@ -599,14 +599,11 @@ const HomeScreen = ({ navigation }) => {
                 setMasterDataSource(inventory);
               }}
               onBlur={() => {
-                setFocused(false);
+                // setFocused(false);
                 // setFilteredDataSource(inventory);
                 // setMasterDataSource(inventory);
               }}
               clearButtonMode={"always"}
-              // onBlur={() => {
-              //   setFocused(false);
-              // }}
               onChangeText={(text) => searchFilterFunction(text)}
               value={search}
               underlineColorAndroid="transparent"
@@ -614,6 +611,16 @@ const HomeScreen = ({ navigation }) => {
             />
             <MaterialIcons name="search" size={24} color="black" />
           </View>
+          {focused && !search == "" && (
+            <TouchableOpacity
+              style={{ alignItems: "center" }}
+              onPress={() => {
+                setFocused(false);
+              }}
+            >
+              <Text style={{ color: "white" }}>Cargar Todos los productos</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
