@@ -25,20 +25,30 @@ import CategoryGridTile from "../components/CategoryGridTile";
 import { AuthContext } from "../navigation/AuthProvider";
 import firebase from "../components/firebase";
 import { useFocusEffect } from "@react-navigation/native";
+import Moment from "moment";
+import { extendMoment } from "moment-range";
+import localization from "moment/locale/es-us";
+import DateTimePicker from "react-native-modal-datetime-picker";
 
 import { TouchableWithoutFeedback } from "react-native";
 import Colors from "../constants/Colors";
 
 const MenuScreen = (props) => {
-  const { user, createProduct, addMemProd, qUpdate } = useContext(AuthContext);
+  const { user, createProduct, editedProduct, deleteProduct } =
+    useContext(AuthContext);
 
   const [isLoading, setIsLoading] = useState(false);
   const [availableProducts, setAvailableProducts] = useState([]);
   const [userProducts, setUserProducts] = useState();
   const [scanned, setScanned] = useState(false);
-  const [scanner, setScanner] = useState(false);
-  const [menu, setMenu] = useState(false);
   const [manualAdd, setManualAdd] = useState(false);
+  const [extendedDate, setExtendedDate] = useState(false);
+  const [editVisible, setEditVisible] = useState(false);
+  const [prompt, setPrompt] = useState();
+  const [type, setType] = useState();
+  const [newText, setNewText] = useState();
+  const [placeholder, setPlaceholder] = useState();
+  const [expDate, setExpDate] = useState();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState();
   const [scanCount, setScanCount] = useState(0);
@@ -73,31 +83,9 @@ const MenuScreen = (props) => {
   const [brandSelect, setBrandSelect] = useState(false);
   const [hasCode, setHasCode] = useState(false);
   const [searchScreen, setSearchScreen] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
-  // const userProducts = useSelector((state) => {
-  //   const transformedProducts = [];
-  //   for (const key in state.products.products) {
-  //     transformedProducts.push({
-  //       productId: key,
-  //       productTitle: state.products.products[key].Title,
-  //       productPrice: state.products.products[key].Price,
-  //       productCategory: state.products.products[key].Category,
-  //       productOwner: state.products.products[key].ownerId,
-  //       productQuantity: state.products.products[key].Quantity,
-  //       productSize: state.products.products[key].Size,
-  //       productBrand: state.products.products[key].Brand,
-  //       productTime: state.products.products[key].time,
-  //       productcode: state.products.products[key].Code,
-  //       docTitle: state.products.products[key].docTitle,
-  //     });
-  //   }
-  //   return transformedProducts;
-  // });
-  // const Item = ({ title }) => (
-  //   <View style={styles.item}>
-  //     <Text style={styles.title}>{title}</Text>
-  //   </View>
-  // );
+  const moment = extendMoment(Moment);
 
   const fetchAvailableProducts = async () => {
     setIsRefreshing(true);
@@ -349,6 +337,61 @@ const MenuScreen = (props) => {
     }, [])
   );
 
+  const itemUpdateHandler = () => {
+    console.log(
+      "need to see these deets",
+      newProduct,
+      newSize,
+      newPrice,
+      newCategory,
+      newBrand,
+      quantity,
+      expDate,
+      code
+    );
+    if (type === "Title") {
+      console.log("type is Title");
+      setNewProduct(newText);
+    }
+    if (type === "Brand") {
+      console.log("type is Brand");
+      setNewBrand(newText);
+    }
+    if (type === "Price") {
+      console.log("type is Price");
+      setNewPrice(newText);
+    }
+    if (type === "Size") {
+      console.log("type is Size");
+      setNewSize(newText);
+    }
+  };
+
+  const itemDeleteHandler = () => {
+    Alert.alert(
+      "Borrar producto?",
+      `El producto ${newProduct} será borrado de tu inventario?`,
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Si",
+          onPress: () => DeleteHandler(),
+        },
+      ]
+    );
+  };
+
+  const DeleteHandler = () => {
+    console.log("code to delete", code);
+    deleteProduct(code);
+    setLoadedModal(false);
+    setLoadedMode(false);
+    fetchPost();
+    fetchAvailableProducts();
+  };
   const searchFilterFunction = (text) => {
     // Check if searched text is not blank
     if (text) {
@@ -401,7 +444,6 @@ const MenuScreen = (props) => {
 
     if (hasCode) {
       createProduct(newProduct, newSize, newPrice, newCategory, newBrand, code);
-      // fetch
     }
     if (!hasCode) {
       createProduct(
@@ -424,6 +466,15 @@ const MenuScreen = (props) => {
           onPress: () => {
             setManualAdd(!manualAdd);
             setModalVisible(!modalVisible);
+            setNewBrand("");
+            setNewProduct("");
+            setNewPrice("");
+            setNewSize("");
+            setNewCategory("");
+            setCode("");
+            setQuantity(0);
+            fetchPost();
+            fetchAvailableProducts();
           },
         },
         {
@@ -466,87 +517,38 @@ const MenuScreen = (props) => {
     ]);
   };
 
+  const dateHandler = useCallback(async (date) => {
+    setExtendedDate(false);
+    var dateChanged = moment(date).format("YYYYMMDD");
+    setExpDate(dateChanged);
+  });
+
   const newInvProd = () => {
-    let Title = newProduct;
-    let Price = newPrice;
-    let Category = newCategory;
-    let Size = newSize;
-    let Brand = newBrand;
-    let Code = code;
-    console.log(
-      "new product added now going to add product to the available inventory list"
+    editedProduct(
+      newBrand,
+      newProduct,
+      newPrice,
+      newSize,
+      newCategory,
+      quantity,
+      expDate,
+      code
     );
-    addMemProd(Title, Price, Category, Size, Brand, Code);
     setLoadedMode(false);
     setLoadedModal(false);
+    setPrompt("");
+    setType();
+    setPlaceholder("");
+    setNewText();
+    setNewBrand("");
+    setNewProduct("");
+    setNewPrice("");
+    setNewSize("");
+    setNewCategory("");
+    setQuantity(0);
+    fetchPost();
+    fetchAvailableProducts();
   };
-
-  const quantityUpdateHandler = () => {
-    console.log("FROM NEW PRODUCT TO NEW Q", newQ, code);
-    qUpdate(newQ, code);
-
-    // fetchAvailableProducts();
-  };
-
-  // const uploadProduct = (
-  //   Title,
-  //   Price,
-  //   Category,
-  //   Quantity,
-  //   Size,
-  //   Brand,
-  //   Code
-  // ) => {
-  //   console.log("data listed", Quantity);
-  //   try {
-  //     if (Quantity > 1) {
-  //       console.log(
-  //         "item already exist, updating",
-  //         Title,
-  //         Price,
-  //         Category,
-  //         Quantity,
-  //         Size,
-  //         Brand,
-  //         Code
-  //       );
-
-  //       dispatch(
-  //         sendProduct.updateProducts(
-  //           Title,
-  //           Price,
-  //           Category,
-  //           Quantity,
-  //           Size,
-  //           Brand,
-  //           Code
-  //         )
-  //       );
-  //     } else {
-  //       console.log("first upload");
-  //       console.log(Title, Price, Category, Quantity, Size, Code);
-  //       dispatch(
-  //         sendProduct.createProduct(
-  //           Title,
-  //           Price,
-  //           Category,
-  //           Quantity,
-  //           Size,
-  //           Brand,
-  //           Code
-  //         )
-  //       );
-  //     }
-  //   } catch (err) {
-  //     setError(err.message);
-  //     console.log(error);
-  //   }
-  //   fetchAvailableProducts();
-  // };
-
-  // const continueScan = () => {
-  //   setScanned(false);
-  // };
 
   let Title;
   let Price;
@@ -668,11 +670,31 @@ const MenuScreen = (props) => {
                     <TouchableOpacity
                       onPress={() => {
                         setManualAdd(!manualAdd);
-                        setScanned(false);
+                        setNewBrand("");
+                        setNewProduct("");
+                        setNewPrice("");
+                        setNewSize("");
+                        setNewCategory("");
+                        setCode("");
+                        setQuantity(0);
                       }}
-                      style={{ marginRight: 25 }}
+                      style={{
+                        marginRight: 25,
+                        shadowColor: "black",
+                        shadowOffset: {
+                          width: 0,
+                          height: 5,
+                        },
+                        shadowOpacity: 0.15,
+                        // shadowRadius: 9.84,
+                        elevation: 0,
+                      }}
                     >
-                      <Ionicon name="ios-close" size={44} color="black" />
+                      <Ionicon
+                        name="close-circle-outline"
+                        size={44}
+                        color="black"
+                      />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => {
@@ -684,12 +706,14 @@ const MenuScreen = (props) => {
                         // continueScan();
                       }}
                     >
-                      <Text style={{ color: "blue" }}>Guardar</Text>
+                      <Text style={{ color: "blue", fontSize: 20 }}>
+                        Guardar
+                      </Text>
                     </TouchableOpacity>
                   </View>
                   <View>
                     <Text style={styles.modalTitle}>Nuevo Producto</Text>
-                    <View>
+                    <View style={{ alignItems: "center", width: "100%" }}>
                       <TextInput
                         style={styles.textInputStyle}
                         placeholder="Producto"
@@ -727,37 +751,96 @@ const MenuScreen = (props) => {
                           setNewSize(size);
                         }}
                       />
-                      <View>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setPicker(true);
+                        }}
+                      >
                         <Text style={[styles.modalText, { marginBottom: 15 }]}>
                           Categoria: {newCategory}
                         </Text>
-                      </View>
+                        {/* {!showPicker && ( */}
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            color: "silver",
+                            alignSelf: "center",
+                          }}
+                        >
+                          Mostrar opciones
+                        </Text>
+                        {/* )} */}
+                      </TouchableOpacity>
 
                       {/* <View style={styles.modalView}> */}
-                      <Picker
-                        selectedValue={picked}
-                        mode="dropdown"
-                        style={{
-                          alignSelf: "center",
-                          height: 25,
-                          marginTop: 60,
-                          marginBottom: 30,
-                          width: 250,
-                          justifyContent: "center",
+                      <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={picker}
+                        onRequestClose={() => {
+                          // setPicker(!picker);
                         }}
-                        itemStyle={{ fontSize: 16 }}
-                        onValueChange={(itemValue) => setNewCategory(itemValue)}
                       >
-                        {catOptions.map((item, index) => {
-                          return (
-                            <Picker.Item
-                              label={item}
-                              value={item}
-                              key={index}
-                            />
-                          );
-                        })}
-                      </Picker>
+                        <View style={styles.centeredView}>
+                          <View style={styles.modalViewPicker}>
+                            <Picker
+                              selectedValue={picked}
+                              mode="dropdown"
+                              style={{
+                                height: 30,
+                                marginTop: 20,
+                                // marginBottom: 30,
+                                width: "100%",
+                                justifyContent: "center",
+                              }}
+                              itemStyle={{ fontSize: 16 }}
+                              onValueChange={(itemValue) =>
+                                setPicked(itemValue)
+                              }
+                            >
+                              {catOptions.map((item, index) => {
+                                return (
+                                  <Picker.Item
+                                    label={item}
+                                    value={item}
+                                    key={index}
+                                  />
+                                );
+                              })}
+                            </Picker>
+                            <View
+                              style={{
+                                width: "100%",
+                                flexDirection: "row",
+                                justifyContent: "space-around",
+                                marginTop: 90,
+                              }}
+                            >
+                              <TouchableOpacity
+                                style={{
+                                  ...styles.openButton,
+                                }}
+                                onPress={() => {
+                                  setPicker(!picker);
+                                }}
+                              >
+                                <Text style={styles.textStyle}>Volver</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={{
+                                  ...styles.openButton,
+                                }}
+                                onPress={() => {
+                                  setNewCategory(picked);
+                                  setPicker(false);
+                                }}
+                              >
+                                <Text style={styles.textStyle}>Guardar</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      </Modal>
                       {/* <TouchableOpacity
                         style={{
                           ...styles.openButton,
@@ -786,116 +869,6 @@ const MenuScreen = (props) => {
                       )}
                     </View>
                   </View>
-
-                  {/* <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Text style={styles.modalTextCode}>Codigo: </Text>
-                    <Text style={styles.modalTextCodigo}>{code}</Text>
-                  </View> */}
-                  {/* <Text style={styles.modalText}>Codigo: {code}</Text> */}
-                  {/* </View> */}
-                  {/* //////////////////
-//////////////////
-//////////////////
-////////////////// */}
-                  {/* {title && (
-                    <View
-                      style={{
-                        margin: 10,
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={styles.quantitySelect}>
-                        (Opcional) Entrar cantidad
-                      </Text>
-
-                      <InputSpinner
-                        max={10000}
-                        min={0}
-                        step={1}
-                        fontSize={20}
-                        onMax={(max) => {
-                          Alert.alert(
-                            "llego al Maximo",
-                            "El maximo seria 1000"
-                          );
-                        }}
-                        colorMax={"red"}
-                        colorMin={"green"}
-                        colorLeft={"red"}
-                        colorRight={"blue"}
-                        value={quantity}
-                        onChange={(num) => {
-                          if (num === quantity) {
-                            null;
-                          } else {
-                            setNewQ(num);
-                          }
-                        }}
-                      />
-                    </View>
-                  )} */}
-
-                  {/* <View
-                    style={{
-                      width: "100%",
-                      flexDirection: "row",
-                      justifyContent: "space-around",
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={{
-                        ...styles.openButton,
-                        backgroundColor: "green",
-                      }}
-                      onPress={() => {
-                        setManualAdd(!manualAdd);
-                        // props.navigation.navigate("Home"),
-                        setScanned(false);
-                      }}
-                    >
-                      <Text style={styles.textStyle}>Volver</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{
-                        ...styles.openButton,
-                        backgroundColor: "#2196F3",
-                      }}
-                      onPress={() => {
-                        if (newMode) {
-                          newEntry();
-                          console.log(
-                            "theres a new available product",
-                            newProduct
-                          );
-                          continueScan();
-                        }
-                        // if (loadedMode) {
-                        //   console.log(
-                        //     "NEW PRODUCT ADDED now for member inventory"
-                        //   );
-                        //   newInvProd();
-                        //   setModalVisible(!modalVisible);
-                        //   continueScan();
-                        // }
-                        // if (title) {
-                        //   console.log(
-                        //     "not adding a new product just to the member inventory"
-                        //   );
-                        //   quantityUpdateHandler();
-                        //   setModalVisible(!modalVisible);
-                        //   continueScan();
-                        // }
-                      }}
-                    >
-                      <Text style={styles.textStyle}>Guardar</Text>
-                    </TouchableOpacity>
-                  </View> */}
                 </View>
               </View>
             </TouchableWithoutFeedback>
@@ -929,54 +902,266 @@ const MenuScreen = (props) => {
             >
               <View style={styles.centeredView}>
                 <View style={styles.modalView}>
+                  <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={editVisible}
+                    onRequestClose={() => {
+                      setPrompt();
+                      setEditVisible(!editVisible);
+                    }}
+                  >
+                    <TouchableWithoutFeedback
+                      onPress={() => {
+                        Keyboard.dismiss();
+                      }}
+                    >
+                      <View style={styles.centeredView}>
+                        <View style={styles.modalView}>
+                          <Text style={styles.modalEdit2}>Editar:</Text>
+                          <Text style={styles.modalEdit}>{prompt}</Text>
+                          <TextInput
+                            style={styles.textInputStyle}
+                            clearButtonMode={"always"}
+                            underlineColorAndroid="transparent"
+                            // placeholder={newText}
+                            onChangeText={(text) => setNewText(text)}
+                            value={newText}
+                          />
+                          <View
+                            style={{
+                              width: "100%",
+                              flexDirection: "row",
+                              justifyContent: "space-around",
+                            }}
+                          >
+                            <TouchableOpacity
+                              style={{
+                                ...styles.openButton,
+                                backgroundColor: Colors.primary,
+                              }}
+                              onPress={() => {
+                                setPrompt("");
+                                setType();
+                                setPlaceholder("");
+                                setNewText();
+                                setEditVisible(!editVisible);
+                              }}
+                            >
+                              <Text style={styles.textStyle}>Volver</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={{
+                                ...styles.openButton,
+                                backgroundColor: Colors.primary,
+                              }}
+                              onPress={() => {
+                                itemUpdateHandler();
+                                setPrompt("");
+                                setType();
+                                setPlaceholder("");
+                                setNewText();
+                                setEditVisible(!editVisible);
+                              }}
+                            >
+                              <Text style={styles.textStyle}>Guardar</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </View>
+                    </TouchableWithoutFeedback>
+                  </Modal>
                   <View>
-                    <Text style={styles.modalTitle}>Producto para editar:</Text>
-                    <Text style={styles.modalHead}>{newProduct}</Text>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
+                    <TouchableOpacity
+                      onPress={() => {
+                        setPrompt("Titulo");
+                        setType("Title");
+                        setPlaceholder(newProduct);
+                        setEditVisible(true);
                       }}
                     >
-                      <Text style={styles.modalText}>Marca: </Text>
-                      <Text style={styles.modalText}>{newBrand}</Text>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
+                      <Text style={styles.modalTitle}>
+                        Producto para editar:
+                      </Text>
+                      <Text style={styles.modalHead}>{newProduct}</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.modalItemBorderCategoria}
+                      onPress={() => {
+                        setPrompt("Tamaño");
+                        setType("Size");
+                        setPlaceholder(newSize);
+                        setEditVisible(true);
                       }}
                     >
-                      <Text style={styles.modalText}>Precio: </Text>
-                      <Text style={styles.modalText}>${newPrice}bs</Text>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Text style={styles.modalText}>Tamaño: </Text>
+                      <Text style={styles.modalTextTitle}>Tamaño: </Text>
                       <Text style={styles.modalText}>{newSize}</Text>
-                    </View>
+                    </TouchableOpacity>
+
                     <View
                       style={{
                         flexDirection: "row",
                         justifyContent: "space-between",
                       }}
                     >
-                      <Text style={styles.modalText}>Categoria: </Text>
+                      <TouchableOpacity
+                        style={styles.modalItemBorder}
+                        onPress={() => {
+                          setPrompt("Marca");
+                          setType("Brand");
+                          setPlaceholder(newBrand);
+                          setEditVisible(true);
+                        }}
+                      >
+                        <Text style={styles.modalTextTitle}>Marca: </Text>
+                        <Text style={styles.modalText}>{newBrand}</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.modalItemBorder}
+                        onPress={() => {
+                          setPrompt("Precio");
+                          setType("Price");
+                          setPlaceholder(newPrice.toString());
+                          setEditVisible(true);
+                        }}
+                      >
+                        <Text style={styles.modalTextTitle}>Precio: </Text>
+                        <Text style={styles.modalText}>${newPrice}bs</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.modalItemBorderCategoria}
+                      onPress={() => {
+                        setPrompt("Categoria");
+                        setType("Category");
+                        setPicker(true);
+                      }}
+                    >
+                      <Text style={styles.modalTextTitle}>Categoria: </Text>
                       <Text style={styles.modalText}>{newCategory}</Text>
+                    </TouchableOpacity>
+
+                    {/* ///////////
+///////////
+///////////
+///////////
+///////////
+///////////
+/////////// */}
+
+                    <View style={styles.modalItemBorderCategoria}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setExtendedDate(true);
+                        }}
+                      >
+                        <Text style={styles.modalTextTitle}>Fecha de Exp:</Text>
+                        <Text style={styles.modalText}>
+                          {moment(expDate)
+                            .locale("es", localization)
+                            .format("LL")}
+                        </Text>
+                      </TouchableOpacity>
+                      <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={picker}
+                        onRequestClose={() => {
+                          // setPicker(!picker);
+                        }}
+                      >
+                        <View style={styles.centeredView}>
+                          <View style={styles.modalViewPicker}>
+                            <Picker
+                              selectedValue={picked}
+                              mode="dropdown"
+                              style={{
+                                height: 30,
+                                marginTop: 20,
+                                // marginBottom: 30,
+                                width: "100%",
+                                justifyContent: "center",
+                              }}
+                              itemStyle={{ fontSize: 16 }}
+                              onValueChange={(itemValue) =>
+                                setPicked(itemValue)
+                              }
+                            >
+                              {catOptions.map((item, index) => {
+                                return (
+                                  <Picker.Item
+                                    label={item}
+                                    value={item}
+                                    key={index}
+                                  />
+                                );
+                              })}
+                            </Picker>
+                            <View
+                              style={{
+                                width: "100%",
+                                flexDirection: "row",
+                                justifyContent: "space-around",
+                                marginTop: 90,
+                              }}
+                            >
+                              <TouchableOpacity
+                                style={{
+                                  ...styles.openButton,
+                                }}
+                                onPress={() => {
+                                  setPicker(!picker);
+                                }}
+                              >
+                                <Text style={styles.textStyle}>Volver</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={{
+                                  ...styles.openButton,
+                                }}
+                                onPress={() => {
+                                  setNewCategory(picked);
+                                  setPicker(false);
+                                }}
+                              >
+                                <Text style={styles.textStyle}>Guardar</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      </Modal>
+
+                      {extendedDate && (
+                        <View>
+                          <DateTimePicker
+                            mode="date"
+                            isVisible={extendedDate}
+                            locale="es-ES"
+                            onConfirm={
+                              (date) => {
+                                dateHandler(date);
+                              }
+                              // this.handleDatePicked(date, "start", "showStart")
+                            }
+                            onCancel={() => {
+                              setExtendedDate(false);
+                            }}
+                            cancelTextIOS={"Cancelar"}
+                            confirmTextIOS={"Confirmar"}
+                            headerTextIOS={"Elige una fecha"}
+                          />
+                        </View>
+                      )}
                     </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Text style={styles.modalText}>Cantidad Total: </Text>
-                      <Text style={styles.modalText}>{quantity}</Text>
-                    </View>
+
+                    {/* //////////////////////////////
+                    //////////////////
+                    ///////
+                    //////////////////////////////
+                    ////////////////// */}
                   </View>
 
                   <View
@@ -988,17 +1173,15 @@ const MenuScreen = (props) => {
                     <Text style={styles.modalTextCode}>Codigo: </Text>
                     <Text style={styles.modalTextCodigo}>{code}</Text>
                   </View>
-
-                  <View
-                    style={{
-                      margin: 10,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
+                  <KeyboardAvoidingView
+                    keyboardVerticalOffset={30}
+                    behavior={"padding"}
+                    style={[
+                      styles.modalItemBorderCategoria,
+                      { marginBottom: 20 },
+                    ]}
                   >
-                    <Text style={styles.quantitySelect}>
-                      (Opcional) Entrar cantidad
-                    </Text>
+                    <Text style={styles.modalTextTitle}>Cantidad: </Text>
 
                     <InputSpinner
                       max={10000}
@@ -1006,25 +1189,27 @@ const MenuScreen = (props) => {
                       step={1}
                       fontSize={20}
                       onMax={(max) => {
-                        Alert.alert("llego al Maximo", "El maximo seria 10000");
+                        Alert.alert("llego al Maximo", "El maximo seria 1000");
                       }}
                       skin={"clean"}
                       background={"#F5F3F3"}
+                      // colorAsBackground={true}
                       colorMax={"red"}
+                      width={"50%"}
                       colorMin={"green"}
-                      colorLeft={"red"}
-                      colorRight={"blue"}
+                      colorLeft={"#FF4949"}
+                      colorRight={"#FF4949"}
                       value={quantity}
-                      onChange={(num) => setNewQ(num)}
-                      //   {if (num === quantity) {
-                      //     null;
-                      //   } else {
-                      //     setNewQ(num);
-                      //   }
-                      // }}
+                      onChange={(num) => {
+                        if (num === quantity) {
+                          null;
+                        } else {
+                          setQuantity(num);
+                        }
+                      }}
                     />
-                  </View>
-
+                    <Text style={styles.quantitySelect}>Entrar cantidad</Text>
+                  </KeyboardAvoidingView>
                   <View
                     style={{
                       width: "100%",
@@ -1035,41 +1220,33 @@ const MenuScreen = (props) => {
                     <TouchableOpacity
                       style={{
                         ...styles.openButton,
-                        backgroundColor: "green",
+                        backgroundColor: Colors.primary,
                       }}
                       onPress={() => {
                         setLoadedModal(false);
-                        setScanned(false);
+                        setLoadedMode(false);
                       }}
                     >
-                      <Text style={styles.textStyle}>Volver</Text>
+                      <Text style={styles.textStyle}>Cerrar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={{
                         ...styles.openButton,
-                        backgroundColor: "#2196F3",
+                        backgroundColor: Colors.primary,
                       }}
                       onPress={() => {
-                        // if (newMode) {
-                        //   newEntry();
-                        //   console.log("theres a new product", newProduct);
-                        //   continueScan();
-                        // }
-                        // if (loadedMode) {
-                        console.log("NEW PRODUCT ADDED now for inventory");
+                        itemDeleteHandler();
+                      }}
+                    >
+                      <Text style={styles.textStyle}>Borrar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{
+                        ...styles.openButton,
+                        backgroundColor: Colors.primary,
+                      }}
+                      onPress={() => {
                         newInvProd();
-                        quantityUpdateHandler();
-                        setModalVisible(!modalVisible);
-                        // continueScan();
-                        // }
-                        // if (title) {
-                        //   console.log(
-                        //     "not adding a new product just to the inventory"
-                        //   );
-                        //   quantityUpdateHandler();
-                        //   setModalVisible(!modalVisible);
-                        //   continueScan();
-                        // }
                       }}
                     >
                       <Text style={styles.textStyle}>Guardar</Text>
@@ -1178,7 +1355,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   openButton: {
-    backgroundColor: "#F194FF",
+    backgroundColor: Colors.primary,
     borderRadius: 20,
     padding: 10,
     elevation: 2,
@@ -1313,7 +1490,7 @@ const styles = StyleSheet.create({
   },
   textInputStyle: {
     height: 40,
-    width: "70%",
+    width: 200,
     borderRadius: 20,
     borderWidth: 1,
     paddingHorizontal: 10,
