@@ -12,6 +12,10 @@ import InventoryNavigator from "./navigation/InventoryNavigator";
 import Providers from "./navigation";
 import orderReducer from "./store/orders";
 import cartReducer from "./store/cartReducer";
+import exportOrders from "./store/exportOrdersReducer";
+import { LogBox } from "react-native";
+
+LogBox.ignoreLogs(["Setting a timer for a long period of time"]);
 
 const rootReducer = combineReducers({
   products: productsReducer,
@@ -20,6 +24,7 @@ const rootReducer = combineReducers({
   storeName: storeName,
   cart: cartReducer,
   orders: orderReducer,
+  export: exportOrders,
 });
 
 const store = createStore(rootReducer, applyMiddleware(ReduxThunk));

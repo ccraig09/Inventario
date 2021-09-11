@@ -61,7 +61,7 @@ const MenuScreen = (props) => {
   const [category, setCategory] = useState("");
   const [brand, setBrand] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchAttribute, setSearchAttribute] = useState("Brand");
+  const [searchAttribute, setSearchAttribute] = useState("Product");
   const [quantity, setQuantity] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [loadedModal, setLoadedModal] = useState(false);
